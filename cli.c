@@ -67,6 +67,14 @@ uint16_t cli_clean(char *cmd) {
 	return cursor;
 }
 
+/**
+ * @brief Splits a given command into arguments
+ * 
+ * @param cmd	The input command
+ * @param argv	The output arg array
+ * 
+ * @returns the number of args
+ */
 uint16_t _cli_get_args(char cmd[BUF_SIZE], char *argv[BUF_SIZE]) {
 	uint16_t argc = 0;
 	argv[argc] = cmd;
@@ -81,6 +89,7 @@ uint16_t _cli_get_args(char cmd[BUF_SIZE], char *argv[BUF_SIZE]) {
 }
 
 void cli_print(cli_t *cli, char *text, size_t length) {
+	// We don't use interrupt transmit because this fn can get called from a callback
 	HAL_UART_Transmit(cli->uart, (uint8_t *)text, length, 500);
 }
 
@@ -89,6 +98,9 @@ bool _cli_get_next_history_node(cli_t *cli, int8_t direction, llist_node *next) 
 	return llist_get(cli->history, cli->current_hist_index + direction, next) == LLIST_SUCCESS;
 }
 
+/**
+ * @brief Handles history
+ */
 void cli_handle_escape(cli_t *cli) {
 	if (cli->current_command.buffer[cli->current_command.index - 1] == '[') {
 		cli->escaping = BUF_SIZE;
@@ -129,6 +141,11 @@ void cli_handle_escape(cli_t *cli) {
 	}
 }
 
+/**
+ * @brief Main CLI loop
+ * @details When called, this function checks the current cli status and calls the command parser when needed.
+ * 			Call this in your main loop for best responsiveness.
+ */
 void cli_loop(cli_t *cli) {
 	if (cli->receive) {
 		cli->receive = false;
@@ -202,7 +219,10 @@ void cli_handle_interrupt(cli_t *cli) {
 	cli->receive = true;
 }
 
-// Interrupt callback
+/**
+ * @brief Interrupt callback
+ * @details Call this function when a char is received
+ */
 void cli_char_receive(cli_t *cli) {
 	if (cli->input_buf != '\0') {
 		if (cli->input_buf == '\033') {	 // Arrow
