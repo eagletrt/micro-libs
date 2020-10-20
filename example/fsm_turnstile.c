@@ -8,7 +8,7 @@ uint16_t do_error(fsm *FSM);
 fsm fsm_turnstile;	// Define the turnstile fsm struct. This is accessible from the outside
 
 void fsm_turnstile_init() {
-	fsm_init(&fsm_turnstile);
+	fsm_init(&fsm_turnstile, TURNSTILE_NUM_STATES);
 
 	// Make sure to assign EVERY slot of the array.
 	fsm_turnstile.state_table[TURNSTILE_INIT] = &do_init;
