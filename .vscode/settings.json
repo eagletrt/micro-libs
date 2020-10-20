@@ -1,0 +1,4 @@
+{
+    "C_Cpp.default.cStandard": "c11",
+    "C_Cpp.clang_format_fallbackStyle": "{BasedOnStyle: Google, UseTab: true, IndentWidth: 4, TabWidth: 4, ColumnLimit: 0, AllowShortIfStatementsOnASingleLine: false}",
+}
