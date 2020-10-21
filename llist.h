@@ -51,7 +51,7 @@ typedef bool (*equal)(llist_node, llist_node);
 	{ 0, NULL, NULL, NULL, NULL }
 
 /**
- * @brief Init a list
+ * @brief Initialize a list
  * @param[in] compare_func a function used to compare elements in the list
  * @param[in] equal_func a function used to check if two elements are equal
  * @return new list if success, NULL on error
