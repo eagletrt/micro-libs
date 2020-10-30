@@ -26,6 +26,7 @@ struct fsm {
 
 void fsm_init(fsm *FSM, uint16_t num_states);
 void fsm_deinit(fsm *FSM);
+uint16_t fsm_get_state(fsm *FSM);
 void fsm_set_state(fsm *FSM, uint16_t state);
 void fsm_run(fsm *FSM);
 #endif

@@ -34,6 +34,13 @@ void fsm_deinit(fsm *FSM) {
 }
 
 /**
+ * @returns	The current running state
+ */
+uint16_t fsm_get_state(fsm *FSM) {
+	return FSM->future_state;
+}
+
+/**
  * @brief	Sets the next state to be run
  * @details	This funciton is meant to be used to trigger the fsm externally.
  * 			For example, if a critical error is detected in an interrupt callback, and immediate action is required,
@@ -41,7 +48,7 @@ void fsm_deinit(fsm *FSM) {
  * 			WARNING: Always double-check when using this function. It can lead to undefined behaviour.
  * 
  * @param	FSM		The FSM struct
- * @param	state	The next state to be run
+ * @param	state	The next state to run
  */
 void fsm_set_state(fsm *FSM, uint16_t state) {
 	FSM->future_state = state;
