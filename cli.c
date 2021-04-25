@@ -188,7 +188,7 @@ void cli_loop(cli_t *cli) {
 			}
 		}
 
-		char *argv[BUF_SIZE];
+		char *argv[BUF_SIZE] = {'\0'};
 		uint16_t argc = _cli_get_args(cli->current_command.buffer, argv);
 
 		// TODO: Make this better
@@ -196,7 +196,7 @@ void cli_loop(cli_t *cli) {
 
 		// Check which command corresponds with the buffer
 		for (uint16_t i = 0; i < cli->cmds.count; i++) {
-			size_t len = strlen(cli->cmds.names[i]);
+			//size_t len = strlen(cli->cmds.names[i]);
 
 			if (strcmp(argv[0], cli->cmds.names[i]) == 0) {
 				cli->cmds.functions[i](argc, argv, tx_buf);
