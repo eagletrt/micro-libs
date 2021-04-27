@@ -37,7 +37,7 @@ void fsm_deinit(fsm *FSM) {
  * @returns	The current running state
  */
 uint16_t fsm_get_state(fsm *FSM) {
-	return FSM->future_state;
+	return FSM->current_state;
 }
 
 /**
