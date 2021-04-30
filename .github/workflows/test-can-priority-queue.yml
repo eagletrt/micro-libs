@@ -3,8 +3,10 @@ on: [push, pull_request]
 jobs:
   run-munit-tests:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: can-priority-queue/test
     steps:
       - uses: actions/checkout@v2
-      - run: cd can-priority-queue/test
       - run: make test
       - run : ./test
