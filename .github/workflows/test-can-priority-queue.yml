@@ -8,5 +8,6 @@ jobs:
         working-directory: can-priority-queue/test
     steps:
       - uses: actions/checkout@v2
+      - uses: textbook/git-checkout-submodule-action@master
       - run: make test
       - run : ./test
