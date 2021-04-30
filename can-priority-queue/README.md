@@ -32,7 +32,7 @@ $ valgrind --tool=memcheck --leak-check=full --show-reachable=yes test
 The suggested way of including this library in your project is to add it as a git submodule:
 
 ```shell
-$ git submodule add https://github.com/eagletrt/can-priority-queue
+$ git submodule add https://github.com/eagletrt/micro-libs
 ```
 
 This way, you will be able to easily update the code within git itself, should any new commit be pushed in the future.

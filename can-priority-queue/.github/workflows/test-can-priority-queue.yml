@@ -1,0 +1,10 @@
+name: "CI for can-priority-queue"
+on: [push, pull-request]
+jobs:
+  run-munit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: cd can-priority-queue/test
+      - run: make test
+      - run : ./test
