@@ -1,5 +1,5 @@
 name: "CI for can-priority-queue"
-on: [push, pull-request]
+on: [push, pull_request]
 jobs:
   run-munit-tests:
     runs-on: ubuntu-latest
