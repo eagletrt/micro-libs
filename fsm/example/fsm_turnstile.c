@@ -1,64 +1,85 @@
 #include "fsm_turnstile.h"
 
-uint16_t do_init(fsm *FSM);
-uint16_t do_wait(fsm *FSM);
-uint16_t do_unlock(fsm *FSM);
-uint16_t do_error(fsm *FSM);
+uint16_t _do_init(fsm *FSM);
+uint16_t _do_idle(fsm *FSM);
+uint16_t _do_unlock(fsm *FSM);
+uint16_t _do_wait_lock(fsm *FSM);
+uint16_t _do_error(fsm *FSM);
 
-fsm fsm_turnstile;	// Define the turnstile fsm struct. This is accessible from the outside
+fsm fsm_turnstile;	// Define the turnstile fsm struct. This is accessible from
+					// the outside
+
+uint32_t unlock_time = 0;
 
 void fsm_turnstile_init() {
 	fsm_init(&fsm_turnstile, TURNSTILE_NUM_STATES);
 
 	// Make sure to assign EVERY slot of the array.
-	fsm_turnstile.state_table[TURNSTILE_INIT] = &do_init;
-	fsm_turnstile.state_table[TURNSTILE_WAIT] = &do_wait;
-	fsm_turnstile.state_table[TURNSTILE_UNLOCK] = &do_unlock;
-	fsm_turnstile.state_table[TURNSTILE_ERROR] = &do_error;
+	fsm_turnstile.state_table[TURNSTILE_INIT] = &_do_init;
+	fsm_turnstile.state_table[TURNSTILE_IDLE] = &_do_idle;
+	fsm_turnstile.state_table[TURNSTILE_UNLOCK] = &_do_unlock;
+	fsm_turnstile.state_table[TURNSTILE_WAIT_LOCK] = &_do_wait_lock;
+	fsm_turnstile.state_table[TURNSTILE_ERROR] = &_do_error;
+}
+
+void fsm_turnstile_unlock_handler() {
+	// Here we check if the fsm is in a state which is compatible with the
+	// unlock event and we set the future state accordingly
+	switch (fsm_get_state(&fsm_turnstile)) {
+		case TURNSTILE_IDLE:
+		case TURNSTILE_WAIT_LOCK:
+			fsm_set_state(&fsm_turnstile, TURNSTILE_UNLOCK);
+			break;
+		default:
+			// current state not compatible
+			break;
+	}
 }
 
 /**
- * Initialize peripherals and data structures
+ * @brief Initialize peripherals and data structures
  */
-uint16_t do_init(fsm *FSM) {
+uint16_t _do_init(fsm *FSM) {
 	// display_init();
 	// cardreader_init();
 
-	return TURNSTILE_WAIT;
+	return TURNSTILE_IDLE;
 }
 
 /**
- * Wait for a card to be read
+ * @brief Wait for a card to be read
  */
-uint16_t do_wait(fsm *FSM) {
-	if (/*cardreader_readcard()*/) {
-		if (/*cardreader_cardvalid()*/)
-			return TURNSTILE_UNLOCK;
-
-		return TURNSTILE_ERROR;
-	}
-
-	return TURNSTILE_WAIT;
+uint16_t _do_idle(fsm *FSM) {
+	// display_showmessage(time.now());
+	return TURNSTILE_IDLE;
 }
 
 /**
- * Unlock turnstile
+ * @brief Unlock turnstile
  */
-uint16_t do_unlock(fsm *FSM) {
+uint16_t _do_unlock(fsm *FSM) {
 	// display_showmessage("Card Valid! :)");
 	// turnstile_unlock();
-	// wait(3000);
-	// turnstile_lock();
+	// unlock_time = time.now();
 
-	return TURNSTILE_WAIT;
+	return TURNSTILE_WAIT_LOCK;
+}
+
+uint16_t _do_wait_lock(fsm *FSM) {
+	if (/* time.now() - unlock_time >= 3000 */) {
+		// turnstile_lock();
+		return TURNSTILE_IDLE;
+	}
+
+	return TURNSTILE_WAIT_LOCK;
 }
 
 /**
- * The card is not valid
+ * @brief The card is not valid
  */
-uint16_t do_error(fsm *FSM) {
+uint16_t _do_error(fsm *FSM) {
 	// display_showmessage("Card Not Valid! :(");
-	// wait(1000);
+	// wait(2000);
 
-	return TURNSTILE_WAIT;
+	return TURNSTILE_IDLE;
 }

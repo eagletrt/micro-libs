@@ -10,3 +10,8 @@ void main() {
 		fsm_run(&fsm_turnstile);
 	}
 }
+
+/**
+ * @brief Interrupt callback from the card reader
+ */
+void cardreader_validcard_handler() { fsm_turnstile_unlock_handler(); }
