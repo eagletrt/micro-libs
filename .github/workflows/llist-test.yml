@@ -1,0 +1,13 @@
+name: "CI for llist"
+
+on: [ push, pull_request ]
+
+jobs:
+  munit-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: llist/test
+    steps:
+    - uses: actions/checkout@v2 
+    - run: make test
