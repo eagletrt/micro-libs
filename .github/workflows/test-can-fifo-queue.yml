@@ -1,0 +1,13 @@
+name: "CI for can-fifo-queue"
+on: [push, pull_request]
+jobs:
+  run-munit-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: can-fifo-queue/test
+    steps:
+      - uses: actions/checkout@v2
+      - uses: textbook/git-checkout-submodule-action@master
+      - run: make test
+      - run : ./test
