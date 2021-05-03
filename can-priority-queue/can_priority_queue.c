@@ -43,7 +43,7 @@ void _CANPQ_free_node(_CANPQ_QueueTypeDef * queue, CANPQ_NodeTypeDef * node) {
  * */
 void CANPQ_init(_CANPQ_QueueTypeDef ** queue) {
     /* Initialize pointers to NULL */
-    (*queue) = malloc(sizeof(_CANPQ_QueueTypeDef *));
+    (*queue) = malloc(sizeof(_CANPQ_QueueTypeDef));
     (*queue)->head = (*queue)->free_nodes = NULL;
 
     /* Pre-allocate all nodes */

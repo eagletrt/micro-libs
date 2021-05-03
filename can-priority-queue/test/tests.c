@@ -7,7 +7,6 @@
 #include "../../munit/munit.h"
 #include "tests.h"
 
-#include "can.h"
 #include "../can_priority_queue.h"
 
 int _cmp_int(const void * a, const void * b) {

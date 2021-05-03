@@ -12,6 +12,7 @@
 #define CAN_PRIO_Q_H
 
 #include "stdbool.h"
+#include "stdint.h"
 
 
 #ifdef CANPQ_TEST
