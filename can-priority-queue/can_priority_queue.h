@@ -13,11 +13,18 @@
 
 #include "stdbool.h"
 
+
 #ifdef CANPQ_TEST
-// This constant is supposed to be only defined when testing the library
-// to import a mock CAN_MessageTypeDef type as it not otherwise available.
-#include "test/can.h"
+    // This constant is supposed to be only defined when testing the library
+    // to create a mock CAN_MessageTypeDef type as it not otherwise available.
+    typedef struct {
+        uint16_t id;
+        uint16_t data;
+    } CAN_MessageTypeDef;
+#else
+    #include "can.h"
 #endif
+
 
 #define CANPQ_SIZE 100
 
