@@ -2,7 +2,7 @@
 #define TESTS_H
 
 #define MUNIT_ENABLE_ASSERT_ALIASES
-#include "munit/munit.h"
+#include "../../munit/munit.h"
 
 MunitResult test_is_empty(const MunitParameter * params, void *);
 MunitResult test_ordered_insert(const MunitParameter *, void *);
