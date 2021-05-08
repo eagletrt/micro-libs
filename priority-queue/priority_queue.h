@@ -27,8 +27,7 @@ typedef struct _PQ_QueueTypeDef *PQ_QueueTypeDef;
 void PQ_init(PQ_QueueTypeDef *queue, size_t payload_size);
 void PQ_destroy(PQ_QueueTypeDef *);
 bool PQ_is_empty(PQ_QueueTypeDef);
-void PQ_insert(PQ_QueueTypeDef queue, PQ_PriorityTypeDef priority,
-			   void *payload);
+void PQ_insert(PQ_QueueTypeDef queue, PQ_PriorityTypeDef priority, void *payload);
 void *PQ_peek_highest(PQ_QueueTypeDef);
 void PQ_pop_highest(PQ_QueueTypeDef);
 
