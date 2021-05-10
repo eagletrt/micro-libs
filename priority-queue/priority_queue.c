@@ -13,6 +13,7 @@ typedef struct PQ_NodeTypeDef {
 typedef struct _PQ_QueueTypeDef {
     PQ_NodeTypeDef *head;
     PQ_NodeTypeDef *free_nodes;
+    size_t queue_length;
     size_t payload_size;
 } _PQ_QueueTypeDef;
 
@@ -38,17 +39,19 @@ void _PQ_free_node(_PQ_QueueTypeDef *queue, PQ_NodeTypeDef *node) {
  * @brief Initializes a new priority queue
  * @param queue The queue to initialize
  * */
-void PQ_init(_PQ_QueueTypeDef **queue, size_t payload_size) {
+void PQ_init(_PQ_QueueTypeDef **queue, size_t queue_length, size_t payload_size) {
     /* Initialize pointers to NULL */
     (*queue)       = malloc(sizeof(_PQ_QueueTypeDef));
     (*queue)->head = (*queue)->free_nodes = NULL;
 
     (*queue)->payload_size = payload_size;
+    (*queue)->queue_length = queue_length;
 
     /* Pre-allocate all nodes */
     PQ_NodeTypeDef *cursor;
-    for (uint32_t i = 0; i < PQ_SIZE; i++) {
-        cursor               = malloc((*queue)->payload_size);
+    for (size_t i = 0; i < (*queue)->queue_length; i++) {
+        cursor               = (PQ_NodeTypeDef *)malloc(sizeof(PQ_NodeTypeDef));
+        cursor->payload      = malloc((*queue)->payload_size);
         cursor->next         = (*queue)->free_nodes;
         (*queue)->free_nodes = cursor;
     }
@@ -66,6 +69,7 @@ void PQ_destroy(_PQ_QueueTypeDef **q) {
     while (queue->head != NULL) {
         cursor      = queue->head;
         queue->head = queue->head->next;
+        //free(cursor->payload);
         free(cursor);
     }
 
@@ -73,6 +77,7 @@ void PQ_destroy(_PQ_QueueTypeDef **q) {
     while (queue->free_nodes != NULL) {
         cursor            = queue->free_nodes;
         queue->free_nodes = queue->free_nodes->next;
+        //free(cursor->payload);
         free(cursor);
     }
 

@@ -47,7 +47,7 @@ void fsm_init(fsm *FSM, uint16_t state_count) {
     FSM->future_state  = FSM->current_state;
     FSM->state_count   = state_count;
 
-    PQ_init(&FSM->event_queue, FSM->state_count);
+    PQ_init(&FSM->event_queue, FSM->state_count * 2, FSM->state_count);
 
     FSM->state_table = malloc(sizeof(state_function) * FSM->state_count);
     for (uint16_t i = 0; i < FSM->state_count; i++) {
@@ -96,6 +96,7 @@ void fsm_run(fsm *FSM) {
 
         } while (!_fsm_set_state(FSM, *e) && !PQ_is_empty(FSM->event_queue));
     }
+    // rm future_state
 
     uint16_t future    = FSM->state_table[FSM->current_state][FSM->future_state](FSM);
     FSM->current_state = FSM->future_state;

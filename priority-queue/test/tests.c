@@ -8,6 +8,8 @@
 #include "../priority_queue.h"
 #include "tests.h"
 
+#define PQ_SIZE 100
+
 typedef struct msg {
     uint8_t n;
     char c[8];
@@ -19,7 +21,7 @@ int _cmp_int(const void *a, const void *b) {
 
 MunitResult test_is_empty(const MunitParameter *params, void *data) {
     PQ_QueueTypeDef q;
-    PQ_init(&q, sizeof(msg));
+    PQ_init(&q, PQ_SIZE, sizeof(msg));
 
     assert_true(PQ_is_empty(q));
 
@@ -35,7 +37,7 @@ MunitResult test_is_empty(const MunitParameter *params, void *data) {
 MunitResult test_ordered_insert(const MunitParameter *params, void *data) {
     PQ_QueueTypeDef q;
 
-    PQ_init(&q, sizeof(msg));
+    PQ_init(&q, PQ_SIZE, sizeof(msg));
 
     for (int i = 0; i < PQ_SIZE; i++) {
         msg m = {i, "abc"};
@@ -54,7 +56,7 @@ MunitResult test_ordered_insert(const MunitParameter *params, void *data) {
 
 MunitResult test_reverse_insert(const MunitParameter *params, void *data) {
     PQ_QueueTypeDef q;
-    PQ_init(&q, sizeof(msg));
+    PQ_init(&q, PQ_SIZE, sizeof(msg));
 
     for (int i = PQ_SIZE - 1; i >= 0; i--) {
         msg m = {i, "abc"};
@@ -79,7 +81,7 @@ MunitResult test_random_insert(const MunitParameter *params, void *data) {
         IDs[i] = rand() % UINT8_MAX;
 
     PQ_QueueTypeDef q;
-    PQ_init(&q, sizeof(msg));
+    PQ_init(&q, PQ_SIZE, sizeof(msg));
 
     for (int i = 0; i < PQ_SIZE; i++) {
         msg m = {IDs[i], "abc"};
@@ -100,7 +102,7 @@ MunitResult test_random_insert(const MunitParameter *params, void *data) {
 
 MunitResult test_no_starvation(const MunitParameter *params, void *data) {
     PQ_QueueTypeDef q;
-    PQ_init(&q, sizeof(msg));
+    PQ_init(&q, PQ_SIZE, sizeof(msg));
 
     msg m1 = {50, "A"};
     PQ_insert(q, 50, &m1);

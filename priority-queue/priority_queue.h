@@ -19,12 +19,10 @@
 #include "stddef.h"
 #include "stdint.h"
 
-#define PQ_SIZE 100
-
 typedef uint16_t PQ_PriorityTypeDef;
 typedef struct _PQ_QueueTypeDef *PQ_QueueTypeDef;
 
-void PQ_init(PQ_QueueTypeDef *queue, size_t payload_size);
+void PQ_init(PQ_QueueTypeDef *queue, size_t queue_length, size_t payload_size);
 void PQ_destroy(PQ_QueueTypeDef *);
 bool PQ_is_empty(PQ_QueueTypeDef);
 void PQ_insert(PQ_QueueTypeDef queue, PQ_PriorityTypeDef priority, void *payload);
