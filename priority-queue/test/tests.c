@@ -19,9 +19,17 @@ int _cmp_int(const void *a, const void *b) {
     return *(uint16_t *)a - *(uint16_t *)b;
 }
 
+int _cmp_op(PQ_PriorityTypeDef a, PQ_PriorityTypeDef b) {
+    return b - a;
+}
+
+void _pop_op(PQ_PriorityTypeDef *p) {
+    (*p)--;
+}
+
 MunitResult test_is_empty(const MunitParameter *params, void *data) {
     PQ_QueueTypeDef q;
-    PQ_init(&q, PQ_SIZE, sizeof(msg));
+    PQ_init(&q, PQ_SIZE, sizeof(msg), _cmp_op, _pop_op);
 
     assert_true(PQ_is_empty(q));
 
@@ -37,7 +45,7 @@ MunitResult test_is_empty(const MunitParameter *params, void *data) {
 MunitResult test_ordered_insert(const MunitParameter *params, void *data) {
     PQ_QueueTypeDef q;
 
-    PQ_init(&q, PQ_SIZE, sizeof(msg));
+    PQ_init(&q, PQ_SIZE, sizeof(msg), _cmp_op, _pop_op);
 
     for (int i = 0; i < PQ_SIZE; i++) {
         msg m = {i, "abc"};
@@ -56,7 +64,7 @@ MunitResult test_ordered_insert(const MunitParameter *params, void *data) {
 
 MunitResult test_reverse_insert(const MunitParameter *params, void *data) {
     PQ_QueueTypeDef q;
-    PQ_init(&q, PQ_SIZE, sizeof(msg));
+    PQ_init(&q, PQ_SIZE, sizeof(msg), _cmp_op, _pop_op);
 
     for (int i = PQ_SIZE - 1; i >= 0; i--) {
         msg m = {i, "abc"};
@@ -81,7 +89,7 @@ MunitResult test_random_insert(const MunitParameter *params, void *data) {
         IDs[i] = rand() % UINT8_MAX;
 
     PQ_QueueTypeDef q;
-    PQ_init(&q, PQ_SIZE, sizeof(msg));
+    PQ_init(&q, PQ_SIZE, sizeof(msg), _cmp_op, _pop_op);
 
     for (int i = 0; i < PQ_SIZE; i++) {
         msg m = {IDs[i], "abc"};
@@ -102,7 +110,7 @@ MunitResult test_random_insert(const MunitParameter *params, void *data) {
 
 MunitResult test_no_starvation(const MunitParameter *params, void *data) {
     PQ_QueueTypeDef q;
-    PQ_init(&q, PQ_SIZE, sizeof(msg));
+    PQ_init(&q, PQ_SIZE, sizeof(msg), _cmp_op, _pop_op);
 
     msg m1 = {50, "A"};
     PQ_insert(q, 50, &m1);

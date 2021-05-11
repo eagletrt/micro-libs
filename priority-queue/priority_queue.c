@@ -4,6 +4,7 @@
 #include "stdlib.h"
 #include "string.h"
 
+
 typedef struct PQ_NodeTypeDef {
     PQ_PriorityTypeDef priority;
     void *payload;
@@ -13,9 +14,12 @@ typedef struct PQ_NodeTypeDef {
 typedef struct _PQ_QueueTypeDef {
     PQ_NodeTypeDef *head;
     PQ_NodeTypeDef *free_nodes;
-    size_t queue_length;
     size_t payload_size;
+
+    PQ_cmp_priorities_fn prio_cmp_fn;
+    PQ_after_pop_fn prio_op_fn;
 } _PQ_QueueTypeDef;
+
 
 PQ_NodeTypeDef *_PQ_get_free_node(_PQ_QueueTypeDef *queue) {
     if (queue->free_nodes == NULL)
@@ -38,18 +42,23 @@ void _PQ_free_node(_PQ_QueueTypeDef *queue, PQ_NodeTypeDef *node) {
 /**
  * @brief Initializes a new priority queue
  * @param queue The queue to initialize
+ * @param queue_length The maximun number of elements in the queue
+ * @param payload_size The size of one element
+ * @param cmp Function to compare priorities. It should return >0 if the priority of the first element is higher than the second
+ * @param op Function to apply to every element's priority after each pop (ex: decrement to prevent starvation)
  * */
-void PQ_init(_PQ_QueueTypeDef **queue, size_t queue_length, size_t payload_size) {
+void PQ_init(_PQ_QueueTypeDef **queue, size_t queue_length, size_t payload_size, PQ_cmp_priorities_fn cmp, PQ_after_pop_fn op) {
     /* Initialize pointers to NULL */
     (*queue)       = malloc(sizeof(_PQ_QueueTypeDef));
     (*queue)->head = (*queue)->free_nodes = NULL;
 
     (*queue)->payload_size = payload_size;
-    (*queue)->queue_length = queue_length;
+    (*queue)->prio_cmp_fn = cmp;
+    (*queue)->prio_op_fn = op;
 
     /* Pre-allocate all nodes */
     PQ_NodeTypeDef *cursor;
-    for (size_t i = 0; i < (*queue)->queue_length; i++) {
+    for (size_t i = 0; i < queue_length; i++) {
         cursor               = (PQ_NodeTypeDef *)malloc(sizeof(PQ_NodeTypeDef));
         cursor->payload      = malloc((*queue)->payload_size);
         cursor->next         = (*queue)->free_nodes;
@@ -59,7 +68,7 @@ void PQ_init(_PQ_QueueTypeDef **queue, size_t queue_length, size_t payload_size)
 
 /**
  * @brief Frees all resources used by a priority queue
- * @param queue The queue to free
+ * @param q The queue to free
  * */
 void PQ_destroy(_PQ_QueueTypeDef **q) {
     _PQ_QueueTypeDef *queue = *q;
@@ -98,6 +107,7 @@ bool PQ_is_empty(_PQ_QueueTypeDef *queue) {
  * @brief Insert a new message in the queue. The lower the ID,
  *        the higher its priority
  * @param queue The queue in which to insert the element
+ * @param priority The item's priority
  * @param payload The message to enqueue
  * */
 void PQ_insert(_PQ_QueueTypeDef *queue, PQ_PriorityTypeDef priority, void *payload) {
@@ -107,14 +117,14 @@ void PQ_insert(_PQ_QueueTypeDef *queue, PQ_PriorityTypeDef priority, void *paylo
     new_node->priority = priority;
     memcpy(&(new_node->payload), payload, queue->payload_size);
 
-    if (queue->head == NULL || queue->head->priority > new_node->priority) {
+    if (queue->head == NULL || queue->prio_cmp_fn(new_node->priority, queue->head->priority) > 0) {
         /* Insert the new node in front of the list */
         new_node->next = queue->head;
         queue->head    = new_node;
     } else {
         /* Find the proper position */
         PQ_NodeTypeDef *cursor = queue->head;
-        while (cursor->next != NULL && cursor->next->priority <= new_node->priority)
+        while (cursor->next != NULL && queue->prio_cmp_fn(cursor->next->priority, new_node->priority) >= 0)
             cursor = cursor->next;
 
         /* Insert the element after the cursor */
@@ -146,11 +156,10 @@ void PQ_pop_highest(_PQ_QueueTypeDef *queue) {
     queue->head             = queue->head->next;
     _PQ_free_node(queue, to_free);
 
-    /* Decrement all priorities by 1 to avoid starvation */
+    /* Apply the post-pop operation to all nodes */
     PQ_NodeTypeDef *cursor = queue->head;
     while (cursor != NULL) {
-        if (cursor->priority > 0)
-            cursor->priority--;
+        queue->prio_op_fn(&cursor->priority);
         cursor = cursor->next;
     }
 }

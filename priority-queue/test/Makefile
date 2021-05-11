@@ -1,6 +1,6 @@
 SHELL=/bin/bash
 CC = gcc
-CFLAGS = -g -DCANPQ_TEST -Wall -std=c99
+CFLAGS = -g -Wall -std=c99
 
 src_files = main.c ../priority_queue.c ../priority_queue.h ../../munit/munit.c ../../munit/munit.h tests.c tests.h
 
