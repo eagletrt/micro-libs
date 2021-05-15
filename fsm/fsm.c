@@ -37,6 +37,10 @@ bool _fsm_set_state(fsm *FSM, uint16_t state) {
     return false;
 }
 
+int _priority(uint16_t a, uint16_t b) {
+    return a < b;
+}
+
 /**
  * @brief	Initializes the fsm struct
  * 
@@ -47,7 +51,7 @@ void fsm_init(fsm *FSM, uint16_t state_count) {
     FSM->future_state  = FSM->current_state;
     FSM->state_count   = state_count;
 
-    PQ_init(&FSM->event_queue, FSM->state_count * 2, FSM->state_count);
+    PQ_init(&FSM->event_queue, FSM->state_count * 2, sizeof(uint32_t), &_priority, NULL);
 
     FSM->state_table = malloc(sizeof(state_function) * FSM->state_count);
     for (uint16_t i = 0; i < FSM->state_count; i++) {
