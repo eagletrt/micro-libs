@@ -1,0 +1,27 @@
+
+name: Documentation
+on: [push]
+
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Documentation
+      uses: eagletrt/documentation@main
+      with:
+        author: E-Agle TRT      # project author
+        project: micro-libs     # project name
+        rootfile: Micro Libs    # project title
+        folders: ../m95256 ../cli ../fsm ../llist ../m95256 ../pid ../can-fifo-queue          # path of folders and files you want to document
+        version: 1.0.0             # project version
+        release: 1.0.0             # project release
+        language: c                # language used
+    - name: Deploy \U0001f680
+      uses: JamesIves/github-pages-deploy-action@4.0.0
+      with:
+        clean: false 
+        branch: docs # The branch the action should deploy to.
+        folder: upload # The folder the action should deploy.
