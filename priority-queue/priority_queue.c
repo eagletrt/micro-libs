@@ -19,6 +19,13 @@ typedef struct _PQ_QueueTypeDef {
     PQ_after_pop_fn prio_op_fn;
 } _PQ_QueueTypeDef;
 
+
+/* Default compare function in case the user provides NULL */
+int16_t _PQ_cmp_int_impl(PQ_PriorityTypeDef a, PQ_PriorityTypeDef b) {
+    return b - a;
+}
+PQ_cmp_priorities_fn _PQ_cmp_int = _PQ_cmp_int_impl;
+
 PQ_NodeTypeDef *_PQ_get_free_node(_PQ_QueueTypeDef *queue) {
     if (queue->free_nodes == NULL)
         return NULL;
@@ -47,19 +54,18 @@ void _PQ_free_node(_PQ_QueueTypeDef *queue, PQ_NodeTypeDef *node) {
  * @param op  Function to apply to every element's priority after each pop 
  *            (ex: decrement to prevent starvation)
  * */
-void PQ_init(
-    _PQ_QueueTypeDef **queue,
-    size_t queue_length,
-    size_t payload_size,
-    PQ_cmp_priorities_fn cmp,
-    PQ_after_pop_fn op) {
-    assert(cmp != NULL);
+void PQ_init(_PQ_QueueTypeDef **queue,
+            size_t queue_length,
+            size_t payload_size,
+            PQ_cmp_priorities_fn cmp,
+            PQ_after_pop_fn op) {
+
     /* Initialize pointers to NULL */
     (*queue)       = malloc(sizeof(_PQ_QueueTypeDef));
     (*queue)->head = (*queue)->free_nodes = NULL;
 
     (*queue)->payload_size = payload_size;
-    (*queue)->prio_cmp_fn  = cmp;
+    (*queue)->prio_cmp_fn  = cmp != NULL ? cmp : _PQ_cmp_int;
     (*queue)->prio_op_fn   = op;
 
     /* Pre-allocate all nodes */
@@ -158,13 +164,18 @@ void *PQ_peek_highest(_PQ_QueueTypeDef *queue) {
 }
 
 /**
- * @brief Remove the element with the highest priority
+ * @brief Remove the element with the highest priority and copy its contents
+ *        into the payload parameter (if not NULL)
  * 
  * @param queue The queue from which to pull the message
+ * @param payload Where to store a copy of the popped node
  * */
-void PQ_pop_highest(_PQ_QueueTypeDef *queue) {
+void PQ_pop_highest(_PQ_QueueTypeDef *queue, void *payload) {
     if (PQ_is_empty(queue))
         return;
+    
+    if (payload != NULL)
+        memcpy(payload, &queue->head->payload, queue->payload_size);
 
     /* Pop and free the head */
     PQ_NodeTypeDef *to_free = queue->head;

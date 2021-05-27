@@ -23,7 +23,7 @@
 typedef uint16_t PQ_PriorityTypeDef;
 typedef struct _PQ_QueueTypeDef *PQ_QueueTypeDef;
 
-typedef int (*PQ_cmp_priorities_fn)(PQ_PriorityTypeDef, PQ_PriorityTypeDef);
+typedef int16_t (*PQ_cmp_priorities_fn)(PQ_PriorityTypeDef, PQ_PriorityTypeDef);
 typedef void (*PQ_after_pop_fn)(PQ_PriorityTypeDef *);
 
 void PQ_init(PQ_QueueTypeDef *, size_t, size_t, PQ_cmp_priorities_fn, PQ_after_pop_fn);
@@ -31,6 +31,6 @@ void PQ_destroy(PQ_QueueTypeDef *);
 bool PQ_is_empty(PQ_QueueTypeDef);
 bool PQ_insert(PQ_QueueTypeDef queue, PQ_PriorityTypeDef priority, void *payload);
 void *PQ_peek_highest(PQ_QueueTypeDef);
-void PQ_pop_highest(PQ_QueueTypeDef);
+void PQ_pop_highest(PQ_QueueTypeDef, void*);
 
 #endif

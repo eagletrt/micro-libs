@@ -19,7 +19,7 @@ int _cmp_int(const void *a, const void *b) {
     return *(uint16_t *)a - *(uint16_t *)b;
 }
 
-int _cmp_op(PQ_PriorityTypeDef a, PQ_PriorityTypeDef b) {
+int16_t _cmp_op(PQ_PriorityTypeDef a, PQ_PriorityTypeDef b) {
     return b - a;
 }
 
@@ -55,7 +55,7 @@ MunitResult test_ordered_insert(const MunitParameter *params, void *data) {
     for (int i = 0; !PQ_is_empty(q); i++) {
         msg *m = (msg *)PQ_peek_highest(q);
         assert_uint16(i, ==, m->n);
-        PQ_pop_highest(q);
+        PQ_pop_highest(q, NULL);
     }
 
     PQ_destroy(&q);
@@ -74,7 +74,7 @@ MunitResult test_reverse_insert(const MunitParameter *params, void *data) {
     for (int i = 0; !PQ_is_empty(q); i++) {
         msg *m = (msg *)PQ_peek_highest(q);
         assert_uint16(i, ==, m->n);
-        PQ_pop_highest(q);
+        PQ_pop_highest(q, NULL);
     }
 
     PQ_destroy(&q);
@@ -82,7 +82,7 @@ MunitResult test_reverse_insert(const MunitParameter *params, void *data) {
 }
 
 MunitResult test_random_insert(const MunitParameter *params, void *data) {
-    uint16_t IDs[PQ_SIZE];
+    PQ_PriorityTypeDef IDs[PQ_SIZE];
 
     srand(42);
     for (int i = 0; i < PQ_SIZE; i++)
@@ -101,7 +101,7 @@ MunitResult test_random_insert(const MunitParameter *params, void *data) {
     for (int i = 0; !PQ_is_empty(q); i++) {
         msg *m = (msg *)PQ_peek_highest(q);
         assert_uint16(IDs[i], ==, m->n);
-        PQ_pop_highest(q);
+        PQ_pop_highest(q, NULL);
     }
 
     PQ_destroy(&q);
@@ -126,7 +126,45 @@ MunitResult test_no_starvation(const MunitParameter *params, void *data) {
 		 */
         assert_uint16(m_out->n, ==, (i == 49) ? 50 : 1);
 
-        PQ_pop_highest(q);
+        PQ_pop_highest(q, NULL);
+    }
+
+    PQ_destroy(&q);
+    return MUNIT_OK;
+}
+
+MunitResult test_null_cmp_fn(const MunitParameter *params, void *data) {
+    PQ_QueueTypeDef q;
+    PQ_init(&q, PQ_SIZE, sizeof(msg), NULL, _pop_op);
+
+    for (int i = 0; i < PQ_SIZE; i++) {
+        msg m = {i, "abc"};
+        PQ_insert(q, i, &m);
+    }
+
+    for (int i = 0; !PQ_is_empty(q); i++) {
+        msg *m = (msg *)PQ_peek_highest(q);
+        assert_uint16(i, ==, m->n);
+        PQ_pop_highest(q, NULL);
+    }
+
+    PQ_destroy(&q);
+    return MUNIT_OK;
+}
+
+MunitResult test_pop_out_param(const MunitParameter *params, void *data) {
+    PQ_QueueTypeDef q;
+    PQ_init(&q, PQ_SIZE, sizeof(msg), _cmp_op, _pop_op);
+
+    for (int i = 0; i < PQ_SIZE; i++) {
+        msg m = {i, "abc"};
+        PQ_insert(q, i, &m);
+    }
+
+    for (int i = 0; !PQ_is_empty(q); i++) {
+        msg m;
+        PQ_pop_highest(q, &m);
+        assert_uint16(i, ==, m.n);
     }
 
     PQ_destroy(&q);

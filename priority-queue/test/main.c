@@ -17,6 +17,8 @@ MunitTest tests[] = {
     {"/test-reverse-insert", test_reverse_insert, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL},
     {"/test-random-insert", test_random_insert, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL},
     {"/test-no-starvation", test_no_starvation, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL},
+    {"/test-null-cmp-fn", test_null_cmp_fn, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL},
+    {"/test-pop-out-param", test_pop_out_param, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL},
 
     /* Mark the end of the array with a NULL test function */
     {NULL, NULL, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL}};
