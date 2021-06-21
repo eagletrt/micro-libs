@@ -13,10 +13,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-bool _fsm_is_transition_legal(fsm *FSM, uint16_t state) {
-    return FSM->state_table[FSM->current_state][state] != NULL;
-}
-
 /**
  * @brief	Sets the next state to be run
  * @details	This funciton is meant to be used to trigger the fsm externally.
@@ -29,37 +25,32 @@ bool _fsm_is_transition_legal(fsm *FSM, uint16_t state) {
  * 
  * @returns whether the state has been set or not
  */
-bool _fsm_set_state(fsm *FSM, uint16_t state) {
-    if (_fsm_is_transition_legal(FSM, state)) {
-        FSM->future_state = state;
-        return true;
-    }
-    return false;
-}
+//bool _fsm_set_state(fsm *FSM, uint16_t state) {
+//    if (_fsm_is_transition_legal(FSM, state)) {
+//        FSM->future_state = state;
+//        return true;
+//    }
+//    return false;
+//}
 
-int _priority(uint16_t a, uint16_t b) {
-    return a < b;
-}
+//int _priority(uint16_t a, uint16_t b) {
+//    return a < b;
+//}
 
 /**
  * @brief	Initializes the fsm struct
  * 
  * @param	FSM		The FSM struct to init
  */
-void fsm_init(fsm *FSM, uint16_t state_count) {
-    FSM->current_state = 0;  // Set initial state
-    FSM->future_state  = FSM->current_state;
-    FSM->state_count   = state_count;
+void fsm_init(fsm *FSM) {
+    FSM->events      = 0;
+    FSM->state_table = malloc(sizeof(struct state) * FSM->state_count);
+}
 
-    PQ_init(&FSM->event_queue, FSM->state_count * 2, sizeof(uint32_t), &_priority, NULL);
-
-    FSM->state_table = malloc(sizeof(state_function) * FSM->state_count);
-    for (uint16_t i = 0; i < FSM->state_count; i++) {
-        FSM->state_table[i] = malloc(sizeof(state_function) * FSM->state_count);
-
-        for (uint16_t j = 0; j < FSM->state_count; j++) {
-            FSM->state_table[i][j] = NULL;
-        }
+void fsm_start(fsm *FSM) {
+    // Enter the initial state
+    if (FSM->state_table[FSM->current_state].start != NULL) {
+        FSM->state_table[FSM->current_state].start(FSM);
     }
 }
 
@@ -69,10 +60,17 @@ void fsm_init(fsm *FSM, uint16_t state_count) {
  * @param	FSM	The fsm struct to deinit
  */
 void fsm_deinit(fsm *FSM) {
-    for (uint16_t i = 0; i < FSM->state_count; i++) {
-        free(FSM->state_table[i]);
-    }
     free(FSM->state_table);
+}
+
+void fsm_transition(fsm *FSM, uint16_t state) {
+    if (FSM->state_table[FSM->current_state].stop != NULL) {
+        FSM->state_table[FSM->current_state].stop(FSM);
+    }
+    FSM->current_state = state;
+    if (FSM->state_table[FSM->current_state].start != NULL) {
+        FSM->state_table[FSM->current_state].start(FSM);
+    }
 }
 
 /**
@@ -82,8 +80,8 @@ uint16_t fsm_get_state(fsm *FSM) {
     return FSM->current_state;
 }
 
-void fsm_handle_event(fsm *FSM, uint16_t state) {
-    PQ_insert(FSM->event_queue, state, &state);
+void fsm_catch_event(fsm *FSM, uint32_t event) {
+    FSM->events = FSM->events | 1 << event;
 }
 
 /**
@@ -92,17 +90,13 @@ void fsm_handle_event(fsm *FSM, uint16_t state) {
  * @param	FSM		The FSM struct
  */
 void fsm_run(fsm *FSM) {
-    if (!PQ_is_empty(FSM->event_queue)) {
-        uint16_t *e = 0;
-        do {
-            e = (uint16_t *)PQ_peek_highest(FSM->event_queue);
-            PQ_pop_highest(FSM->event_queue);
-
-        } while (!_fsm_set_state(FSM, *e) && !PQ_is_empty(FSM->event_queue));
+    for (uint16_t i = 0; i < 32; i++) {
+        uint8_t event = FSM->events & 1 << i;
+        if (event) {
+            FSM->events = FSM->events & ~event;
+            if (FSM->state_table[FSM->current_state].handler != NULL) {
+                FSM->state_table[FSM->current_state].handler(FSM, i);
+            }
+        }
     }
-    // rm future_state
-
-    uint16_t future    = FSM->state_table[FSM->current_state][FSM->future_state](FSM);
-    FSM->current_state = FSM->future_state;
-    FSM->future_state  = future;
 }
