@@ -10,92 +10,82 @@
 
 #include "fsm.h"
 
-#include <stdbool.h>
-#include <stdlib.h>
+#include <string.h>
 
-/**
- * @brief	Sets the next state to be run
- * @details	This funciton is meant to be used to trigger the fsm externally.
- * 			For example, if a critical error is detected in an interrupt callback, and immediate action is required,
- * 			this function can be called to force execution of an error state. This will tell the fsm to run the provided state next.
- * 			WARNING: Always double-check when using this function. It can lead to undefined behaviour.
- * 
- * @param	FSM		The FSM struct
- * @param	state	The next state to run
- * 
- * @returns whether the state has been set or not
- */
-//bool _fsm_set_state(fsm *FSM, uint16_t state) {
-//    if (_fsm_is_transition_legal(FSM, state)) {
-//        FSM->future_state = state;
-//        return true;
-//    }
-//    return false;
-//}
+struct fsm {
+    uint32_t current_state;
 
-//int _priority(uint16_t a, uint16_t b) {
-//    return a < b;
-//}
+    size_t event_count;
+    bool *events_sync;
+    bool *events_async;
 
-/**
- * @brief	Initializes the fsm struct
- * 
- * @param	FSM		The FSM struct to init
- */
-void fsm_init(fsm *FSM) {
-    FSM->events      = 0;
-    FSM->state_table = malloc(sizeof(struct state) * FSM->state_count);
+    size_t state_count;
+    fsm_state *state_table;
+};
+
+fsm fsm_init(size_t state_count, size_t event_count) {
+    fsm handle = (fsm)malloc(sizeof(struct fsm));
+
+    (handle)->current_state = 0;
+    (handle)->state_count   = state_count;
+    (handle)->event_count   = event_count;
+
+    (handle)->events_async = malloc(sizeof(bool) * (handle)->event_count);
+    (handle)->events_sync  = malloc(sizeof(bool) * (handle)->event_count);
+    (handle)->state_table  = malloc(sizeof(struct state) * (handle)->state_count);
+
+    for (size_t i = 0; i < (handle)->event_count; i++) {
+        (handle)->events_async[i] = false;
+        (handle)->events_sync[i]  = false;
+    }
+
+    return handle;
 }
 
-void fsm_start(fsm *FSM) {
+void fsm_deinit(fsm *handle) {
+    free((*handle)->state_table);
+    free((*handle)->events_async);
+    free((*handle)->events_sync);
+    free(*handle);
+}
+
+void fsm_start(fsm handle) {
     // Enter the initial state
-    if (FSM->state_table[FSM->current_state].start != NULL) {
-        FSM->state_table[FSM->current_state].start(FSM);
+    if (handle->state_table[handle->current_state].entry != NULL) {
+        handle->state_table[handle->current_state].entry(handle);
     }
 }
 
-/**
- * @brief	Frees the allocated memory inside FSM
- *
- * @param	FSM	The fsm struct to deinit
- */
-void fsm_deinit(fsm *FSM) {
-    free(FSM->state_table);
+void fsm_set_state(fsm handle, uint32_t id, fsm_state *state) {
+    memcpy(&(handle->state_table[id]), state, sizeof(fsm_state));
 }
 
-void fsm_transition(fsm *FSM, uint16_t state) {
-    if (FSM->state_table[FSM->current_state].stop != NULL) {
-        FSM->state_table[FSM->current_state].stop(FSM);
+void fsm_transition(fsm handle, uint32_t state) {
+    if (handle->state_table[handle->current_state].exit != NULL) {
+        handle->state_table[handle->current_state].exit(handle);
     }
-    FSM->current_state = state;
-    if (FSM->state_table[FSM->current_state].start != NULL) {
-        FSM->state_table[FSM->current_state].start(FSM);
+    handle->current_state = state;
+    if (handle->state_table[handle->current_state].entry != NULL) {
+        handle->state_table[handle->current_state].entry(handle);
     }
 }
 
-/**
- * @returns	The current running state
- */
-uint16_t fsm_get_state(fsm *FSM) {
-    return FSM->current_state;
+uint32_t fsm_get_state(fsm handle) {
+    return handle->current_state;
 }
 
-void fsm_catch_event(fsm *FSM, uint32_t event) {
-    FSM->events = FSM->events | 1 << event;
+void fsm_catch_event(fsm handle, uint32_t event) {
+    if (handle->events_async[event] == handle->events_sync[event]) {
+        handle->events_async[event] = !handle->events_sync[event];
+    }
 }
 
-/**
- * @brief Runs the state machine
- * 
- * @param	FSM		The FSM struct
- */
-void fsm_run(fsm *FSM) {
-    for (uint16_t i = 0; i < 32; i++) {
-        uint8_t event = FSM->events & 1 << i;
-        if (event) {
-            FSM->events = FSM->events & ~event;
-            if (FSM->state_table[FSM->current_state].handler != NULL) {
-                FSM->state_table[FSM->current_state].handler(FSM, i);
+void fsm_run(fsm handle) {
+    for (size_t i = 0; i < handle->event_count; i++) {
+        if (handle->events_async[i] != handle->events_sync[i] &&
+            handle->state_table[handle->current_state].handler != NULL) {
+            if (handle->state_table[handle->current_state].handler(handle, i) == EVENT_HANDLED) {
+                handle->events_sync[i] = handle->events_async[i];
             }
         }
     }

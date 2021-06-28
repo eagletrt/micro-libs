@@ -12,35 +12,84 @@
 #define FSM_H
 
 #include <inttypes.h>
+#include <stdbool.h>
+#include <stdlib.h>
 
 typedef enum { EVENT_HANDLED, EVENT_UNKNOWN } event_result;
 
-typedef struct fsm fsm;
+typedef struct fsm *fsm;
 
-typedef void (*state_function)(fsm *);
-typedef event_result (*event_handler)(fsm *, uint8_t event);
+typedef void (*state_function)(fsm);
+typedef event_result (*event_handler)(fsm, uint8_t event);
 
-struct state {
+typedef struct state {
     event_handler handler;
-    state_function start;
-    state_function stop;
-};
+    state_function entry;
+    state_function exit;
+} fsm_state;
 
-struct fsm {
-    uint16_t current_state;
+/**
+ * @brief Initializes a FSM instance
+ * 
+ * @param state_count Number of states
+ * @param event_count Number of events
+ * @return fsm The initialized FSM handle
+ */
+fsm fsm_init(size_t state_count, size_t event_count);
 
-    uint32_t events;
+/**
+ * @brief Destroys the FSM
+ * 
+ * @param handle The FSM instance to deinit
+ */
+void fsm_deinit(fsm *handle);
 
-    uint16_t state_count;
-    struct state *state_table;
-};
+/**
+ * @brief Starts the FSM by running the entry function of the initial state
+ * 
+ * @param handle The FSM instance handle
+ */
+void fsm_start(fsm handle);
 
-void fsm_init(fsm *FSM);
-void fsm_start(fsm *FSM);
-void fsm_deinit(fsm *FSM);
-void fsm_transition(fsm *FSM, uint16_t state);
-uint16_t fsm_get_state(fsm *FSM);
-void fsm_catch_event(fsm *FSM, uint32_t event);
-void fsm_run(fsm *FSM);
+/**
+ * @brief Adds a state to the internal state table
+ * 
+ * @param handle The FSM instance handle
+ * @param id ID of the state
+ * @param state FSM state definition
+ */
+void fsm_set_state(fsm handle, uint32_t id, fsm_state *state);
+
+/**
+ * @brief Executes a state transition
+ * @details Runs the exit state of the current state, and runs the entry state of the next state
+ * 
+ * @param handle The FSM instance handle
+ * @param state The next state
+ */
+void fsm_transition(fsm handle, uint32_t state);
+
+/**
+ * @brief Returns the current running state
+ * 
+ * @param handle The FSM instance handle
+ * @return uint32_t The current state
+ */
+uint32_t fsm_get_state(fsm handle);
+
+/**
+ * @brief Sets the internal register for a given event
+ * 
+ * @param handle The FSM instance handle
+ * @param event Event to set
+ */
+void fsm_catch_event(fsm handle, uint32_t event);
+
+/**
+ * @brief Runs the FSM event handlers
+ * 
+ * @param handle The FSM instance handle
+ */
+void fsm_run(fsm handle);
 
 #endif
