@@ -30,9 +30,9 @@ fsm fsm_init(size_t state_count, size_t event_count) {
     (handle)->state_count   = state_count;
     (handle)->event_count   = event_count;
 
-    (handle)->events_async = malloc(sizeof(bool) * (handle)->event_count);
-    (handle)->events_sync  = malloc(sizeof(bool) * (handle)->event_count);
-    (handle)->state_table  = malloc(sizeof(struct state) * (handle)->state_count);
+    (handle)->events_async = (bool *)malloc(sizeof(bool) * (handle)->event_count);
+    (handle)->events_sync  = (bool *)malloc(sizeof(bool) * (handle)->event_count);
+    (handle)->state_table  = (fsm_state *)malloc(sizeof(struct state) * (handle)->state_count);
 
     for (size_t i = 0; i < (handle)->event_count; i++) {
         (handle)->events_async[i] = false;
