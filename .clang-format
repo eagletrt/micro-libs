@@ -20,8 +20,8 @@ AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
 AlwaysBreakBeforeMultilineStrings: false
 AlwaysBreakTemplateDeclarations: MultiLine
-BinPackArguments: false
-BinPackParameters: false
+BinPackArguments:  true 
+BinPackParameters: true
 BraceWrapping:
   AfterCaseLabel: false
   AfterClass: false
