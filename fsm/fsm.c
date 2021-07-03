@@ -84,9 +84,8 @@ void fsm_run(fsm handle) {
     for (size_t i = 0; i < handle->event_count; i++) {
         if (handle->events_async[i] != handle->events_sync[i] &&
             handle->state_table[handle->current_state].handler != NULL) {
-            if (handle->state_table[handle->current_state].handler(handle, i) == EVENT_HANDLED) {
-                handle->events_sync[i] = handle->events_async[i];
-            }
+            handle->state_table[handle->current_state].handler(handle, i);
+            handle->events_sync[i] = handle->events_async[i];
         }
     }
 }

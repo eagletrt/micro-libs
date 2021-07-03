@@ -15,12 +15,10 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-typedef enum { EVENT_HANDLED, EVENT_UNKNOWN } event_result;
-
 typedef struct fsm *fsm;
 
 typedef void (*state_function)(fsm);
-typedef event_result (*event_handler)(fsm, uint8_t event);
+typedef void (*event_handler)(fsm, uint8_t event);
 
 typedef struct state {
     event_handler handler;
