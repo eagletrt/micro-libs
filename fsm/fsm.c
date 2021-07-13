@@ -19,16 +19,18 @@ struct fsm {
     bool *events_sync;
     bool *events_async;
 
+    state_function transition_callback;
     size_t state_count;
     fsm_state *state_table;
 };
 
-fsm fsm_init(size_t state_count, size_t event_count) {
+fsm fsm_init(size_t state_count, size_t event_count, state_function transition_callback) {
     fsm handle = (fsm)malloc(sizeof(struct fsm));
 
-    (handle)->current_state = 0;
-    (handle)->state_count   = state_count;
-    (handle)->event_count   = event_count;
+    (handle)->current_state       = 0;
+    (handle)->state_count         = state_count;
+    (handle)->event_count         = event_count;
+    (handle)->transition_callback = transition_callback;
 
     (handle)->events_async = (bool *)malloc(sizeof(bool) * (handle)->event_count);
     (handle)->events_sync  = (bool *)malloc(sizeof(bool) * (handle)->event_count);
@@ -68,13 +70,17 @@ void fsm_transition(fsm handle, uint32_t state) {
     if (handle->state_table[handle->current_state].entry != NULL) {
         handle->state_table[handle->current_state].entry(handle);
     }
+
+    if (handle->transition_callback != NULL) {
+        handle->transition_callback(handle);
+    }
 }
 
 uint32_t fsm_get_state(fsm handle) {
     return handle->current_state;
 }
 
-void fsm_catch_event(fsm handle, uint32_t event) {
+void fsm_trigger_event(fsm handle, uint32_t event) {
     if (handle->events_async[event] == handle->events_sync[event]) {
         handle->events_async[event] = !handle->events_sync[event];
     }
@@ -82,8 +88,7 @@ void fsm_catch_event(fsm handle, uint32_t event) {
 
 void fsm_run(fsm handle) {
     for (size_t i = 0; i < handle->event_count; i++) {
-        if (handle->events_async[i] != handle->events_sync[i] &&
-            handle->state_table[handle->current_state].handler != NULL) {
+        if (handle->events_async[i] != handle->events_sync[i]) {
             handle->state_table[handle->current_state].handler(handle, i);
             handle->events_sync[i] = handle->events_async[i];
         }

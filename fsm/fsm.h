@@ -1,6 +1,6 @@
 /**
- * @file		fsm.h
- * @brief		This file contains the primitives to setup a FSM
+ * @file        fsm.h
+ * @brief		Finite state machine implementation in C
  *
  * @date		Oct 24, 2019
  *
@@ -31,9 +31,10 @@ typedef struct state {
  * 
  * @param state_count Number of states
  * @param event_count Number of events
+ * @param transition_callback Callback function that is called after each state transition
  * @return fsm The initialized FSM handle
  */
-fsm fsm_init(size_t state_count, size_t event_count);
+fsm fsm_init(size_t state_count, size_t event_count, state_function transition_callback);
 
 /**
  * @brief Destroys the FSM
@@ -60,7 +61,8 @@ void fsm_set_state(fsm handle, uint32_t id, fsm_state *state);
 
 /**
  * @brief Executes a state transition
- * @details Runs the exit state of the current state, and runs the entry state of the next state
+ * @details Runs the exit state of the current state, and runs the entry state of the next state. If present the transition callback is executed
+ * @note Use this on event handlers. Avoid using it outside of the FSM. Triggering events is the reccomended action for that use case.
  * 
  * @param handle The FSM instance handle
  * @param state The next state
@@ -71,7 +73,7 @@ void fsm_transition(fsm handle, uint32_t state);
  * @brief Returns the current running state
  * 
  * @param handle The FSM instance handle
- * @return uint32_t The current state
+ * @return The current state
  */
 uint32_t fsm_get_state(fsm handle);
 
@@ -81,7 +83,7 @@ uint32_t fsm_get_state(fsm handle);
  * @param handle The FSM instance handle
  * @param event Event to set
  */
-void fsm_catch_event(fsm handle, uint32_t event);
+void fsm_trigger_event(fsm handle, uint32_t event);
 
 /**
  * @brief Runs the FSM event handlers
