@@ -15,6 +15,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "priority_queue_fast_insert.h"
 
+#include "assert.h"
 #include "inttypes.h"
 #include "stdlib.h"
 #include "string.h"
@@ -45,24 +46,32 @@ typedef struct _PQFI_HandleTypeDef {
 /* Private function prototypes -----------------------------------------------*/
 
 /**
- * @brief     Advance a given cursor in the bounds of the priority queue circular buffer
+ * @brief Advance a given cursor in the bounds of the priority queue circular buffer
  * 
- * @param     cursor  Pointer to a cursor
- *                    WARNING: this value must be bound between 0 and pq_length
+ * @param cursor  Pointer to a cursor
+ *        WARNING: this value must be bound between 0 and pq_length
  */
 static void _advance_cursor(_PQFI_HandleTypeDef *hpqfi, uint16_t *cursor);
 /**
- * @brief     Sort priority queue from sort_pivot index to tail 
- * @details   This sorting sorts a snapshot of the queue from head to tail. 
- *            NOTE: if the queue changes during sorting (interrupt from producer 
- *            that adds a node) the sorting works but does not sort the new added nodes.
+ * @brief   Sort priority queue from sort_pivot index to tail 
+ * @details This sorting sorts a snapshot of the queue from head to tail. 
+ *          NOTE: if the queue changes during sorting (interrupt from producer 
+ *          that adds a node) the sorting works but does not sort the new added nodes.
  * 
- * @param     hpqfi _PQFI_HandleTypeDef pointer
- * @param     head  Head index at the time of sorting
- * @param     tail  Tail index at the tilme of sorting
+ * @param   hpqfi _PQFI_HandleTypeDef pointer
+ * @param   head  Head index at the time of sorting
+ * @param   tail  Tail index at the tilme of sorting
  */
 static void _pq_sort(_PQFI_HandleTypeDef *hpqfi, uint16_t head, uint16_t tail);
 
+/**
+ * @brief Apply anti starvation to nodes in the priority queue
+ * 
+ * @param hpqfi _PQFI_HandleTypeDef pointer
+ * @param head  Head index at the time of sorting
+ * @param tail  Tail index at the tilme of sorting
+ */
+static void _apply_anti_starvation(_PQFI_HandleTypeDef *hpqfi, uint16_t head, uint16_t tail);
 /* Exported functions --------------------------------------------------------*/
 
 PQFI_HandleTypeDef PQFI_init(
@@ -105,25 +114,22 @@ PQFI_HandleTypeDef PQFI_init(
 }
 
 void PQFI_destroy(_PQFI_HandleTypeDef *hpqfi) {
-    _PQFI_NodeTypeDef *cursor;
-
     /* De-allocate all payloads */
     for (size_t i = 0; i < hpqfi->pq_length; i++) {
         free(hpqfi->buffer[i].payload);
-        _PQFI_NodeTypeDef *new_node = _PQFI_get_free_node(hpqfi);
-
-        /* Deallocate priority queue/buffer */
-        free(hpqfi->buffer);
-
-        /* Free the main struct */
-        free(hpqfi);
     }
+
+    /* Deallocate priority queue/buffer */
+    free(hpqfi->buffer);
+
+    /* Free the main struct */
+    free(hpqfi);
 }
 
 bool PQFI_is_empty(_PQFI_HandleTypeDef *hpqfi) {
     assert(hpqfi != NULL);
 
-    return !hpqfi->buf_full && hpqfi->head == hpqfi->tail;
+    return (!hpqfi->buf_full) && (hpqfi->head == hpqfi->tail);
 }
 
 bool PQFI_is_full(_PQFI_HandleTypeDef *hpqfi) {
@@ -156,16 +162,17 @@ bool PQFI_pop(_PQFI_HandleTypeDef *hpqfi, void *payload) {
 
     if (PQFI_is_empty(hpqfi))
         return false;
-    volatile head_cpy = hpqfi->head;
-    volatile tail_cpy = hpqfi->tail;
+    volatile uint16_t head_cpy = hpqfi->head;
+    volatile uint16_t tail_cpy = hpqfi->tail;
 
     /* Apply anti starvation to PQ */
+    _apply_anti_starvation(hpqfi, head_cpy, tail_cpy);
 
     /* Redorder hpqfi before pop */
     _pq_sort(hpqfi, head_cpy, tail_cpy);
 
     memcpy(payload, hpqfi->buffer[hpqfi->head].payload, hpqfi->payload_size);
-    _advance_cursor(hpqfi, hpqfi->head);
+    _advance_cursor(hpqfi, &(hpqfi->head));
 
     return true;
 }
@@ -176,12 +183,16 @@ static void _pq_sort(_PQFI_HandleTypeDef *hpqfi, uint16_t head, uint16_t tail) {
     while (hpqfi->sort_pivot != tail) {
         /* First non in order element */
         uint16_t node_not_sorted = hpqfi->sort_pivot;
-        _advance_cursor(hpqfi, node_not_sorted);
+        _advance_cursor(hpqfi, &node_not_sorted);
+
+        /* If all nodes are sorted return */
+        if (node_not_sorted == tail)
+            return;
 
         uint16_t cursor = head;
         /* cmp_prty_fn(a,b) = 1 if a.prio > b.prio , cmp_prty_fn(a,b) = 0 if a.prio <= b.prio */
         while (hpqfi->cmp_prty_fn(hpqfi->buffer[node_not_sorted].priority, hpqfi->buffer[cursor].priority) == 0) {
-            __advance_cursor(cursor);
+            _advance_cursor(hpqfi, &cursor);
         }
         while (cursor != node_not_sorted) {
             _PQFI_NodeTypeDef tmp_node;
@@ -192,27 +203,31 @@ static void _pq_sort(_PQFI_HandleTypeDef *hpqfi, uint16_t head, uint16_t tail) {
             /* Replace not_sorted_node with tmp */
             memcpy(&hpqfi->buffer[node_not_sorted], &tmp_node, sizeof(_PQFI_NodeTypeDef));
 
-            _advance_cursor(hpqfi, cursor);
+            _advance_cursor(hpqfi, &cursor);
         }
         /* Advance sort pivot */
-        _advance_cursor(hpqfi, hpqfi->sort_pivot);
+        _advance_cursor(hpqfi, &(hpqfi->sort_pivot));
     }
 }
 
 static void _advance_cursor(_PQFI_HandleTypeDef *hpqfi, uint16_t *cursor) {
-    *cursor = (*cursor + 1) % hpqfi->pq_length;
     if (cursor == &hpqfi->head) {
         hpqfi->buf_full = false;
-    } else if (cursor == &hpqfi->tail) {
+        /* If the head was moved and the sort_pivot was on the head move that too */
+        if (hpqfi->head == hpqfi->sort_pivot)
+            hpqfi->sort_pivot = (hpqfi->sort_pivot + 1) % hpqfi->pq_length;
+    }
+    *cursor = (*cursor + 1) % hpqfi->pq_length;
+    if (cursor == &hpqfi->tail) {
         hpqfi->buf_full = hpqfi->head == hpqfi->tail;
     }
 }
 
-static void _apply_starvation(_PQFI_HandleTypeDef *hpqfi, uint16_t head, uint16_t tail) {
+static void _apply_anti_starvation(_PQFI_HandleTypeDef *hpqfi, uint16_t head, uint16_t tail) {
     if (hpqfi->anti_strv_fn != NULL) {
         uint16_t cursor = head;
         while (cursor != tail) {
-            hpqfi->buffer[cursor].priority = hpqfi->anti_strv_fn(&(hpqfi->buffer[cursor]));
+            hpqfi->buffer[cursor].priority = hpqfi->anti_strv_fn(hpqfi->buffer[cursor].priority);
             _advance_cursor(hpqfi, &cursor);
         }
     }

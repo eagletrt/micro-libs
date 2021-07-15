@@ -1,5 +1,6 @@
 #include "priority_queue.h"
 
+#include "assert.h"
 #include "inttypes.h"
 #include "stdlib.h"
 #include "string.h"
@@ -48,11 +49,7 @@ void _PQ_free_node(_PQ_QueueTypeDef *queue, PQ_NodeTypeDef *node) {
  *            (ex: decrement to prevent starvation)
  * */
 void PQ_init(
-    _PQ_QueueTypeDef **queue,
-    size_t queue_length,
-    size_t payload_size,
-    PQ_cmp_priorities_fn cmp,
-    PQ_after_pop_fn op) {
+    _PQ_QueueTypeDef **queue, size_t queue_length, size_t payload_size, PQ_cmp_priorities_fn cmp, PQ_after_pop_fn op) {
     assert(cmp != NULL);
     /* Initialize pointers to NULL */
     (*queue)       = malloc(sizeof(_PQ_QueueTypeDef));
