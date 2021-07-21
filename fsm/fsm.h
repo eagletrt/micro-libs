@@ -1,6 +1,6 @@
 /**
- * @file		fsm.h
- * @brief		This file contains the primitives to setup a FSM
+ * @file        fsm.h
+ * @brief		Finite state machine implementation in C
  *
  * @date		Oct 24, 2019
  *
@@ -11,27 +11,85 @@
 #ifndef FSM_H
 #define FSM_H
 
-#include "priority_queue.h"
-
 #include <inttypes.h>
+#include <stdbool.h>
+#include <stdlib.h>
 
-typedef struct fsm fsm;
+typedef struct fsm *fsm;
 
-typedef uint16_t (*state_function)(fsm *);
+typedef void (*state_function)(fsm);
+typedef void (*event_handler)(fsm, uint8_t event);
 
-struct fsm {
-    uint16_t current_state;
-    uint16_t future_state;
-    uint16_t state_count;
+typedef struct state {
+    event_handler handler;
+    state_function entry;
+    state_function exit;
+} fsm_state;
 
-    PQ_QueueTypeDef event_queue;
-    state_function **state_table;
-};
+/**
+ * @brief Initializes a FSM instance
+ * 
+ * @param state_count Number of states
+ * @param event_count Number of events
+ * @param transition_callback Callback function that is called after each state transition
+ * @return fsm The initialized FSM handle
+ */
+fsm fsm_init(size_t state_count, size_t event_count, state_function transition_callback);
 
-void fsm_init(fsm *FSM, uint16_t state_count);
-void fsm_deinit(fsm *FSM);
-uint16_t fsm_get_state(fsm *FSM);
-void fsm_handle_event(fsm *FSM, uint16_t state);
-void fsm_run(fsm *FSM);
+/**
+ * @brief Destroys the FSM
+ * 
+ * @param handle The FSM instance to deinit
+ */
+void fsm_deinit(fsm *handle);
+
+/**
+ * @brief Starts the FSM by running the entry function of the initial state
+ * 
+ * @param handle The FSM instance handle
+ */
+void fsm_start(fsm handle);
+
+/**
+ * @brief Adds a state to the internal state table
+ * 
+ * @param handle The FSM instance handle
+ * @param id ID of the state
+ * @param state FSM state definition
+ */
+void fsm_set_state(fsm handle, uint32_t id, fsm_state *state);
+
+/**
+ * @brief Executes a state transition
+ * @details Runs the exit state of the current state, and runs the entry state of the next state. If present the transition callback is executed
+ * @note Use this on event handlers. Avoid using it outside of the FSM. Triggering events is the reccomended action for that use case.
+ * 
+ * @param handle The FSM instance handle
+ * @param state The next state
+ */
+void fsm_transition(fsm handle, uint32_t state);
+
+/**
+ * @brief Returns the current running state
+ * 
+ * @param handle The FSM instance handle
+ * @return The current state
+ */
+uint32_t fsm_get_state(fsm handle);
+
+/**
+ * @brief Sets the internal register for a given event
+ * 
+ * @param handle The FSM instance handle
+ * @param event Event to set
+ */
+void fsm_trigger_event(fsm handle, uint32_t event);
+
+/**
+ * @brief Runs the FSM event handlers
+ * 
+ * @param handle The FSM instance handle
+ */
+void fsm_run(fsm handle);
 
 #endif
