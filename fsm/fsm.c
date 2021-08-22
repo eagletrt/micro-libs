@@ -16,8 +16,8 @@ struct fsm {
     uint32_t current_state;
 
     size_t event_count;
-    bool *events_sync;
-    bool *events_async;
+    volatile bool *events_sync;
+    volatile bool *events_async;
 
     state_function transition_callback;
     size_t state_count;
@@ -89,8 +89,10 @@ void fsm_trigger_event(fsm handle, uint32_t event) {
 void fsm_run(fsm handle) {
     for (size_t i = 0; i < handle->event_count; i++) {
         if (handle->events_async[i] != handle->events_sync[i]) {
-            handle->state_table[handle->current_state].handler(handle, i);
-            handle->events_sync[i] = handle->events_async[i];
+            if( handle->state_table[handle->current_state].handler){
+                handle->state_table[handle->current_state].handler(handle, i);
+                handle->events_sync[i] = handle->events_async[i];
+            }
         }
     }
 }
