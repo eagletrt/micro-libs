@@ -10,48 +10,47 @@
 
 #ifndef CLI_H
 #define CLI_H
+#include "../llist/llist.h"
+#include "main.h"
+
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include "../llist/llist.h"
-#include "stm32g4xx_hal.h"
-
 #define BUF_SIZE 64
-#define PS_SIZE 3
+#define PS_SIZE  3
 // TODO: Enforce this limit
 #define HISTORY_MAX_SIZE 100
 
 typedef void cli_command_func_t(uint16_t argc, char **argv, char *out);
 
 typedef struct buffer {
-	uint8_t index;
-	char buffer[BUF_SIZE];
+    uint8_t index;
+    char buffer[BUF_SIZE];
 } buffer_t;
 
 typedef struct commands {
-	cli_command_func_t **functions;	 // Array of pointers to command functions
-	char **names;					 // Array of command names
-	uint8_t count;					 // Number of commands
+    cli_command_func_t **functions;  // Array of pointers to command functions
+    char **names;                    // Array of command names
+    uint8_t count;                   // Number of commands
 } commands_t;
 
 typedef struct cli_t {
-	UART_HandleTypeDef *uart;
+    UART_HandleTypeDef *uart;
 
-	char input_buf;	 // Input byte
+    char input_buf;  // Input byte
 
-	llist history;				  // stream (history)
-	uint32_t current_hist_index;  // Currently "selected" history item
+    llist history;                // stream (history)
+    uint32_t current_hist_index;  // Currently "selected" history item
 
-	buffer_t current_command;
+    buffer_t current_command;
 
-	bool receive;	   // True if a byte has been received
-	bool complete;	   // True if the current command has been \n'd
-	uint8_t escaping;  // index at which escaping started
+    bool receive;      // True if a byte has been received
+    bool complete;     // True if the current command has been \n'd
+    uint8_t escaping;  // index at which escaping started
 
-	commands_t cmds;
+    commands_t cmds;
 } cli_t;
 
-static const char *bool_names[2] = {"false", "true"};
 static const char cli_ps[PS_SIZE] = "> \0";
 
 void cli_buf_init(buffer_t *buf);
