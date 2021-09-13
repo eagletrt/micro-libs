@@ -23,6 +23,7 @@ typedef void (*event_handler)(fsm, uint8_t event);
 typedef struct state {
     event_handler handler;
     state_function entry;
+    state_function run;
     state_function exit;
 } fsm_state;
 
@@ -31,10 +32,11 @@ typedef struct state {
  * 
  * @param state_count Number of states
  * @param event_count Number of events
+ * @param run_callback Callback function that is called after each state is run
  * @param transition_callback Callback function that is called after each state transition
  * @return fsm The initialized FSM handle
  */
-fsm fsm_init(size_t state_count, size_t event_count, state_function transition_callback);
+fsm fsm_init(size_t state_count, size_t event_count, state_function run_callback, state_function transition_callback);
 
 /**
  * @brief Destroys the FSM

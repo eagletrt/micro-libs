@@ -19,17 +19,19 @@ struct fsm {
     bool *volatile events_sync;
     bool *volatile events_async;
 
+    state_function run_callback;
     state_function transition_callback;
     size_t state_count;
     fsm_state *state_table;
 };
 
-fsm fsm_init(size_t state_count, size_t event_count, state_function transition_callback) {
+fsm fsm_init(size_t state_count, size_t event_count, state_function run_callback, state_function transition_callback) {
     fsm handle = (fsm)malloc(sizeof(struct fsm));
 
     (handle)->current_state       = 0;
     (handle)->state_count         = state_count;
     (handle)->event_count         = event_count;
+    (handle)->run_callback        = run_callback;
     (handle)->transition_callback = transition_callback;
 
     (handle)->events_async = (bool *)malloc(sizeof(bool) * (handle)->event_count);
@@ -94,5 +96,13 @@ void fsm_run(fsm handle) {
                 handle->events_sync[i] = handle->events_async[i];
             }
         }
+    }
+
+    if (handle->state_table[handle->current_state].run != NULL) {
+        handle->state_table[handle->current_state].run(handle);
+    }
+
+    if (handle->run_callback != NULL) {
+        handle->run_callback(handle);
     }
 }
