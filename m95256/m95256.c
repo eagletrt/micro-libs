@@ -22,7 +22,7 @@
 
 #include <stdlib.h>
 
-#define EEPROM_OPS_TIMEOUT 100
+#define EEPROM_OPS_TIMEOUT 10
 
 struct m95256 {
     SPI_HandleTypeDef *spi;
@@ -244,10 +244,10 @@ EepromOperations m95256_WriteBuffer(m95256_t eeprom, uint8_t *pBuffer, uint16_t 
   * @retval None
   */
 EepromOperations m95256_ReadBuffer(m95256_t eeprom, uint8_t *pBuffer, uint16_t ReadAddr, uint16_t NumByteToRead) {
-    uint32_t time = HAL_GetTick();
+    uint32_t timestamp = HAL_GetTick();
     while (eeprom->spi->State != HAL_SPI_STATE_READY) {
-        if (HAL_GetTick() - time >= EEPROM_OPS_TIMEOUT) {
-            return EEPROM_STATUS_ERROR;
+        if (HAL_GetTick() - timestamp >= EEPROM_OPS_TIMEOUT) {
+            return EEPROM_STATUS_TIMEOUT;
         }
     }
 
@@ -267,8 +267,11 @@ EepromOperations m95256_ReadBuffer(m95256_t eeprom, uint8_t *pBuffer, uint16_t R
     /* Send WriteAddr address byte to read from */
     m95256_SendInstruction(eeprom->spi, header, 3);
 
+    timestamp = HAL_GetTick();
     while (HAL_SPI_Receive(eeprom->spi, (uint8_t *)pBuffer, NumByteToRead, 200) == HAL_BUSY) {
-        HAL_Delay(1);
+        if (HAL_GetTick() - timestamp >= EEPROM_OPS_TIMEOUT) {
+            return EEPROM_STATUS_TIMEOUT;
+        }
     };
 
     // Deselect the EEPROM: Chip Select high
@@ -288,23 +291,31 @@ uint8_t EEPROM_SendByte(SPI_HandleTypeDef *hspi, uint8_t byte) {
     uint8_t answerByte;
 
     /* Loop while DR register in not empty */
+    uint32_t timestamp = HAL_GetTick();
     while (hspi->State == HAL_SPI_STATE_RESET) {
-        HAL_Delay(1);
+        if (HAL_GetTick() - timestamp >= EEPROM_OPS_TIMEOUT) {
+            return EEPROM_STATUS_TIMEOUT;
+        }
     }
 
     /* Send byte through the SPI peripheral */
+    timestamp = HAL_GetTick();
     if (HAL_SPI_Transmit(hspi, &byte, 1, 200) != HAL_OK) {
-        Error_Handler();
+        return EEPROM_STATUS_ERROR;
     }
 
     /* Wait to receive a byte */
+    timestamp = HAL_GetTick();
     while (hspi->State == HAL_SPI_STATE_RESET) {
-        HAL_Delay(1);
+        if (HAL_GetTick() - timestamp >= EEPROM_OPS_TIMEOUT) {
+            return EEPROM_STATUS_TIMEOUT;
+        }
     }
 
     /* Return the byte read from the SPI bus */
+    timestamp = HAL_GetTick();
     if (HAL_SPI_Receive(hspi, &answerByte, 1, 200) != HAL_OK) {
-        Error_Handler();
+        return EEPROM_STATUS_ERROR;
     }
 
     return (uint8_t)answerByte;
@@ -392,14 +403,18 @@ uint8_t m95256_WaitStandbyState(m95256_t eeprom) {
     // Send "Read Status Register" instruction
     m95256_SendInstruction(eeprom->spi, (uint8_t *)command, 1);
 
+    uint32_t timestamp = HAL_GetTick();
     // Loop as long as the memory is busy with a write cycle
     do {
         while (HAL_SPI_Receive(eeprom->spi, (uint8_t *)sEEstatus, 1, 200) == HAL_BUSY) {
-            HAL_Delay(1);
+            if (HAL_GetTick() - timestamp >= EEPROM_OPS_TIMEOUT) {
+                return EEPROM_STATUS_TIMEOUT;
+            }
         };
 
-        HAL_Delay(1);
-
+        if (HAL_GetTick() - timestamp >= EEPROM_OPS_TIMEOUT) {
+            return EEPROM_STATUS_TIMEOUT;
+        }
     } while ((sEEstatus[0] & EEPROM_WIP_FLAG) == SET);  // Write in progress
 
     // Deselect the EEPROM: Chip Select high
