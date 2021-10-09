@@ -48,4 +48,14 @@ void _LOG_write(char*, uint32_t, LOG_LogLevelTypeDef, char*, ...);
  */
 void LOG_print_fenice_logo(char*);
 
+
+/**
+ * @brief     Logging primitive called by each @ref LOG_write. 
+ *            NOTE: This funcion is weakly defined, hence must be re-instanced by the user.               
+ *            This function must use BSP's functions to log on UART,SD,EEPROM etc..
+ * 
+ * @param     A string message null terminated 
+ */
+void _LOG_write_raw(char * txt);
+
 #endif

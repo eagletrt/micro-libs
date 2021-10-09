@@ -3,7 +3,9 @@
 #include "string.h"
 #include "stdarg.h"
 
-#include "usart.h"
+#ifndef __weak
+    #define __weak __attribute__((weak))
+#endif
 
 static LOG_LogLevelTypeDef _LOG_curr_loglevel = LOGLEVEL_INFO;
 static bool _LOG_print_lineno = true;
@@ -83,8 +85,16 @@ void _LOG_write(char* filename, uint32_t lineno, LOG_LogLevelTypeDef loglevel, c
 
 }
 
-void _LOG_write_raw(char * txt) {
-    /* Transmit buffer over UART */
+__weak void _LOG_write_raw(char * txt) {
+    /* Transmit buffer over UART, e.g. : */
+    /* This function must be redefined by the user */
+
+    /*
+
     HAL_UART_Transmit(&huart4, (uint8_t*)txt, strlen(txt), 100);
     HAL_UART_Transmit(&huart4, (uint8_t*)"\r\n", 2, 100);
+
+    */
+
+    1==1/0; /* ERROR: _LOG_write_raw(char * txt) must be redefined */
 }
