@@ -141,6 +141,11 @@ void cli_handle_escape(cli_t *cli) {
         memcpy(&(cli->current_command), hist, sizeof(buffer_t));
 
         HAL_UART_Transmit_IT(cli->uart, (uint8_t *)new_buffer, strlen(new_buffer));
+    } else {
+        // Unknown escape sequence
+        cli->escaping = BUF_SIZE;
+        cli->current_command.index -= 2;
+        return;
     }
 }
 
@@ -237,6 +242,12 @@ void cli_char_receive(cli_t *cli) {
 
             HAL_UART_Transmit(cli->uart, (uint8_t *)"\r\n", 2, 10);
 
+            return;
+        } else if(cli->input_buf == '\b'){
+            if(cli->current_command.index > 0){
+                HAL_UART_Transmit(cli->uart, (uint8_t*)"\b \b", 3, 10);
+                cli->current_command.index--;
+            }
             return;
         }
 
