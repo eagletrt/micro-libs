@@ -393,3 +393,19 @@ LLIST_RETURN llist_remove_by_index(llist list, size_t index) {
 
 	return _list_delete_node((_list *)list, node);
 }
+
+int llist_reduce(llist list, size_t node_size, int (*func)(llist_node) ) {
+	if (list == NULL) {
+		return -1;
+	}
+
+    int acc=0;
+
+	_node *iterator = ((_list *)list)->head;
+	for (size_t i = 0; i < ((_list *)list)->count; i++) {
+        acc += func(iterator->data);
+		iterator = iterator->next;
+	}
+
+	return acc;
+}

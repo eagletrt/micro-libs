@@ -178,4 +178,12 @@ LLIST_RETURN llist_find(llist list, llist_node node, size_t *index);
  */
 LLIST_RETURN llist_get(llist list, size_t index, llist_node *node);
 
+/**
+ * @brief Calls @param func for each element in the list
+ * @param[in] list the list to operator upon
+ * @param[in] func the function to execute
+ * @return the sum of the values
+ */
+int llist_reduce(llist list, size_t node_size, int (*func)(llist_node) ) {
+
 #endif
