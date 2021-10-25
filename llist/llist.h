@@ -184,6 +184,6 @@ LLIST_RETURN llist_get(llist list, size_t index, llist_node *node);
  * @param[in] func the function to execute
  * @return the sum of the values
  */
-int llist_reduce(llist list, size_t node_size, int (*func)(llist_node) ) {
+int llist_reduce(llist list, size_t node_size, int (*func)(llist_node));
 
 #endif
