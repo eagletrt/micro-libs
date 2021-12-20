@@ -77,12 +77,17 @@ uint16_t cli_clean(char *cmd) {
  */
 uint16_t _cli_get_args(char cmd[BUF_SIZE], char *argv[BUF_SIZE]) {
     uint16_t argc = 0;
-    argv[argc]    = cmd;
+    while(*cmd == ' ') ++cmd; //front trim
+
+    if(strlen(cmd) == 0){
+        strcpy(cmd, "?"); //show help on empty cmd
+    }
+    argv[argc++]    = cmd;
 
     for (uint16_t i = 0; cmd[i] != '\0'; i++) {
         if (cmd[i] == ' ') {
             cmd[i]       = '\0';
-            argv[++argc] = cmd + (i + 1);
+            argv[argc++] = cmd + (i + 1);
         }
     }
     return argc;
