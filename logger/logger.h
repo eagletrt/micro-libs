@@ -14,6 +14,14 @@
 #include "stdbool.h"
 
 
+/**
+ * @brief     Utilities to print floats when they are SBORATI IN CULO PD
+ *            Use like so: printf("%d.%d", GET_INT_PART(f), GET_DEC_PART(f))
+ */
+#define LOG_GET_INT_PART(x) ((uint32_t)(x))                             /*< Get integer part of a float */
+#define LOG_GET_DEC_PART(x) ((uint8_t)(((x)-LOG_GET_INT_PART(x))*100))  /*< Get two decimal digits of a float as an integer */
+
+
 typedef enum {
     LOGLEVEL_DEBUG = 0U,    /*< Messages useful to trace execution */
     LOGLEVEL_INFO,          /*< Messages that inform of non-important events */
@@ -25,7 +33,7 @@ typedef enum {
 /**
  * @brief     Initialize logging parameters
  * 
- * @param     loglevel The log level above which messages will be printed
+ * @param     loglevel    The log level above which messages will be printed
  * @param     show_lineno Before the message, print its generating file and line number
  * @param     show_prefix Before the message, show its log level (eg., debug, info, etc)
  * @param     show_tick   Before the message, print the time in ticks
@@ -54,7 +62,7 @@ void LOG_print_fenice_logo(char*);
  *            NOTE: This funcion is weakly defined, hence must be re-instanced by the user.               
  *            This function must use BSP's functions to log on UART,SD,EEPROM etc..
  * 
- * @param     A string message null terminated 
+ * @param     txt A string message null terminated 
  */
 void _LOG_write_raw(char * txt);
 
