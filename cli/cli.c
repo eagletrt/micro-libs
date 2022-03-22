@@ -127,6 +127,7 @@ void cli_handle_escape(cli_t *cli) {
         buffer_t *hist;
         if (!_cli_get_next_history_node(cli, direction, (llist_node)&hist)) {
             // No history
+            cli->current_command.index -= 2;
             return;
         }
 
@@ -145,7 +146,7 @@ void cli_handle_escape(cli_t *cli) {
 
         memcpy(&(cli->current_command), hist, sizeof(buffer_t));
 
-        HAL_UART_Transmit_IT(cli->uart, (uint8_t *)new_buffer, strlen(new_buffer));
+        HAL_UART_Transmit(cli->uart, (uint8_t *)new_buffer, strlen(new_buffer), 100); //doing this in IT mode sbora su tut
     } else {
         // Unknown escape sequence
         cli->escaping = BUF_SIZE;
