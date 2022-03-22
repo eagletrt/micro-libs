@@ -206,7 +206,7 @@ void cli_loop(cli_t *cli) {
         uint16_t argc        = _cli_get_args(cli->current_command.buffer, argv);
 
         // TODO: Make this better
-        char tx_buf[3000] = "?\r\n";
+        char tx_buf[4000] = "?\r\n";
 
         // Check which command corresponds with the buffer
         for (uint16_t i = 0; i < cli->cmds.count; i++) {

@@ -80,8 +80,8 @@ void _LOG_write(char* filename, uint32_t lineno, LOG_LogLevelTypeDef loglevel, c
     /* Write message */
     _LOG_write_raw(buffer);
 
-    if (offset >= buf_size && buf_size > 75) // If the error message fits without generating a recursive error
-        LOG_write(LOGLEVEL_WARN, "[LOG] Previous log message was truncated due to buffer size (%ld chars)", buf_size);
+    if (offset >= buf_size)
+        _LOG_write_raw("[WRN] [LOG] Previous log message was truncated due to insufficient buffer size");
 
 }
 
