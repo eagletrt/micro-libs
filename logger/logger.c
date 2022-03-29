@@ -53,7 +53,7 @@ void _LOG_write(char* filename, uint32_t lineno, LOG_LogLevelTypeDef loglevel, c
         return;
 
     /* Create buffer */
-    uint16_t buf_size = 100;
+    uint16_t buf_size = 150;
     uint16_t offset = 0;
     char buffer[buf_size];
 
