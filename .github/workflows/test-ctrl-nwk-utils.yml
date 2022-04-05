@@ -1,0 +1,13 @@
+name: "CI for ctrl-nwk-utils"
+on: [push, pull_request]
+jobs:
+  run-munit-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ctrl-nwk-utils/test
+    steps:
+      - uses: actions/checkout@v2
+      - uses: textbook/git-checkout-submodule-action@master
+      - run: make test
+      - run : ./test
