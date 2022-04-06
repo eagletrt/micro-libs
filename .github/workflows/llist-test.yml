@@ -10,4 +10,6 @@ jobs:
         working-directory: llist/test
     steps:
     - uses: actions/checkout@v2 
+      with:
+        submodules: 'recursive'
     - run: make test

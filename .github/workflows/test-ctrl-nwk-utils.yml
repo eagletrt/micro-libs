@@ -8,6 +8,7 @@ jobs:
         working-directory: ctrl-nwk-utils/test
     steps:
       - uses: actions/checkout@v2
-      - uses: textbook/git-checkout-submodule-action@master
+        with:
+          submodules: 'recursive'
       - run: make test
       - run : ./test
