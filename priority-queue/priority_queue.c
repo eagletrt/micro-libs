@@ -57,7 +57,7 @@ void _PQ_free_node(_PQ_QueueTypeDef *queue, PQ_NodeTypeDef *node) {
  * */
 void PQ_init(
     _PQ_QueueTypeDef **queue, size_t queue_length, size_t payload_size, PQ_cmp_priorities_fn cmp, PQ_after_pop_fn op) {
-    assert(cmp != NULL);
+    //assert(cmp != NULL); //commented because nullish values are handled at line 66
     /* Initialize pointers to NULL */
     (*queue)       = malloc(sizeof(_PQ_QueueTypeDef));
     (*queue)->head = (*queue)->free_nodes = NULL;
