@@ -46,9 +46,9 @@ typedef struct blink blink_t;
     ((blink).pattern_config = ((blink).pattern_config & (0xFF - _BLINK_PATTERN_SIZE_MASK)) | \
                               (size & _BLINK_PATTERN_SIZE_MASK))
 
-#define BLINK_SET_PATTERN(blink, pattern, size)                          \
+#define BLINK_SET_PATTERN(blink, blink_pattern, size)                          \
     {                                                                    \
-        memcpy((blink).pattern, (pattern), sizeof(*(pattern)) * (size)); \
+        memcpy((blink).pattern, (blink_pattern), sizeof(*(blink_pattern)) * (size)); \
         BLINK_SET_PATTERN_SIZE(blink, size);                             \
     }
 
