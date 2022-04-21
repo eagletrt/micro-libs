@@ -4,6 +4,18 @@
 #include "stdint.h"
 #include "stdbool.h"
 
+#define CTRL_PARAMID_DREQ       0x00
+#define CTRL_PARAMID_STEER_ANG  0x01
+#define CTRL_PARAMID_CSW        0x02
+#define CTRL_PARAMID_YAW        0x03
+#define CTRL_PARAMID_O_RR       0x04
+#define CTRL_PARAMID_O_RL       0x05
+#define CTRL_PARAMID_O_FR       0x06
+#define CTRL_PARAMID_O_FL       0x07
+#define CTRL_PARAMID_AX_G       0x08
+#define CTRL_PARAMID_BRAKE      0x09
+#define CTRL_PARAMID_TMRR       0x0A
+#define CTRL_PARAMID_TMLL       0x0B
 
 typedef struct {
     uint8_t ParamID;

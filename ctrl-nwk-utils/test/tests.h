@@ -6,5 +6,6 @@
 
 MunitResult test_stuff_buffer(const MunitParameter*, void *);
 MunitResult test_unstuff_buffer(const MunitParameter*, void *);
+MunitResult test_compose_frame(const MunitParameter*, void *);
 
 #endif

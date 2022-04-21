@@ -5,8 +5,6 @@
 /* Constants and private variables ------------------------------------------ */
 #define CTRL_MAX_FRAME_LEN 18   /*< Maximum frame size if fully byte-stuffed */
 #define CTRL_PAYLOAD_SIZE 7     /*< Payload size: header (1) + body (4) + CRC (2) */
-#define CTRL_START_BYTES 2      /*< Frame start bytes: DLE + STX */
-#define CTRL_STOP_BYTES 2      /*< Frame stop bytes: DLE + ETX */
 #define CTRL_DLE 0x10           /*< Data Link Escape ctrl char */
 #define CTRL_STX 0x02           /*< Start of Text ctrl char */
 #define CTRL_ETX 0x03           /*< End of Text ctrl char */
@@ -26,8 +24,8 @@ uint8_t _CTRL_is_frame_wellformed(uint8_t*, uint8_t);
 bool CTRL_read_frame(uint8_t *buf, uint8_t buf_size, CTRL_PayloadTypeDef *data) {
     uint8_t payload[CTRL_PAYLOAD_SIZE];
     CTRL_unstuff_buffer(
-        buf + CTRL_START_BYTES,
-        buf_size - 2,
+        buf + 2, // DLE + STX
+        buf_size - 2, // DLE + ETX
         payload
     );
 
