@@ -4,6 +4,10 @@
 #include "stdint.h"
 #include "stdbool.h"
 
+#define CTRL_DLE 0x10           /*< Data Link Escape ctrl char */
+#define CTRL_STX 0x02           /*< Start of Text ctrl char */
+#define CTRL_ETX 0x03           /*< End of Text ctrl char */
+
 #define CTRL_PARAMID_DREQ       0x00
 #define CTRL_PARAMID_STEER_ANG  0x01
 #define CTRL_PARAMID_CSW        0x02
