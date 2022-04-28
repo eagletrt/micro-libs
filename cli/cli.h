@@ -59,4 +59,5 @@ void cli_print(cli_t *cli, char *text, size_t length);
 void cli_loop(cli_t *cli);
 void cli_handle_interrupt(cli_t *cli);
 void cli_char_receive(cli_t *cli);
+uint16_t _cli_get_args(char cmd[BUF_SIZE], char *argv[BUF_SIZE]);
 #endif

@@ -255,6 +255,11 @@ void cli_char_receive(cli_t *cli) {
                 cli->current_command.index--;
             }
             return;
+        } else if(cli->input_buf == '\003') {
+            cli->complete = true;
+            cli->current_command.index = 1;
+            strcpy(cli->current_command.buffer, "\003");
+            return;
         }
 
         cli->current_command.buffer[cli->current_command.index] = cli->input_buf;
