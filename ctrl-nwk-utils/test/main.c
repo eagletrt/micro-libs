@@ -14,14 +14,19 @@ MunitTest tests[] = {
         NULL                    /* parameters   */
     },
     {"/test-unstuff-buffer", test_unstuff_buffer, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL},
+    {"/test-unstuff-buffer-malformed", test_unstuff_buffer_malformed, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL},
+    {"/test-frame-wellformed-ok", test_frame_wellformed_ok, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL},
+    {"/test-frame-wellformed-ok-empty", test_frame_wellformed_ok_empty, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL},
+    {"/test-frame-wellformed-bad", test_frame_wellformed_bad, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL},
     {"/test-compose-frame",  test_compose_frame,  NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL},
+    {"/test-read-frame",  test_read_frame,  NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL},
 
     /* Mark the end of the array with a NULL test function */
     {NULL, NULL, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL}};
 
 /* Create a test suite */
 static const MunitSuite suite = {
-    "/test-suite",          /* name         */
+    "",          /* name         */
     tests,                  /* tests        */
     NULL,                   /* suites       */
     1,                      /* iterations   */

@@ -28,6 +28,8 @@ typedef struct {
 } CTRL_PayloadTypeDef;
 
 
+bool CTRL_is_frame_wellformed(uint8_t*, uint8_t);
+
 bool CTRL_read_frame(uint8_t*, uint8_t, CTRL_PayloadTypeDef*);
 
 uint8_t CTRL_unstuff_buffer(uint8_t*, uint8_t, uint8_t*);
