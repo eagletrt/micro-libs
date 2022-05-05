@@ -17,7 +17,7 @@
  */
 bool CTRL_read_frame(uint8_t *buf, uint8_t buf_size, CTRL_PayloadTypeDef *data) {
     /* Check that there are at least enough bytes: (dle+stx) + min_payload_size + (dle+etx) */
-    if (buf_size - 4 < CTRL_PAYLOAD_SIZE)
+    if (buf_size < CTRL_PAYLOAD_SIZE + 4)
         return false;
         
     /* Check if the unstuffed buffer will fit */
