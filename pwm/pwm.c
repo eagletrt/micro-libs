@@ -17,16 +17,9 @@ void pwm_set_period(TIM_HandleTypeDef *htim, float period_ms) {
 }
 
 void pwm_set_duty_cicle(TIM_HandleTypeDef *htim, uint32_t channel, float duty_cicle) {
-    if(duty_cicle > 1) return;
-
-    TIM_OC_InitTypeDef sConfigOC = {0};
-    sConfigOC.OCMode = TIM_OCMODE_PWM1;
-    sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-    sConfigOC.OCFastMode = TIM_OCFAST_ENABLE;
-
-    sConfigOC.Pulse = __HAL_TIM_GetAutoreload(htim) * duty_cicle; //set duty cicle
-
-    HAL_TIM_PWM_ConfigChannel(htim, &sConfigOC, channel);
+    if(duty_cicle < 0 || duty_cicle > 1) return;
+    
+   __HAL_TIM_SetCompare(htim, channel, __HAL_TIM_GetAutoreload(htim) * duty_cicle);
 }
 
 void pwm_generate_wave(TIM_HandleTypeDef *htim, uint32_t channel, PWM_WAVE_TYPE wave_type, uint16_t *freq_Hz, uint8_t freq_size) {
