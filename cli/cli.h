@@ -19,13 +19,16 @@
 #define BUF_SIZE 64
 #define PS_SIZE  3
 // TODO: Enforce this limit
-#define HISTORY_MAX_SIZE 100
+#define HISTORY_MAX_SIZE    100
 
 typedef void cli_command_func_t(uint16_t argc, char **argv, char *out);
+typedef enum {CLI_ESCAPE_RECEIVED, CLI_ESCAPE_CODE_WAITING, CLI_ESCAPE_NOT_RECEIVED} CLI_ESCAPE_STATE;
 
 typedef struct buffer {
     uint8_t index;
+    CLI_ESCAPE_STATE escape_state;
     char buffer[BUF_SIZE];
+    char escape;
 } buffer_t;
 
 typedef struct commands {
@@ -46,7 +49,6 @@ typedef struct cli_t {
 
     bool receive;      // True if a byte has been received
     bool complete;     // True if the current command has been \n'd
-    uint8_t escaping;  // index at which escaping started
 
     commands_t cmds;
 } cli_t;

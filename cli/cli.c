@@ -6,6 +6,7 @@
  *
  * @author	Matteo Bonora [matteo.bonora@studenti.unitn.it]
  * @author	Simone Ruffini [simone.ruffini@studenti.unitn.it]
+ * @author	Federico Carbone [federico.carbone@studenti.unitn.it]
  */
 
 #include "cli.h"
@@ -13,6 +14,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#define CLEAR_LINE_ESC      "\033[2K"
+#define MOVE_RIGHT_ESC      "\033[1C"
+#define MOVE_LEFT_ESC       "\033[1D"
 
 #define HIST_UP   1
 #define HIST_DOWN -1
@@ -36,7 +41,7 @@ void cli_init(cli_t *cli) {
 
     cli->complete           = false;
     cli->receive            = true;
-    cli->escaping           = BUF_SIZE;
+    cli->current_command.escape_state = CLI_ESCAPE_NOT_RECEIVED;
     cli->current_hist_index = 0;
 }
 
@@ -76,21 +81,21 @@ uint16_t cli_clean(char *cmd) {
  * @returns the number of args
  */
 uint16_t _cli_get_args(char cmd[BUF_SIZE], char *argv[BUF_SIZE]) {
+    static char *save_ptr = NULL;
     uint16_t argc = 0;
     while(*cmd == ' ') ++cmd; //front trim
 
     if(strlen(cmd) == 0){
         strcpy(cmd, "?"); //show help on empty cmd
     }
-    argv[argc++]    = cmd;
 
-    for (uint16_t i = 0; cmd[i] != '\0'; i++) {
-        if (cmd[i] == ' ') {
-            cmd[i]       = '\0';
-            argv[argc++] = cmd + (i + 1);
-        }
+    argv[argc] = strtok_r(cmd, " ", &save_ptr);
+
+    while(argv[argc++] != NULL) {
+        argv[argc] = strtok_r(NULL, " ", &save_ptr);
     }
-    return argc;
+    
+    return --argc;
 }
 
 void cli_print(cli_t *cli, char *text, size_t length) {
@@ -106,52 +111,63 @@ bool _cli_get_next_history_node(cli_t *cli, int8_t direction, llist_node *next) 
     return llist_get(cli->history, cli->current_hist_index + direction, next) == LLIST_SUCCESS;
 }
 
+void _cli_handle_history_escape(cli_t *cli) {
+    int8_t direction = cli->current_command.escape == 'A' ? HIST_UP : HIST_DOWN;
+
+    buffer_t *hist;
+    if (!_cli_get_next_history_node(cli, direction, (llist_node)&hist)) return;
+
+    cli->current_hist_index += direction;
+
+    char new_buffer[BUF_SIZE] = {'\0'};
+    strcat(new_buffer, CLEAR_LINE_ESC "\r");
+    strcat(new_buffer, cli_ps);
+
+    // TODO: Handle parameters separated by \0
+    strncat(new_buffer, hist->buffer, hist->index);
+
+    memcpy(&(cli->current_command), hist, sizeof(buffer_t));
+
+    HAL_UART_Transmit(cli->uart, (uint8_t *)new_buffer, strlen(new_buffer), 100); //doing this in IT mode sbora su tut
+}
+
+void _cli_handle_rl_escape(cli_t *cli) {
+    if(cli->current_command.escape == 'D') {
+        if(cli->current_command.index == 0) return;
+        --cli->current_command.index;
+        HAL_UART_Transmit(cli->uart, (uint8_t *)MOVE_LEFT_ESC, sizeof(MOVE_LEFT_ESC), 10);
+    } else {
+        if(cli->current_command.index == BUF_SIZE) return;
+        if(cli->current_command.buffer[cli->current_command.index++] == '\0') {
+            --cli->current_command.index;
+            return;
+        }
+
+        HAL_UART_Transmit(cli->uart, (uint8_t *)MOVE_RIGHT_ESC, sizeof(MOVE_RIGHT_ESC), 10);
+    }
+}
+
 /**
  * @brief Handles history
  */
 void cli_handle_escape(cli_t *cli) {
-    if (cli->current_command.buffer[cli->current_command.index - 1] == '[') {
-        cli->escaping = BUF_SIZE;
-        int8_t direction;
-
-        if (cli->current_command.buffer[cli->current_command.index] == 'A') {  // UP
-            direction = HIST_UP;
-        } else if (cli->current_command.buffer[cli->current_command.index] == 'B') {  // DOWN
-            direction = HIST_DOWN;
-        } else {
-            // Unknown escape sequence
-            cli->current_command.index -= 2;
-            return;
+    cli->current_command.escape_state = CLI_ESCAPE_NOT_RECEIVED;
+    if (cli->current_command.escape == 'A' || cli->current_command.escape == 'B') {  // UP || DOWN
+        _cli_handle_history_escape(cli);
+    }
+    else if (cli->current_command.escape == 'C' || cli->current_command.escape == 'D') { // RIGHT || LEFT
+        _cli_handle_rl_escape(cli);
+    }
+    else if (cli->current_command.escape == '3') { // DEL
+        char backspace_buf[BUF_SIZE] = {'\0'};
+        char echo_buf[2*BUF_SIZE] = {'\0'};
+        for(uint8_t i=cli->current_command.index; i<=strlen(cli->current_command.buffer); ++i) {
+            cli->current_command.buffer[i] = cli->current_command.buffer[i+1];
+            strcat(backspace_buf, "\b");
         }
+        sprintf(echo_buf, "%s %s", cli->current_command.buffer + cli->current_command.index, backspace_buf);
 
-        buffer_t *hist;
-        if (!_cli_get_next_history_node(cli, direction, (llist_node)&hist)) {
-            // No history
-            cli->current_command.index -= 2;
-            return;
-        }
-
-        cli->current_hist_index += direction;
-
-        char new_buffer[BUF_SIZE] = {'\0'};
-        strcat(new_buffer, "\r");  // CR
-        if (hist->index < cli->current_command.index - 2) {
-            // If the current command is longer than the history's we need to clear the screen
-            sprintf(new_buffer + 1, "%-*c\r", cli->current_command.index, (uint8_t)' ');
-        }
-        strcat(new_buffer, cli_ps);
-
-        // TODO: Handle parameters separated by \0
-        strncat(new_buffer, hist->buffer, hist->index);
-
-        memcpy(&(cli->current_command), hist, sizeof(buffer_t));
-
-        HAL_UART_Transmit(cli->uart, (uint8_t *)new_buffer, strlen(new_buffer), 100); //doing this in IT mode sbora su tut
-    } else {
-        // Unknown escape sequence
-        cli->escaping = BUF_SIZE;
-        cli->current_command.index -= 2;
-        return;
+        HAL_UART_Transmit(cli->uart, (uint8_t *)(echo_buf), strlen(echo_buf), 100);
     }
 }
 
@@ -167,13 +183,13 @@ void cli_loop(cli_t *cli) {
         HAL_UART_Receive_IT(cli->uart, (uint8_t *)&cli->input_buf, 1);
     }
 
+    if (cli->current_command.escape_state == CLI_ESCAPE_RECEIVED) {
+        cli_handle_escape(cli);
+        return;
+    }
+
     if (cli->complete) {
         cli->complete = false;
-
-        if (cli->escaping < BUF_SIZE) {
-            cli_handle_escape(cli);
-            return;
-        }
 
         // Clean the buffer from backspaces
         cli->current_command.index = cli_clean(cli->current_command.buffer);
@@ -239,46 +255,63 @@ void cli_handle_interrupt(cli_t *cli) {
  * @details Call this function when a char is received
  */
 void cli_char_receive(cli_t *cli) {
-    if (cli->input_buf != '\0') {
-        if (cli->input_buf == '\033') {  // Arrow
-            cli->escaping = cli->current_command.index;
-        } else if (cli->input_buf == '\r' || cli->input_buf == '\n') {
-            cli->complete                                           = true;
-            cli->current_command.buffer[cli->current_command.index] = '\0';
+    if (cli->input_buf == '\0' || cli->input_buf == '~') return;
 
-            HAL_UART_Transmit(cli->uart, (uint8_t *)"\r\n", 2, 10);
 
-            return;
-        } else if(cli->input_buf == '\b'){
-            if(cli->current_command.index > 0){
-                HAL_UART_Transmit(cli->uart, (uint8_t*)"\b \b", 3, 10);
-                cli->current_command.index--;
+    if (cli->input_buf == '\033') {  // escape sequence
+        cli->current_command.escape_state = CLI_ESCAPE_CODE_WAITING;
+        return;
+    } else if (cli->input_buf == '\r' || cli->input_buf == '\n') {
+        cli->complete                                           = true;
+
+        HAL_UART_Transmit(cli->uart, (uint8_t *)"\r\n", 2, 10);
+
+        return;
+    } else if(cli->input_buf == '\b'){
+        if(cli->current_command.index > 0){
+            char backspace_buf[BUF_SIZE] = {'\0'};
+            char echo_buf[2*BUF_SIZE] = {'\0'};
+            for(uint8_t i=--cli->current_command.index; i<=strlen(cli->current_command.buffer); ++i) {
+                cli->current_command.buffer[i] = cli->current_command.buffer[i+1];
+                strcat(backspace_buf, "\b");
             }
-            return;
-        } else if(cli->input_buf == '\003') {
-            cli->complete = true;
-            cli->current_command.index = 1;
-            strcpy(cli->current_command.buffer, "\003");
-            return;
-        }
+            sprintf(echo_buf, "\b%s %s", cli->current_command.buffer + cli->current_command.index, backspace_buf);
 
+            HAL_UART_Transmit(cli->uart, (uint8_t *)(echo_buf), strlen(echo_buf), 100);
+        }
+        return;
+    } else if(cli->input_buf == '\003') {
+        cli->complete = true;
+        cli->current_command.index = 1;
+        strcpy(cli->current_command.buffer, "\003");
+        return;
+    }
+
+    // TODO: CHeck for echo
+    //if (cli->escaping == BUF_SIZE && CLI_ECHO) {
+    if (cli->current_command.escape_state == CLI_ESCAPE_CODE_WAITING) {
+        if(cli->input_buf != '[') {
+            cli->current_command.escape = cli->input_buf;
+            cli->current_command.escape_state = CLI_ESCAPE_RECEIVED;
+        }
+    } else {
+        // Echo the last char
+        //actually need to reprint all the characters after the inserted one if the index is not pointing to the end of the string
+        //and then come back
+        char backspace_buf[BUF_SIZE] = {'\0'};
+        char echo_buf[2*BUF_SIZE] = {'\0'};
+        for(uint8_t i=strlen(cli->current_command.buffer)+1; i>cli->current_command.index; --i) {
+            cli->current_command.buffer[i] = cli->current_command.buffer[i-1];
+            strcat(backspace_buf, "\b");
+        }
         cli->current_command.buffer[cli->current_command.index] = cli->input_buf;
-
-        if (cli->escaping < BUF_SIZE && cli->current_command.index > cli->escaping + 1) {
-            cli->complete = true;
-            return;
-        }
+        sprintf(echo_buf, "%s %s", cli->current_command.buffer + cli->current_command.index, backspace_buf);
         cli->current_command.index++;
 
-        // Echo the last char
-        // TODO: CHeck for echo
-        //if (cli->escaping == BUF_SIZE && CLI_ECHO) {
-        if (cli->escaping == BUF_SIZE) {
-            HAL_UART_Transmit(cli->uart, (uint8_t *)&cli->input_buf, 1, 10);
-        }
+        HAL_UART_Transmit(cli->uart, (uint8_t *)(echo_buf), strlen(echo_buf), 100);
+    }
 
-        if (cli->current_command.index == BUF_SIZE) {
-            cli->complete = true;
-        }
+    if (cli->current_command.index == BUF_SIZE) {
+        cli->complete = true;
     }
 }
