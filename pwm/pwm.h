@@ -1,9 +1,22 @@
+#ifndef PWM_H
+#define PWM_H
+
 #include "main.h"
 #include <inttypes.h>
 
 #define PWM_MAX_FREQUENCIES         10
+#define PWM_MAX_SOUNDS              4
 
 typedef enum {PWM_SINE_WAVE, PWM_SQUARED_WAVE, PWM_SAW_TOOTH_WAVE } PWM_WAVE_TYPE;
+
+
+typedef struct {
+    uint32_t channel;
+    float *duties;
+    uint8_t duties_index;
+    uint32_t duties_len;
+    uint8_t enabled;
+} sound_player;
 
 /**
  * @brief     Set the period for the specified timer. This will affect every channel
@@ -49,9 +62,13 @@ void pwm_start_channel(TIM_HandleTypeDef *htim, uint32_t channel);
  */
 void pwm_stop_channel(TIM_HandleTypeDef *htim, uint32_t channel);
 
+void pwm_play_sound(TIM_HandleTypeDef *htim, sound_player *sound);
+
 /**
  * @brief     HAL_TIM_PWMFinishedCallback
  * 
  * @param     htim TIM Handle
  */
 void _pwm_tim_pulse_finished_handler(TIM_HandleTypeDef *htim);
+
+#endif

@@ -1,3 +1,6 @@
+#ifndef TIMER_UTILS_H
+#define TIMER_UTILS_H
+
 #include "main.h"
 #include <inttypes.h>
 
@@ -42,3 +45,5 @@
  * @return    clk frequency in Hz
  */
 uint32_t TIM_GetInternalClkFreq(TIM_HandleTypeDef *htim);
+
+#endif

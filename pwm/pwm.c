@@ -12,6 +12,9 @@ struct {
     uint8_t enabled;
 } wave_generation;
 
+sound_player *sounds[PWM_MAX_SOUNDS];
+uint8_t sound_count = 0;
+
 void pwm_set_period(TIM_HandleTypeDef *htim, float period_ms) {
     __HAL_TIM_SetAutoreload(htim, TIM_MS_TO_TICKS(htim, period_ms)); //set the period
 }
@@ -39,6 +42,14 @@ void pwm_start_channel(TIM_HandleTypeDef *htim, uint32_t channel) {
 void pwm_stop_channel(TIM_HandleTypeDef *htim, uint32_t channel) {
     if(wave_generation.enabled) wave_generation.enabled = 0;
     HAL_TIM_PWM_Stop_IT(htim, channel);
+}
+
+void pwm_play_sound(TIM_HandleTypeDef *htim, sound_player *sound) {
+    sound->enabled = 1;
+    sound->duties_index = 0;
+    if(sound_count == PWM_MAX_SOUNDS-1) return;
+    sounds[sound_count++] = sound;
+    HAL_TIM_PWM_Start_IT(htim, sound->channel);
 }
 
 void _pwm_tim_pulse_finished_handler(TIM_HandleTypeDef *htim) {
@@ -78,5 +89,13 @@ void _pwm_tim_pulse_finished_handler(TIM_HandleTypeDef *htim) {
         __HAL_TIM_SetCompare(htim, wave_generation.channel, __HAL_TIM_GetAutoreload(htim) * duty_cicle);
 
         ++wave_generation.rep_counter;
+    }
+    for(uint8_t i=0; i<sound_count; ++i) {
+        if(sounds[i]->enabled) {
+            if(sounds[i]->duties_index < sounds[i]->duties_len)
+                __HAL_TIM_SetCompare(htim, sounds[i]->channel, __HAL_TIM_GetAutoreload(htim) * sounds[i]->duties[(sounds[i]->duties_index)++]);
+            else
+                sounds[i]->enabled = 0;
+        }
     }
 }
