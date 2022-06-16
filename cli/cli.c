@@ -219,11 +219,11 @@ void cli_loop(cli_t *cli) {
             }
         }
 
-        char *argv[BUF_SIZE] = {'\0'};
+        char *argv[BUF_SIZE] = {NULL};
         uint16_t argc        = _cli_get_args(cli->current_command.buffer, argv);
 
         // TODO: Make this better
-        char tx_buf[4000] = "?\r\n";
+        char tx_buf[4096] = "?\r\n";
 
         // Check which command corresponds with the buffer
         for (uint16_t i = 0; i < cli->cmds.count; i++) {
@@ -261,7 +261,17 @@ void cli_char_receive(cli_t *cli) {
     if (cli->input_buf == '\033') {  // escape sequence
         cli->current_command.escape_state = CLI_ESCAPE_CODE_WAITING;
         return;
-    } else if (cli->input_buf == '\r' || cli->input_buf == '\n') {
+    } else if (cli->input_buf == '\r') {
+        if(cli->current_command.buffer[cli->current_command.index-1] == '\n') cli->current_command.buffer[--cli->current_command.index] = '\0';
+        cli->complete                                           = true;
+
+        HAL_UART_Transmit(cli->uart, (uint8_t *)"\r\n", 2, 10);
+
+        return;
+    } else if(cli->input_buf == '\n') {
+        if(cli->current_command.buffer[cli->current_command.index-1] != '\r') return;
+
+        cli->current_command.buffer[--cli->current_command.index] = '\0';
         cli->complete                                           = true;
 
         HAL_UART_Transmit(cli->uart, (uint8_t *)"\r\n", 2, 10);
