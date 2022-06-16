@@ -12,7 +12,7 @@ typedef enum {PWM_SINE_WAVE, PWM_SQUARED_WAVE, PWM_SAW_TOOTH_WAVE } PWM_WAVE_TYP
 
 typedef struct {
     uint32_t channel;
-    float *duties;
+    uint8_t *duties;
     uint8_t duties_index;
     uint32_t duties_len;
     uint8_t enabled;

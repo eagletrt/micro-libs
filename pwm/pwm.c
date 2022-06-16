@@ -93,7 +93,7 @@ void _pwm_tim_pulse_finished_handler(TIM_HandleTypeDef *htim) {
     for(uint8_t i=0; i<sound_count; ++i) {
         if(sounds[i]->enabled) {
             if(sounds[i]->duties_index < sounds[i]->duties_len)
-                __HAL_TIM_SetCompare(htim, sounds[i]->channel, __HAL_TIM_GetAutoreload(htim) * sounds[i]->duties[(sounds[i]->duties_index)++]);
+                __HAL_TIM_SetCompare(htim, sounds[i]->channel, __HAL_TIM_GetAutoreload(htim) * ((float)sounds[i]->duties[(sounds[i]->duties_index)++] / UINT8_MAX));
             else
                 sounds[i]->enabled = 0;
         }
