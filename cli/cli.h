@@ -20,6 +20,7 @@
 #define PS_SIZE  3
 // TODO: Enforce this limit
 #define HISTORY_MAX_SIZE    100
+#define CLI_TX_BUF_LEN      4096
 
 typedef void cli_command_func_t(uint16_t argc, char **argv, char *out);
 typedef enum {CLI_ESCAPE_RECEIVED, CLI_ESCAPE_CODE_WAITING, CLI_ESCAPE_NOT_RECEIVED} CLI_ESCAPE_STATE;

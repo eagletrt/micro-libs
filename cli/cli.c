@@ -165,7 +165,7 @@ void cli_handle_escape(cli_t *cli) {
             cli->current_command.buffer[i] = cli->current_command.buffer[i+1];
             strcat(backspace_buf, "\b");
         }
-        sprintf(echo_buf, "%s %s", cli->current_command.buffer + cli->current_command.index, backspace_buf);
+        snprintf(echo_buf, 2*BUF_SIZE, "%s %s", cli->current_command.buffer + cli->current_command.index, backspace_buf);
 
         HAL_UART_Transmit(cli->uart, (uint8_t *)(echo_buf), strlen(echo_buf), 100);
     }
@@ -223,7 +223,7 @@ void cli_loop(cli_t *cli) {
         uint16_t argc        = _cli_get_args(cli->current_command.buffer, argv);
 
         // TODO: Make this better
-        char tx_buf[4096] = "?\r\n";
+        char tx_buf[CLI_TX_BUF_LEN] = "?\r\n";
 
         // Check which command corresponds with the buffer
         for (uint16_t i = 0; i < cli->cmds.count; i++) {
@@ -285,7 +285,7 @@ void cli_char_receive(cli_t *cli) {
                 cli->current_command.buffer[i] = cli->current_command.buffer[i+1];
                 strcat(backspace_buf, "\b");
             }
-            sprintf(echo_buf, "\b%s %s", cli->current_command.buffer + cli->current_command.index, backspace_buf);
+            snprintf(echo_buf, 2*BUF_SIZE, "\b%s %s", cli->current_command.buffer + cli->current_command.index, backspace_buf);
 
             HAL_UART_Transmit(cli->uart, (uint8_t *)(echo_buf), strlen(echo_buf), 100);
         }
@@ -315,7 +315,7 @@ void cli_char_receive(cli_t *cli) {
             strcat(backspace_buf, "\b");
         }
         cli->current_command.buffer[cli->current_command.index] = cli->input_buf;
-        sprintf(echo_buf, "%s %s", cli->current_command.buffer + cli->current_command.index, backspace_buf);
+        snprintf(echo_buf, 2*BUF_SIZE, "%s %s", cli->current_command.buffer + cli->current_command.index, backspace_buf);
         cli->current_command.index++;
 
         HAL_UART_Transmit(cli->uart, (uint8_t *)(echo_buf), strlen(echo_buf), 100);
