@@ -35,7 +35,7 @@ typedef struct config {
  * @return true Initialization from EEPROM successful
  * @return false The default config has been initialized/error reading EEPROM
  */
-bool config_init(config_t *config, uint16_t address, uint32_t version, void *default_data, size_t size);
+bool config_init(config_t *config, SPI_HandleTypeDef *eeprom_hspi, GPIO_TypeDef *eeprom_cs_gpio, uint16_t eeprom_cs_pin, uint16_t address, uint32_t version, void *default_data, size_t size);
 
 /**
  * @brief Writes a config to EEPROM

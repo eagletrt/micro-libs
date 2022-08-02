@@ -17,7 +17,7 @@
 
 static m95256_t eeprom = NULL;
 
-bool config_init(config_t *config, uint16_t address, uint32_t version, void *default_data, size_t size) {
+bool config_init(config_t *config, SPI_HandleTypeDef *eeprom_hspi, GPIO_TypeDef *eeprom_cs_gpio, uint16_t eeprom_cs_pin, uint16_t address, uint32_t version, void *default_data, size_t size) {
     assert(size + CONFIG_VERSION_SIZE <= EEPROM_BUFFER_SIZE);
 
     config->address = address;
@@ -26,7 +26,7 @@ bool config_init(config_t *config, uint16_t address, uint32_t version, void *def
     config->dirty   = false;
 
     if (eeprom == NULL) {
-        m95256_init(&eeprom, &SPI_EEPROM, EEPROM_CS_GPIO_Port, EEPROM_CS_Pin);
+        m95256_init(&eeprom, eeprom_hspi, eeprom_cs_gpio, eeprom_cs_pin);
     }
 
     if (config_read(config)) {
