@@ -7,6 +7,7 @@
     #define __weak __attribute__((weak))
 #endif
 
+
 static LOG_LogLevelTypeDef _LOG_curr_loglevel = LOGLEVEL_INFO;
 static bool _LOG_print_lineno = true;
 static bool _LOG_print_prefix = true;
@@ -59,7 +60,7 @@ void _LOG_write(char* filename, uint32_t lineno, LOG_LogLevelTypeDef loglevel, c
 
     if (_LOG_print_lineno) {
         /* Print source filename and line number */
-        offset += snprintf(buffer, buf_size, "%s:%lu ", filename, lineno);
+        offset += snprintf(buffer, buf_size, "%s:%u ", filename, lineno);
     }
 
     if (_LOG_print_prefix) {
@@ -86,15 +87,6 @@ void _LOG_write(char* filename, uint32_t lineno, LOG_LogLevelTypeDef loglevel, c
 }
 
 __weak void _LOG_write_raw(char * txt) {
-    /* Transmit buffer over UART, e.g. : */
     /* This function must be redefined by the user */
-
-    /*
-
-    HAL_UART_Transmit(&huart4, (uint8_t*)txt, strlen(txt), 100);
-    HAL_UART_Transmit(&huart4, (uint8_t*)"\r\n", 2, 100);
-
-    */
-
-    1==1/0; /* ERROR: _LOG_write_raw(char * txt) must be redefined */
+    /* For example, to transmit buffer over UART */
 }
