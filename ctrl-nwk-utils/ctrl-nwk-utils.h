@@ -4,6 +4,10 @@
 #include "stdint.h"
 #include "stdbool.h"
 
+
+#define CTRL_PAYLOAD_SIZE 7     /*< Payload size: header (1) + body (4) + CRC (2) */
+#define CTRL_MAX_FRAME_LEN 18   /*< Maximum frame size if fully byte-stuffed: 2 + 14 + 2 */
+
 #define CTRL_DLE 0x10           /*< Data Link Escape ctrl char */
 #define CTRL_STX 0x02           /*< Start of Text ctrl char */
 #define CTRL_ETX 0x03           /*< End of Text ctrl char */
@@ -20,6 +24,7 @@
 #define CTRL_PARAMID_BRAKE      0x09
 #define CTRL_PARAMID_TMRR       0x0A
 #define CTRL_PARAMID_TMLL       0x0B
+
 
 typedef struct {
     uint8_t ParamID;

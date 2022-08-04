@@ -2,11 +2,6 @@
 #include "string.h" // For memcpy
 
 
-/* Constants and private variables ------------------------------------------ */
-#define CTRL_MAX_FRAME_LEN 18   /*< Maximum frame size if fully byte-stuffed: 2 + 14 + 2 */
-#define CTRL_PAYLOAD_SIZE 7     /*< Payload size: header (1) + body (4) + CRC (2) */
-
-
 /**
  * @brief     Read a raw frame buffer and put in `data` its parsed contents
  * 
