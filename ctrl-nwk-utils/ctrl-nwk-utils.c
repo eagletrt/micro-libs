@@ -37,7 +37,7 @@ bool CTRL_read_frame(uint8_t *buf, uint8_t buf_size, CTRL_PayloadTypeDef *data) 
     
     memcpy(&(data->ParamID), payload+0, 1);
     memcpy(&(data->ParamVal), payload+1, 4);
-    memcpy(&(data->CRC), payload+5, 2);
+    memcpy(&(data->_CRC), payload+5, 2);
     
     return true;
 }
@@ -114,7 +114,7 @@ uint8_t CTRL_compose_frame(CTRL_PayloadTypeDef *data, uint8_t *buf) {
     uint8_t payload[7];
     memcpy(payload+0, &(data->ParamID), 1);
     memcpy(payload+1, &(data->ParamVal), 4);
-    memcpy(payload+5, &(data->CRC), 2);
+    memcpy(payload+5, &(data->_CRC), 2);
 
     uint8_t idx = 0;
     buf[idx++] = CTRL_DLE;

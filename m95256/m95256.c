@@ -21,6 +21,7 @@
 #include "m95256.h"
 
 #include <stdlib.h>
+#include "spi.h"
 
 #define EEPROM_OPS_TIMEOUT 10
 

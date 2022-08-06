@@ -12,6 +12,7 @@
 #include "m95256.h"
 
 #include <inttypes.h>
+#include <stdbool.h>
 
 #define CONFIG_VERSION_TYPE uint32_t
 #define CONFIG_VERSION_SIZE sizeof(CONFIG_VERSION_TYPE)
