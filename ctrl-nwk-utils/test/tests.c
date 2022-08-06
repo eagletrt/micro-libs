@@ -69,7 +69,7 @@ MunitResult test_compose_frame(const MunitParameter *params, void *data) {
     CTRL_PayloadTypeDef payload;
     payload.ParamID = 0x00;
     payload.ParamVal = 5.42f;
-    payload.CRC = 0x6655;
+    payload._CRC = 0x6655;
 
     uint8_t stuffed_buffer[11] = {};
     CTRL_compose_frame(&payload, stuffed_buffer);
@@ -97,7 +97,7 @@ MunitResult test_read_frame(const MunitParameter *params, void *data) {
 
     assert_uint8(payload.ParamID, ==, 0x00);
     assert_float(payload.ParamVal, ==, 5.42f);
-    assert_uint16(payload.CRC, ==, 0x6655);
+    assert_uint16(payload._CRC, ==, 0x6655);
 
     return MUNIT_OK;
 }
