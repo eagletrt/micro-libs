@@ -29,7 +29,7 @@
 typedef struct {
     uint8_t ParamID;
     float ParamVal;
-    uint16_t _CRC;
+    uint16_t CRC16;
 } CTRL_PayloadTypeDef;
 
 

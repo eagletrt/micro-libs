@@ -69,7 +69,7 @@ MunitResult test_compose_frame(const MunitParameter *params, void *data) {
     CTRL_PayloadTypeDef payload;
     payload.ParamID = 0x00;
     payload.ParamVal = 5.42f;
-    payload._CRC = 0x6655;
+    payload.CRC16 = 0x6655;
 
     uint8_t stuffed_buffer[11] = {};
     CTRL_compose_frame(&payload, stuffed_buffer);
@@ -81,8 +81,8 @@ MunitResult test_compose_frame(const MunitParameter *params, void *data) {
     assert_uint8(stuffed_buffer[4],  ==, 0x70); // Float[1]
     assert_uint8(stuffed_buffer[5],  ==, 0xAD); // Float[2]
     assert_uint8(stuffed_buffer[6],  ==, 0x40); // Float[3] - MSB
-    assert_uint8(stuffed_buffer[7],  ==, 0x55); // CRC[0] - LSB
-    assert_uint8(stuffed_buffer[8],  ==, 0x66); // CRC[1] - MSB
+    assert_uint8(stuffed_buffer[7],  ==, 0x55); // CRC16[0] - LSB
+    assert_uint8(stuffed_buffer[8],  ==, 0x66); // CRC16[1] - MSB
     assert_uint8(stuffed_buffer[9],  ==, 0x10); // DLE
     assert_uint8(stuffed_buffer[10], ==, 0x03); // ETX
 
@@ -97,7 +97,7 @@ MunitResult test_read_frame(const MunitParameter *params, void *data) {
 
     assert_uint8(payload.ParamID, ==, 0x00);
     assert_float(payload.ParamVal, ==, 5.42f);
-    assert_uint16(payload._CRC, ==, 0x6655);
+    assert_uint16(payload.CRC16, ==, 0x6655);
 
     return MUNIT_OK;
 }
