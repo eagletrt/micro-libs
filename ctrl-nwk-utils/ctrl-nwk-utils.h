@@ -26,6 +26,13 @@
 #define CTRL_PARAMID_TMLL       0x0B
 
 
+typedef enum {
+    CTRL_Mode_None,
+    CTRL_Mode_Slip,
+    CTRL_Mode_Torque,
+    CTRL_Mode_Complete
+} CTRL_ModeTypeDef;
+
 typedef struct {
     uint8_t ParamID;
     float ParamVal;
