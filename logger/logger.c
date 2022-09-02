@@ -30,7 +30,7 @@ void LOG_init(LOG_LogLevelTypeDef loglevel, bool show_lineno, bool show_prefix, 
 void LOG_print_fenice_logo(char *subtitle) {
     _LOG_write_raw("\033[H");
     _LOG_write_raw("         E - A g l e   T r e n t o   R a c i n g   T e a m        ");
-    _LOG_write_raw("██████████████████████████████     ███   ███  ████████████████████");
+    _LOG_write_raw("██████████████████████████████     ████  ███  ████████████████████");
     _LOG_write_raw("                           ████   ███                             ");
     _LOG_write_raw("  ████████████  ████████  ██████ ███   ███  ███         ████████  ");
     _LOG_write_raw("      ███      ███       ███  █████   ███  ███        ███         ");
@@ -60,7 +60,7 @@ void _LOG_write(char* filename, uint32_t lineno, LOG_LogLevelTypeDef loglevel, c
 
     if (_LOG_print_lineno) {
         /* Print source filename and line number */
-        offset += snprintf(buffer, buf_size, "%s:%u ", filename, lineno);
+        offset += snprintf(buffer, buf_size, "%s:%lu ", filename, lineno);
     }
 
     if (_LOG_print_prefix) {
