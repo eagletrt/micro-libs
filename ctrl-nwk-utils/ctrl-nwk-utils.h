@@ -12,18 +12,18 @@
 #define CTRL_STX 0x02           /*< Start of Text ctrl char */
 #define CTRL_ETX 0x03           /*< End of Text ctrl char */
 
-#define CTRL_PARAMID_DREQ       0x00
-#define CTRL_PARAMID_STEER_ANG  0x01
-#define CTRL_PARAMID_CSW        0x02
-#define CTRL_PARAMID_YAW        0x03
-#define CTRL_PARAMID_O_RR       0x04
-#define CTRL_PARAMID_O_RL       0x05
-#define CTRL_PARAMID_O_FR       0x06
-#define CTRL_PARAMID_O_FL       0x07
-#define CTRL_PARAMID_AX_G       0x08
-#define CTRL_PARAMID_BRAKE      0x09
-#define CTRL_PARAMID_TMRR       0x0A
-#define CTRL_PARAMID_TMLL       0x0B
+#define CTRL_PARAMID_DREQ       ((uint8_t)0x00)
+#define CTRL_PARAMID_STEER_ANG  ((uint8_t)0x01)
+#define CTRL_PARAMID_CSW        ((uint8_t)0x02)
+#define CTRL_PARAMID_YAW        ((uint8_t)0x03)
+#define CTRL_PARAMID_O_RR       ((uint8_t)0x04)
+#define CTRL_PARAMID_O_RL       ((uint8_t)0x05)
+#define CTRL_PARAMID_O_FR       ((uint8_t)0x06)
+#define CTRL_PARAMID_O_FL       ((uint8_t)0x07)
+#define CTRL_PARAMID_AX_G       ((uint8_t)0x08)
+#define CTRL_PARAMID_BRAKE      ((uint8_t)0x09)
+#define CTRL_PARAMID_TMRR       ((uint8_t)0x0A)
+#define CTRL_PARAMID_TMLL       ((uint8_t)0x0B)
 
 
 typedef enum {
