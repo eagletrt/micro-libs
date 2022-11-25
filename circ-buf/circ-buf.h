@@ -4,12 +4,12 @@
 #include "stdint.h"
 #include "stdbool.h"
 
-#define CBUF_SIZE 127
+#define CBUF_SIZE 255
 
 
 typedef struct {
     uint16_t start, end;
-    uint8_t buf[CBUF_SIZE];
+    uint16_t buf[CBUF_SIZE];
 } CBUF_HandleTypeDef;
 
 

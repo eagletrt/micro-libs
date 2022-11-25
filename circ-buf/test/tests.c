@@ -35,10 +35,10 @@ MunitResult test_order(const MunitParameter *params, void *data) {
     CBUF_HandleTypeDef cb;
     CBUF_init(&cb);
 
-    for (uint8_t i = 0; i < CBUF_SIZE - 1; i++)
+    for (uint16_t i = 0; i < CBUF_SIZE - 1; i++)
         CBUF_enqueue(&cb, i);
 
-    for (uint8_t i = 0; i < CBUF_SIZE - 1; i++)
+    for (uint16_t i = 0; i < CBUF_SIZE - 1; i++)
         assert_uint8(CBUF_dequeue(&cb), ==, i);
     
     return MUNIT_OK;
