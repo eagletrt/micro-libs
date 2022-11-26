@@ -3,7 +3,6 @@
 #include "tests.h"
 
 /* Define the test cases */
-//TODO test for maximum space used for insert (-> PQ_insert() = false)
 MunitTest tests[] = {
     {
         "/test-is-empty",   /* name         */
@@ -15,6 +14,7 @@ MunitTest tests[] = {
     },
     {"/test-is-full", test_is_full, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL},
     {"/test-order", test_order, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL},
+    {"/test-circularity", test_circularity, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL},
     
     /* Mark the end of the array with a NULL test function */
     {NULL, NULL, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL}};

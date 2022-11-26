@@ -43,3 +43,19 @@ MunitResult test_order(const MunitParameter *params, void *data) {
     
     return MUNIT_OK;
 }
+
+MunitResult test_circularity(const MunitParameter *params, void *data) {
+    CBUF_HandleTypeDef cb;
+    CBUF_init(&cb);
+
+    for (uint16_t i = 0; i < CBUF_SIZE*3; i++) {
+        CBUF_enqueue(&cb, i);
+        CBUF_enqueue(&cb, i+1);
+        CBUF_enqueue(&cb, i+2);
+        assert_uint8(CBUF_dequeue(&cb), ==, i);
+        assert_uint8(CBUF_dequeue(&cb), ==, i+1);
+        assert_uint8(CBUF_dequeue(&cb), ==, i+2);
+    }
+
+    return MUNIT_OK;
+}

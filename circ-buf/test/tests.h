@@ -7,5 +7,6 @@
 MunitResult test_is_empty(const MunitParameter*, void *);
 MunitResult test_is_full(const MunitParameter*, void *);
 MunitResult test_order(const MunitParameter*, void *);
+MunitResult test_circularity(const MunitParameter*, void *);
 
 #endif

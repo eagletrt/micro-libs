@@ -14,21 +14,19 @@ void CBUF_init(CBUF_HandleTypeDef *cb) {
     cb->end = 0;
 }
 
-void CBUF_enqueue(CBUF_HandleTypeDef *cb, uint8_t item) {
+uint16_t CBUF_enqueue(CBUF_HandleTypeDef *cb, uint8_t item) {
     if (CBUF_is_full(cb)) {
-        #ifdef NOLOGGER
-            LOG_write(LOGLEVEL_ERR, "[CBUF] Buffer overrun, discarding byte");
-        #else
-            printf("[CBUF] Buffer overrun, discarding byte");
-        #endif
+        LOG_write(LOGLEVEL_ERR, "[CBUF] Buffer overrun, discarding byte");
     } else {
         cb->buf[cb->end++] = item;
         cb->end %= CBUF_SIZE;
     }
+
+    return cb->end;
 }
 
 uint8_t CBUF_dequeue(CBUF_HandleTypeDef *cb) {
-    if (cb->start == cb->end) {
+    if (CBUF_is_empty(cb)) {
         LOG_write(LOGLEVEL_WARN, "[CBUF] Buffer is empty, returning 0x00");
         return 0U;
     } else {
