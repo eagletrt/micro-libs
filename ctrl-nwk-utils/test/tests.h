@@ -12,5 +12,6 @@ MunitResult test_frame_wellformed_ok_empty(const MunitParameter*, void *);
 MunitResult test_frame_wellformed_bad(const MunitParameter*, void *);
 MunitResult test_compose_frame(const MunitParameter*, void *);
 MunitResult test_read_frame(const MunitParameter*, void *);
+MunitResult test_frame_CRC(const MunitParameter*, void *);
 
 #endif

@@ -20,6 +20,7 @@ MunitTest tests[] = {
     {"/test-frame-wellformed-bad", test_frame_wellformed_bad, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL},
     {"/test-compose-frame",  test_compose_frame,  NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL},
     {"/test-read-frame",  test_read_frame,  NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL},
+    {"/test-frame-crc",  test_frame_CRC,  NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL},
 
     /* Mark the end of the array with a NULL test function */
     {NULL, NULL, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL}};

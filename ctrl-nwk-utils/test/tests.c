@@ -101,3 +101,14 @@ MunitResult test_read_frame(const MunitParameter *params, void *data) {
 
     return MUNIT_OK;
 }
+
+MunitResult test_frame_CRC(const MunitParameter *params, void *data) {
+    CTRL_PayloadTypeDef payload;
+    payload.ParamID = 0x00;
+    payload.ParamVal = 5.42f;
+    payload.CRC16 = CTRL_calc_CRC(payload.ParamID, payload.ParamVal);
+
+    assert_uint16(payload.CRC16, ==, 54329);
+    
+    return MUNIT_OK;
+}
