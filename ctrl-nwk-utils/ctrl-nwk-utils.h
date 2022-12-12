@@ -55,6 +55,6 @@ uint8_t CTRL_stuff_buffer(uint8_t*, uint8_t, uint8_t*);
 
 uint8_t CTRL_compose_frame(CTRL_PayloadTypeDef*, uint8_t*);
 
-uint16_t CTRL_get_payload_crc(uint8_t*);
+void CTRL_calc_CRC(uint8_t, float);
 
 #endif

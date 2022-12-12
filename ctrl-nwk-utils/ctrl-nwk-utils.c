@@ -116,9 +116,6 @@ uint8_t CTRL_compose_frame(CTRL_PayloadTypeDef *data, uint8_t *buf) {
     memcpy(payload+1, &(data->ParamVal), 4);
     memcpy(payload+5, &(data->CRC16), 2);
 
-    payload[5] = payload[0] ^ payload[1] ^ payload[2];
-    payload[6] = payload[3] ^ payload[4] ^ payload[5];
-
     uint8_t idx = 0;
     buf[idx++] = CTRL_DLE;
     buf[idx++] = CTRL_STX;
@@ -129,9 +126,14 @@ uint8_t CTRL_compose_frame(CTRL_PayloadTypeDef *data, uint8_t *buf) {
     return idx;
 }
 
-uint16_t CTRL_get_payload_crc(uint8_t *buf) {
+uint16_t CTRL_calc_CRC(uint8_t p_id, float p_val) {
+    uint8_t buf[5];
     uint8_t b0 = 0U, b1 = 0U;
+    
+    memcpy(buf+0, &p_id, 1);
+    memcpy(buf+1, &p_val, 4);
+    
     b0 = buf[0] ^ buf[1] ^ buf[2];
-    b1 = buf[3] ^ buf[4] ^ b0;
+    b1 = b0 ^ buf[3] ^ buf[4];
     return (b0 << 8) | b1;
 }
