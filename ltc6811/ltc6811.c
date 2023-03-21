@@ -193,7 +193,7 @@ HAL_StatusTypeDef ltc6811_read_voltages(SPI_HandleTypeDef * spi,
     return status;
 }
 
-void ltc6813_build_dcc(uint32_t cells, uint8_t cfgr[8]) {
+void ltc6811_build_dcc(uint32_t cells, uint8_t cfgr[8]) {
     // Auxiliary array used to iterate DCCs
     uint16_t dcc[] = {
         DCC1,  DCC2,  DCC3,

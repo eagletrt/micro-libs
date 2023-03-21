@@ -322,7 +322,7 @@ HAL_StatusTypeDef ltc6811_read_voltages(SPI_HandleTypeDef * spi,
  * @param cells Cells to discharge
  * @param cfgr The configuration register of the LTC6811
  */
-void ltc6813_build_dcc(uint32_t cells, uint8_t cfgr[8]);
+void ltc6811_build_dcc(uint32_t cells, uint8_t cfgr[8]);
 /**
  * @brief Write configuration for cell balancing to the LTC6811
  * 
