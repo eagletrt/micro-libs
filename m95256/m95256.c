@@ -23,51 +23,26 @@
 #include <stdlib.h>
 #include "spi.h"
 
-#define EEPROM_OPS_TIMEOUT 10
-
-struct m95256 {
-    SPI_HandleTypeDef *spi;
-    GPIO_TypeDef *cs_gpio;
-    uint16_t cs_pin;
-};
-
 uint8_t EEPROM_StatusByte;
-uint8_t RxBuffer[EEPROM_BUFFER_SIZE] = {0x00};
+uint8_t RxBuffer[EEPROM_BUFFER_SIZE] = { 0x00 };
 
-/**
- * @brief Init EEPROM SPI
- *
- * @param eeprom EEPROM instance handle
- * @param hspi Pointer to SPI struct handle
- * @param cs_gpio Pointer to the GPIO struct for the chip select pin
- * @param cs_pin Chip select pin number
- */
-void m95256_init(m95256_t *eeprom, SPI_HandleTypeDef *hspi, GPIO_TypeDef *cs_gpio, uint16_t cs_pin) {
+void m95256_init(m95256_t * eeprom,
+    SPI_HandleTypeDef * spi,
+    GPIO_TypeDef * cs_gpio,
+    uint16_t cs_pin) {
     *eeprom            = malloc(sizeof(struct m95256));
-    (*eeprom)->spi     = hspi;
+    (*eeprom)->spi     = spi;
     (*eeprom)->cs_gpio = cs_gpio;
     (*eeprom)->cs_pin  = cs_pin;
 }
-
-void m95256_deinit(m95256_t *eeprom) {
+void m95256_deinit(m95256_t * eeprom) {
     free(*eeprom);
 }
 
-/**
-  * @brief  Writes more than one byte to the EEPROM with a single WRITE cycle
-  *         (Page WRITE sequence).
-  *
-  * @note   The number of byte can't exceed the EEPROM page size.
-  * 
-  * @param	eeprom EEPROM instance handle
-  * @param  pBuffer: pointer to the buffer  containing the data to be written
-  *         to the EEPROM.
-  * @param  WriteAddr: EEPROM's internal address to write to.
-  * @param  NumByteToWrite: number of bytes to write to the EEPROM, must be equal
-  *         or less than "EEPROM_PAGESIZE" value.
-  * @retval EepromOperations value: EEPROM_STATUS_COMPLETE or EEPROM_STATUS_ERROR
-  */
-EepromOperations m95256_WritePage(m95256_t eeprom, uint8_t *pBuffer, uint16_t WriteAddr, uint16_t NumByteToWrite) {
+EepromOperations m95256_WritePage(m95256_t eeprom,
+    uint8_t * pBuffer,
+    uint16_t WriteAddr,
+    uint16_t NumByteToWrite) {
     while (eeprom->spi->State != HAL_SPI_STATE_READY)
         ;
 
@@ -115,19 +90,10 @@ EepromOperations m95256_WritePage(m95256_t eeprom, uint8_t *pBuffer, uint16_t Wr
         return EEPROM_STATUS_COMPLETE;
     }
 }
-
-/**
-  * @brief  Writes block of data to the EEPROM. In this function, the number of
-  *         WRITE cycles are reduced, using Page WRITE sequence.
-  *
-  * @param	eeprom EEPROM instance handle
-  * @param  pBuffer: pointer to the buffer  containing the data to be written
-  *         to the EEPROM.
-  * @param  WriteAddr: EEPROM's internal address to write to.
-  * @param  NumByteToWrite: number of bytes to write to the EEPROM.
-  * @retval EepromOperations value: EEPROM_STATUS_COMPLETE or EEPROM_STATUS_ERROR
-  */
-EepromOperations m95256_WriteBuffer(m95256_t eeprom, uint8_t *pBuffer, uint16_t WriteAddr, uint16_t NumByteToWrite) {
+EepromOperations m95256_WriteBuffer(m95256_t eeprom,
+    uint8_t * pBuffer,
+    uint16_t WriteAddr,
+    uint16_t NumByteToWrite) {
     uint16_t NumOfPage = 0, NumOfSingle = 0, Addr = 0, count = 0, temp = 0;
     uint16_t sEE_DataNum = 0;
 
@@ -234,17 +200,10 @@ EepromOperations m95256_WriteBuffer(m95256_t eeprom, uint8_t *pBuffer, uint16_t 
 
     return EEPROM_STATUS_COMPLETE;
 }
-
-/**
-  * @brief  Reads a block of data from the EEPROM.
-  *
-  * @param	eeprom EEPROM instance handle
-  * @param  pBuffer: pointer to the buffer that receives the data read from the EEPROM.
-  * @param  ReadAddr: EEPROM's internal address to read from.
-  * @param  NumByteToRead: number of bytes to read from the EEPROM.
-  * @retval None
-  */
-EepromOperations m95256_ReadBuffer(m95256_t eeprom, uint8_t *pBuffer, uint16_t ReadAddr, uint16_t NumByteToRead) {
+EepromOperations m95256_ReadBuffer(m95256_t eeprom,
+    uint8_t * pBuffer,
+    uint16_t ReadAddr,
+    uint16_t NumByteToRead) {
     uint32_t timestamp = HAL_GetTick();
     while (eeprom->spi->State != HAL_SPI_STATE_READY) {
         if (HAL_GetTick() - timestamp >= EEPROM_OPS_TIMEOUT) {
@@ -252,10 +211,7 @@ EepromOperations m95256_ReadBuffer(m95256_t eeprom, uint8_t *pBuffer, uint16_t R
         }
     }
 
-    /*
-        We gonna send all commands in one packet of 3 bytes
-     */
-
+    // We gonna send all commands in one packet of 3 bytes
     uint8_t header[3];
 
     header[0] = EEPROM_READ;    // Send "Read from Memory" instruction
@@ -280,121 +236,7 @@ EepromOperations m95256_ReadBuffer(m95256_t eeprom, uint8_t *pBuffer, uint16_t R
 
     return EEPROM_STATUS_COMPLETE;
 }
-
-/**
-  * @brief  Sends a byte through the SPI interface and return the byte received
-  *         from the SPI bus.
-  *
-  * @param  byte: byte to send.
-  * @retval The value of the received byte.
-  */
-uint8_t EEPROM_SendByte(SPI_HandleTypeDef *hspi, uint8_t byte) {
-    uint8_t answerByte;
-
-    /* Loop while DR register in not empty */
-    uint32_t timestamp = HAL_GetTick();
-    while (hspi->State == HAL_SPI_STATE_RESET) {
-        if (HAL_GetTick() - timestamp >= EEPROM_OPS_TIMEOUT) {
-            return EEPROM_STATUS_TIMEOUT;
-        }
-    }
-
-    /* Send byte through the SPI peripheral */
-    timestamp = HAL_GetTick();
-    if (HAL_SPI_Transmit(hspi, &byte, 1, 200) != HAL_OK) {
-        return EEPROM_STATUS_ERROR;
-    }
-
-    /* Wait to receive a byte */
-    timestamp = HAL_GetTick();
-    while (hspi->State == HAL_SPI_STATE_RESET) {
-        if (HAL_GetTick() - timestamp >= EEPROM_OPS_TIMEOUT) {
-            return EEPROM_STATUS_TIMEOUT;
-        }
-    }
-
-    /* Return the byte read from the SPI bus */
-    timestamp = HAL_GetTick();
-    if (HAL_SPI_Receive(hspi, &answerByte, 1, 200) != HAL_OK) {
-        return EEPROM_STATUS_ERROR;
-    }
-
-    return (uint8_t)answerByte;
-}
-/**
-  * @brief  Enables the write access to the EEPROM.
-  *
-  * @param	eeprom EEPROM instance handle
-  * @retval None
-  */
-void sEE_WriteEnable(m95256_t eeprom) {
-    // Select the EEPROM: Chip Select low
-    EEPROM_CS_LOW(eeprom->cs_gpio, eeprom->cs_pin);
-
-    uint8_t command[1] = {EEPROM_WREN};
-    /* Send "Write Enable" instruction */
-    m95256_SendInstruction(eeprom->spi, (uint8_t *)command, 1);
-
-    // Deselect the EEPROM: Chip Select high
-    EEPROM_CS_HIGH(eeprom->cs_gpio, eeprom->cs_pin);
-}
-
-/**
-  * @brief  Disables the write access to the EEPROM.
-  *
-  * @param	eeprom EEPROM instance handle
-  * @retval None
-  */
-void sEE_WriteDisable(m95256_t eeprom) {
-    // Select the EEPROM: Chip Select low
-    EEPROM_CS_LOW(eeprom->cs_gpio, eeprom->cs_pin);
-
-    uint8_t command[1] = {EEPROM_WRDI};
-
-    /* Send "Write Disable" instruction */
-    m95256_SendInstruction(eeprom->spi, (uint8_t *)command, 1);
-
-    // Deselect the EEPROM: Chip Select high
-    EEPROM_CS_HIGH(eeprom->cs_gpio, eeprom->cs_pin);
-}
-
-/**
-  * @brief  Write new value in EEPROM Status Register.
-  *
-  * @param	eeprom EEPROM instance handle
-  * @param  regval : new value of register
-  * @retval None
-  */
-void sEE_WriteStatusRegister(m95256_t eeprom, uint8_t regval) {
-    uint8_t command[2];
-
-    command[0] = EEPROM_WRSR;
-    command[1] = regval;
-
-    // Enable the write access to the EEPROM
-    sEE_WriteEnable(eeprom);
-
-    // Select the EEPROM: Chip Select low
-    EEPROM_CS_LOW(eeprom->cs_gpio, eeprom->cs_pin);
-
-    // Send "Write Status Register" instruction
-    // and Regval in one packet
-    m95256_SendInstruction(eeprom->spi, (uint8_t *)command, 2);
-
-    // Deselect the EEPROM: Chip Select high
-    EEPROM_CS_HIGH(eeprom->cs_gpio, eeprom->cs_pin);
-
-    sEE_WriteDisable(eeprom);
-}
-
-/**
-  * @brief  Polls the status of the Write In Progress (WIP) flag in the EEPROM's
-  *         status register and loop until write operation has completed.
-  *
-  * @param	eeprom EEPROM instance handle
-  * @retval None
-  */
-uint8_t m95256_WaitStandbyState(m95256_t eeprom) {
+EepromOperations m95256_WaitStandbyState(m95256_t eeprom) {
     uint8_t sEEstatus[1] = {0x00};
     uint8_t command[1]   = {EEPROM_RDSR};
 
@@ -421,21 +263,92 @@ uint8_t m95256_WaitStandbyState(m95256_t eeprom) {
     // Deselect the EEPROM: Chip Select high
     EEPROM_CS_HIGH(eeprom->cs_gpio, eeprom->cs_pin);
 
-    return 0;
+    return EEPROM_STATUS_PENDING;
+}
+uint8_t EEPROM_SendByte(SPI_HandleTypeDef * spi, uint8_t byte) {
+    uint8_t answerByte;
+
+    /* Loop while DR register in not empty */
+    uint32_t timestamp = HAL_GetTick();
+    while (spi->State == HAL_SPI_STATE_RESET) {
+        if (HAL_GetTick() - timestamp >= EEPROM_OPS_TIMEOUT) {
+            return EEPROM_STATUS_TIMEOUT;
+        }
+    }
+
+    /* Send byte through the SPI peripheral */
+    timestamp = HAL_GetTick();
+    if (HAL_SPI_Transmit(spi, &byte, 1, 200) != HAL_OK) {
+        return EEPROM_STATUS_ERROR;
+    }
+
+    /* Wait to receive a byte */
+    timestamp = HAL_GetTick();
+    while (spi->State == HAL_SPI_STATE_RESET) {
+        if (HAL_GetTick() - timestamp >= EEPROM_OPS_TIMEOUT) {
+            return EEPROM_STATUS_TIMEOUT;
+        }
+    }
+
+    /* Return the byte read from the SPI bus */
+    timestamp = HAL_GetTick();
+    if (HAL_SPI_Receive(spi, &answerByte, 1, 200) != HAL_OK) {
+        return EEPROM_STATUS_ERROR;
+    }
+
+    return (uint8_t)answerByte;
+}
+void sEE_WriteEnable(m95256_t eeprom) {
+    // Select the EEPROM: Chip Select low
+    EEPROM_CS_LOW(eeprom->cs_gpio, eeprom->cs_pin);
+
+    uint8_t command[1] = {EEPROM_WREN};
+    /* Send "Write Enable" instruction */
+    m95256_SendInstruction(eeprom->spi, (uint8_t *)command, 1);
+
+    // Deselect the EEPROM: Chip Select high
+    EEPROM_CS_HIGH(eeprom->cs_gpio, eeprom->cs_pin);
+}
+void sEE_WriteDisable(m95256_t eeprom) {
+    // Select the EEPROM: Chip Select low
+    EEPROM_CS_LOW(eeprom->cs_gpio, eeprom->cs_pin);
+
+    uint8_t command[1] = {EEPROM_WRDI};
+
+    /* Send "Write Disable" instruction */
+    m95256_SendInstruction(eeprom->spi, (uint8_t *)command, 1);
+
+    // Deselect the EEPROM: Chip Select high
+    EEPROM_CS_HIGH(eeprom->cs_gpio, eeprom->cs_pin);
 }
 
-/**
- * @brief Low level function to send header data to EEPROM
- *
- * @param hspi Pointer to SPI struct handle
- * @param instruction array of bytes to send
- * @param size        data size in bytes
- */
-void m95256_SendInstruction(SPI_HandleTypeDef *hspi, uint8_t *instruction, uint8_t size) {
-    while (hspi->State == HAL_SPI_STATE_RESET)
+void sEE_WriteStatusRegister(m95256_t eeprom, uint8_t regval) {
+    uint8_t command[2];
+
+    command[0] = EEPROM_WRSR;
+    command[1] = regval;
+
+    // Enable the write access to the EEPROM
+    sEE_WriteEnable(eeprom);
+
+    // Select the EEPROM: Chip Select low
+    EEPROM_CS_LOW(eeprom->cs_gpio, eeprom->cs_pin);
+
+    // Send "Write Status Register" instruction
+    // and Regval in one packet
+    m95256_SendInstruction(eeprom->spi, (uint8_t *)command, 2);
+
+    // Deselect the EEPROM: Chip Select high
+    EEPROM_CS_HIGH(eeprom->cs_gpio, eeprom->cs_pin);
+
+    sEE_WriteDisable(eeprom);
+}
+
+void m95256_SendInstruction(SPI_HandleTypeDef * spi, uint8_t * instruction, uint8_t size) {
+    while (spi->State == HAL_SPI_STATE_RESET)
         ;
 
-    if (HAL_SPI_Transmit(hspi, (uint8_t *)instruction, (uint16_t)size, 200) != HAL_OK) {
+    if (HAL_SPI_Transmit(spi, (uint8_t *)instruction, (uint16_t)size, 200) != HAL_OK) {
         Error_Handler();
     }
 }
