@@ -53,6 +53,17 @@ typedef enum {
     PUP_ACTIVE
 } LTC6811_PUP;
 
+/** @brief GPIO selection for ADC conversion */
+typedef enum {
+    CHG_GPIO_ALL = 0,
+    CHG_GPIO_1,
+    CHG_GPIO_2,
+    CHG_GPIO_3,
+    CHG_GPIO_4,
+    CHG_GPIO_5,
+    CHG_SECOND_REF
+} LTC6811_CHG;
+
 /**
  * @brief Indices of the cells to discharge
  * @details DCCs 1 through 8 can be found in CFGR4[0:7]
@@ -244,6 +255,20 @@ void ltc6811_adow(SPI_HandleTypeDef * spi,
     LTC6811_MD MD,
     LTC6811_DCP DCP,
     LTC6811_CH CH,
+    GPIO_TypeDef * gpio,
+    uint16_t pin);
+/**
+ * @brief Start GPIOs ADC conversion and poll status
+ * 
+ * @param spi The spi configuration structure
+ * @param MD The ADC conversion mode
+ * @param CHG LTC6811 GPIO pin selection
+ * @param gpio The GPIO port
+ * @param pin The GPIO pin
+ */
+void ltc6811_adax(SPI_HandleTypeDef * spi,
+    LTC6811_MD MD,
+    LTC6811_CHG CHG,
     GPIO_TypeDef * gpio,
     uint16_t pin);
 /**

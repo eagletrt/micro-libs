@@ -75,6 +75,24 @@ void ltc6811_adow(SPI_HandleTypeDef * spi,
     HAL_SPI_Transmit(spi, cmd, sizeof(cmd), 100);
     ltc6811_disable_cs(spi, gpio, pin);
 }
+void ltc6811_adax(SPI_HandleTypeDef * spi,
+    LTC6811_MD MD,
+    LTC6811_CHG CHG,
+    GPIO_TypeDef * gpio,
+    uint16_t pin) {
+    uint8_t cmd[4];
+    uint16_t pec;
+    cmd[0] = 0b00000100 | (uint8_t)(MD >> 1);
+    cmd[1] = 0b01100000 | (uint8_t)(MD << 7) | (uint8_t)CHG;
+    pec    = ltc6811_pec15(cmd, sizeof(pec));
+    cmd[2] = (uint8_t)(pec >> 8);
+    cmd[3] = (uint8_t)(pec);
+
+    ltc6811_wakeup_idle(spi, gpio, pin);
+    ltc6811_enable_cs(spi, gpio, pin);
+    HAL_SPI_Transmit(spi, cmd, sizeof(cmd), 100);
+    ltc6811_disable_cs(spi, gpio, pin);
+}
 HAL_StatusTypeDef ltc6811_pladc(SPI_HandleTypeDef * spi, GPIO_TypeDef * gpio, uint16_t pin) {
     uint8_t cmd[4];
     uint16_t pec;
