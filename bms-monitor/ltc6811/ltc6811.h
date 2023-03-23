@@ -309,7 +309,7 @@ uint16_t ltc6811_pec15(uint8_t data[], uint8_t len);
  * 					  (BRD)
  *
  * @param spi The SPI configuration structure
- * @param volts An array of 2 bytes where the result is stored
+ * @param volts An array where the result is stored
  * @param gpio The GPIO port
  * @param pin The GPIO pin
  */
