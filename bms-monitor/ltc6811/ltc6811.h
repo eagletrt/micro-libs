@@ -11,9 +11,11 @@
 
 #include <inttypes.h>
 
-#define LTC6811_REG_COUNT 6         // Number of register groups
-#define LTC6811_REG_CELL_COUNT 3    // Number of cells handled by a register
-#define LTC6811_CELL_COUNT (LTC6811_REG_COUNT * LTC6811_REG_CELL_COUNT) // Total number of cells handled by all registers
+#include "monitor_config.h"
+
+#define LTC6811_REG_COUNT 4         // Number of Cell Voltage Register Groups (CVR[A-D])
+#define LTC6811_REG_CELL_COUNT 3    // Number of cells handled by a single register (C[X]V)
+#define LTC6811_CELL_COUNT (LTC6811_REG_COUNT * LTC6811_REG_CELL_COUNT) // Total number of cells handled by all registers (C[1-12]V)
 
 /**
  * @brief ADC conversion mode
@@ -312,7 +314,7 @@ uint16_t ltc6811_pec15(uint8_t data[], uint8_t len);
  * @param pin The GPIO pin
  */
 HAL_StatusTypeDef ltc6811_read_voltages(SPI_HandleTypeDef * spi,
-    uint16_t volts[LTC6811_CELL_COUNT],
+    voltage_t volts[LTC6811_CELL_COUNT],
     GPIO_TypeDef * gpio,
     uint16_t pin);
 
@@ -338,4 +340,4 @@ void ltc6811_set_balancing(SPI_HandleTypeDef * spi,
     GPIO_TypeDef * gpio,
     uint16_t pin);
 
-#endif /* LTC6811_H_ */
+#endif /* LTC6811_H */

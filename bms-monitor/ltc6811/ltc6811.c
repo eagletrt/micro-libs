@@ -131,12 +131,12 @@ uint16_t ltc6811_pec15(uint8_t data[], uint8_t len) {
 }
 
 HAL_StatusTypeDef ltc6811_read_voltages(SPI_HandleTypeDef * spi,
-    uint16_t volts[LTC6811_CELL_COUNT],
+    voltage_t volts[LTC6811_CELL_COUNT],
     GPIO_TypeDef * gpio,
     uint16_t pin) {
     uint8_t cmd[4] = { 0 };
     uint16_t pec;
-    uint8_t data[LTC6811_REG_CELL_COUNT * sizeof(uint16_t) + sizeof(pec)];
+    uint8_t data[LTC6811_REG_CELL_COUNT * sizeof(voltage_t) + sizeof(pec)];
     HAL_StatusTypeDef status;
 
     // Start polling
@@ -169,7 +169,7 @@ HAL_StatusTypeDef ltc6811_read_voltages(SPI_HandleTypeDef * spi,
             ltc6811_disable_cs(spi, gpio, pin);
             return status;
         }
-        HAL_SPI_Receive(spi, data, LTC6811_REG_CELL_COUNT * sizeof(uint16_t) + sizeof(pec), 100);
+        HAL_SPI_Receive(spi, data, LTC6811_REG_CELL_COUNT * sizeof(voltage_t) + sizeof(pec), 100);
 
         ltc6811_disable_cs(spi, gpio, pin);
 
@@ -178,8 +178,8 @@ HAL_StatusTypeDef ltc6811_read_voltages(SPI_HandleTypeDef * spi,
             (uint16_t)((data[6] << 8) | data[7]) ) {
 
             for (uint8_t cell = 0; cell < LTC6811_REG_CELL_COUNT; cell++) {
-                uint16_t index = (reg * LTC6811_REG_CELL_COUNT) + cell;
-                uint16_t * p_data = (uint16_t *)(data + sizeof(uint16_t) * cell);
+                uint8_t index = (reg * LTC6811_REG_CELL_COUNT) + cell;
+                voltage_t * p_data = (voltage_t *)(data + sizeof(voltage_t) * cell);
 
                 if (*p_data != 0xFFFF)
                     volts[index] = *p_data;
