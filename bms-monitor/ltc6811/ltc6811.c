@@ -206,6 +206,61 @@ HAL_StatusTypeDef ltc6811_read_voltages(SPI_HandleTypeDef * spi,
     }
     return status;
 }
+HAL_StatusTypeDef ltc6811_read_auxiliary(SPI_HandleTypeDef * spi,
+    voltage_t aux[LTC6811_GV_COUNT],
+    GPIO_TypeDef * gpio,
+    uint16_t pin) {
+    uint8_t cmd[4] = { 0 };
+    uint16_t pec;
+    uint8_t data[LTC6811_AUX_GV_COUNT * sizeof(voltage_t) + sizeof(pec)];
+    HAL_StatusTypeDef status;
+
+    // Start polling
+    status = ltc6811_pladc(spi, gpio, pin);
+    if (status == HAL_TIMEOUT)
+        return HAL_TIMEOUT;
+    
+    // Auxiliay array used to iterate registers
+    uint8_t rdaux[] = {
+        RDAUXA,
+        RDAUXB,
+        RDAUXC,
+        RDAUXD
+    };
+
+    // Read regiters
+    for (uint8_t reg = 0; reg < LTC6811_AUX_COUNT; reg++) {
+        cmd[1] = rdaux[reg];
+        pec    = ltc6811_pec15(cmd, sizeof(pec));
+        cmd[2] = (uint8_t)(pec >> 8);
+        cmd[3] = (uint8_t)(pec);
+
+        ltc6811_wakeup_idle(spi, gpio, pin);
+        ltc6811_enable_cs(spi, gpio, pin);
+        
+        status = HAL_SPI_Transmit(spi, cmd, sizeof(cmd), 10);
+        if (status != HAL_OK) {
+            ltc6811_disable_cs(spi, gpio, pin);
+            return status;
+        }
+        HAL_SPI_Receive(spi, data, LTC6811_AUX_GV_COUNT * sizeof(voltage_t) + sizeof(pec));
+
+        ltc6811_disable_cs(spi, gpio, pin);
+
+        // Check pec validity
+        if ( ltc6811_pec15(data, sizeof(data) - sizeof(pec)) ==
+            (uint16_t)((data[6] << 8) | data[7]) ) {
+            for (uint8_t gv = 0; gv < LTC6811_AUX_GV_COUNT; gv++) {
+                uint8_t index = (reg * LTC6811_AUX_GV_COUNT) + gv;
+                voltage_t * p_data = (voltage_t *)(data + sizeof(voltage_t) * gv);
+
+                if (*p_data != 0xFFFF)
+                    aux[index] = *p_data;
+            }
+        }
+    }
+    return status;
+}
 
 void ltc6811_build_dcc(uint32_t cells, uint8_t cfgr[8]) {
     // Auxiliary array used to iterate DCCs

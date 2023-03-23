@@ -13,9 +13,13 @@
 
 #include "monitor_config.h"
 
-#define LTC6811_REG_COUNT 4         // Number of Cell Voltage Register Groups (CVR[A-D])
+#define LTC6811_REG_COUNT 4         // Number of Cell Voltage Register Groups (CV[A-D]R)
 #define LTC6811_REG_CELL_COUNT 3    // Number of cells handled by a single register (C[X]V)
 #define LTC6811_CELL_COUNT (LTC6811_REG_COUNT * LTC6811_REG_CELL_COUNT) // Total number of cells handled by all registers (C[1-12]V)
+
+#define LTC6811_AUX_COUNT 2    // Number of Auxiliary Register Groups (AV[A-B]R)
+#define LTC6811_AUX_GV_COUNT 3 // Number of GPIO voltages per register (G[X]V)
+#define LTC6811_GV_COUNT (LTC6811_AUX_COUNT * LTC6811_AUX_GV_COUNT) // Total number of GPIO voltages handled by all registers (G[1-5]V and REF)
 
 /**
  * @brief ADC conversion mode
@@ -92,9 +96,16 @@ typedef enum {
     RDCVB = 0b0110,
     RDCVC = 0b1000,
     RDCVD = 0b1010,
-    RDCVE = 0b1001,
-    RDCVF = 0b1011,
+    RDCVE = 0b1001, // Forward compatibility with ltc6813/6812
+    RDCVF = 0b1011, // Forward compatibility with ltc6813/6812
 } LTC6811_RDCV;
+/** @brief Read auxiliary (GPIO) register group commands */
+typedef enum {
+    RDAUXA = 0b1100,
+    RDAUXB = 0b1110,
+    RDAUXC = 0b1101, // Forward compatibility with ltc6813/6812
+    RDAUXD = 0b1111  // Forward compatibility with ltc6813/6812
+} LTC6811_RDAUX;
 
 /**
  * @brief Discharge timeout value
@@ -259,7 +270,14 @@ void ltc6811_adow(SPI_HandleTypeDef * spi,
     uint16_t pin);
 /**
  * @brief Start GPIOs ADC conversion and poll status
+ * @details ADAX command syntax:
  * 
+ * 					31    CMD0    23     CMD1    15  PEC  0
+ * 					|- - - - - - -|- - - - - - - -|- ... -|
+ * 					0 0 0 0 0 1 0 X X 1 1 0 0 X X X
+ * 				    - - - - -     - -         - - -
+ * 					 Address      MD           CHG
+ *
  * @param spi The spi configuration structure
  * @param MD The ADC conversion mode
  * @param CHG LTC6811 GPIO pin selection
@@ -309,7 +327,6 @@ void ltc6811_wrcfg(SPI_HandleTypeDef * spi,
     uint8_t cfgr[8],
     GPIO_TypeDef * gpio,
     uint16_t pin);
-
 // TODO: Implement RDCFG
 uint8_t ltc6811_rdcfg(SPI_HandleTypedef * spi,
     LTC6811_RDCFG reg,
@@ -324,8 +341,8 @@ uint8_t ltc6811_rdcfg(SPI_HandleTypedef * spi,
 uint16_t ltc6811_pec15(uint8_t data[], uint8_t len);
 
 /**
- * @brief Polls all register and updates the volts array
- * @details It executes multiple rdcv commands and saves the value in the volts array
+ * @brief Polls all voltage registers and updates the 'volts' array
+ * @details It executes multiple rdcv commands and saves the values in the 'volts' array
  *
  * 					31    CMD0    23     CMD1    15  PEC  0
  * 					|- - - - - - -|- - - - - - - -|- ... -|
@@ -340,6 +357,27 @@ uint16_t ltc6811_pec15(uint8_t data[], uint8_t len);
  */
 HAL_StatusTypeDef ltc6811_read_voltages(SPI_HandleTypeDef * spi,
     voltage_t volts[LTC6811_CELL_COUNT],
+    GPIO_TypeDef * gpio,
+    uint16_t pin);
+/**
+ * @brief Polls all auxiliary registers and updates the 'aux' array
+ * @details It executes multiple rdaux commands and saves the values in the 'aux' array
+ *
+ * 					31    CMD0    23     CMD1    15  PEC  0
+ * 					|- - - - - - -|- - - - - - - -|- ... -|
+ * 					0 0 0 0 0 0 0 0 0 0 0 0 X X X X  PEC
+ * 					 Address                  
+ * 					  (BRD)
+ *
+ * 
+ * @param spi The SPI configuration structure
+ * @param aux An array where the result is stored
+ * @param gpio The GPIO port
+ * @param pin The GPIO pin
+ * @return HAL_StatusTypeDef 
+ */
+HAL_StatusTypeDef ltc6811_read_auxiliary(SPI_HandleTypeDef * spi,
+    voltage_t aux[LTC6811_GV_COUNT],
     GPIO_TypeDef * gpio,
     uint16_t pin);
 
