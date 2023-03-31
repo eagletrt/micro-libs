@@ -28,7 +28,7 @@ void ltc6811_clrcell(SPI_HandleTypeDef * spi, GPIO_TypeDef * gpio, uint16_t pin)
     uint16_t pec;
     cmd[0] = 0b00000111;
     cmd[1] = 0b00010001;
-    pec    = ltc6811_pec15(cmd, sizeof(pec));
+    pec    = ltc6811_pec15(cmd, sizeof(cmd) - sizeof(pec));
     cmd[2] = (uint8_t)(pec >> 8);
     cmd[3] = (uint8_t)(pec);
 
@@ -46,7 +46,7 @@ void ltc6811_adcv(SPI_HandleTypeDef * spi,
     uint16_t pec;
     cmd[0] = 0b00000011 | (uint8_t)(MD >> 1);
     cmd[1] = 0b01100000 | (uint8_t)(MD << 7) | (uint8_t)(DCP << 3) | (uint8_t)CH;
-    pec    = ltc6811_pec15(cmd, sizeof(pec));
+    pec    = ltc6811_pec15(cmd, sizeof(cmd) - sizeof(pec));
     cmd[2] = (uint8_t)(pec >> 8);
     cmd[3] = (uint8_t)(pec);
 
@@ -66,7 +66,7 @@ void ltc6811_adow(SPI_HandleTypeDef * spi,
     uint16_t pec;
     cmd[0] = 0b00000011 | (uint8_t)(MD >> 1);
     cmd[1] = 0b00101000 | (uint8_t)(MD << 7) | (uint8_t)(PUP << 6) | (uint8_t)(DCP << 3) | (uint8_t)CH;
-    pec    = ltc6811_pec15(cmd, sizeof(pec));
+    pec    = ltc6811_pec15(cmd, sizeof(cmd) - sizeof(pec));
     cmd[2] = (uint8_t)(pec >> 8);
     cmd[3] = (uint8_t)(pec);
 
@@ -84,7 +84,7 @@ void ltc6811_adax(SPI_HandleTypeDef * spi,
     uint16_t pec;
     cmd[0] = 0b00000100 | (uint8_t)(MD >> 1);
     cmd[1] = 0b01100000 | (uint8_t)(MD << 7) | (uint8_t)CHG;
-    pec    = ltc6811_pec15(cmd, sizeof(pec));
+    pec    = ltc6811_pec15(cmd, sizeof(cmd) - sizeof(pec));
     cmd[2] = (uint8_t)(pec >> 8);
     cmd[3] = (uint8_t)(pec);
 
@@ -98,7 +98,7 @@ HAL_StatusTypeDef ltc6811_pladc(SPI_HandleTypeDef * spi, GPIO_TypeDef * gpio, ui
     uint16_t pec;
     cmd[0] = 0b00000111;
     cmd[1] = 0b00010100;
-    pec    = ltc6811_pec15(cmd, sizeof(pec));
+    pec    = ltc6811_pec15(cmd, sizeof(cmd) - sizeof(pec));
     cmd[2] = (uint8_t)(pec >> 8);
     cmd[3] = (uint8_t)(pec);
 
@@ -122,7 +122,7 @@ void ltc6811_wrcfg(SPI_HandleTypeDef * spi,
     uint8_t cmd[4] = {0};
 
     cmd[1]       = (reg == WRCFGA) ? 1 : 0b00100100;
-    uint16_t pec = ltc6811_pec15(cmd, sizeof(pec));
+    uint16_t pec = ltc6811_pec15(cmd, sizeof(cmd) - sizeof(pec));
     cmd[2]       = (uint8_t)(pec >> 8);
     cmd[3]       = (uint8_t)(pec);
 
@@ -175,7 +175,7 @@ HAL_StatusTypeDef ltc6811_read_voltages(SPI_HandleTypeDef * spi,
     // Read registers
     for (uint8_t reg = 0; reg < LTC6811_REG_COUNT; reg++) {
         cmd[1] = rdcv[reg];
-        pec    = ltc6811_pec15(cmd, sizeof(pec));
+        pec    = ltc6811_pec15(cmd, sizeof(cmd) - sizeof(pec));
         cmd[2] = (uint8_t)(pec >> 8);
         cmd[3] = (uint8_t)(pec);
 
@@ -231,7 +231,7 @@ HAL_StatusTypeDef ltc6811_read_auxiliary(SPI_HandleTypeDef * spi,
     // Read regiters
     for (uint8_t reg = 0; reg < LTC6811_AUX_COUNT; reg++) {
         cmd[1] = rdaux[reg];
-        pec    = ltc6811_pec15(cmd, sizeof(pec));
+        pec    = ltc6811_pec15(cmd, sizeof(cmd) - sizeof(pec));
         cmd[2] = (uint8_t)(pec >> 8);
         cmd[3] = (uint8_t)(pec);
 
