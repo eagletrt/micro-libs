@@ -14,8 +14,8 @@
  * @link https://github.com/squadracorsepolito/stmlibs/blob/master/error_utils/error_utils.h
  */
 
-#ifndef ERROR_H
-#define ERROR_H
+#ifndef ERROR_UTILS_H
+#define ERROR_UTILS_H
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -105,4 +105,4 @@ HAL_StatusTypeDef error_utils_error_reset(ERROR_UTILS_HandleTypeDef * handle,
  */
 size_t error_utils_get_count(ERROR_UTILS_HandleTypeDef * handle);
 
-#endif // ERROR_H
+#endif // ERROR_UTILS_H
