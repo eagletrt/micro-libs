@@ -262,14 +262,6 @@ size_t error_utils_get_count(ERROR_UTILS_HandleTypeDef * handle) {
     return handle->count;
 }
 
-/**
- * @brief Timer elapsed callback function
- * @details Sets the timer based on the next running error that is about to expire if there is one
- * 
- * @param handle The error handler structure
- * @param tim The elapsed timer
- * @return HAL_StatusTypeDef The result of the operation
- */
 HAL_StatusTypeDef ERROR_UTILS_TimerElapsedCallback(ERROR_UTILS_HandleTypeDef * handle, TIM_HandleTypeDef * tim) {
     if (handle == NULL || tim == NULL)
         return HAL_ERROR;
