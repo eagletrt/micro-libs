@@ -16,7 +16,7 @@ MunitResult test_is_empty(const MunitParameter * params, void * data) {
 
     assert_true(CANFQ_is_empty(q));
 
-    CAN_MessageTypeDef m = {0, 3, {1, 2, 3}};
+    CAN_MessageTypeDef m = {0, 0, 3, {1, 2, 3}};
     CANFQ_push(q, &m);
 
     assert_false(CANFQ_is_empty(q));
@@ -32,7 +32,7 @@ MunitResult test_is_full(const MunitParameter * params, void * data) {
     assert_false(CANFQ_is_full(q));
 
     for (int i = 0; i < CANFQ_SIZE - 1; i++) {
-        CAN_MessageTypeDef m = {0, 3, {1, 2, 3}};
+        CAN_MessageTypeDef m = {0, 0, 3, {1, 2, 3}};
         bool status = CANFQ_push(q, &m);
         assert_true(status);
     }
@@ -49,7 +49,7 @@ MunitResult test_fifo_order(const MunitParameter * params, void * data) {
     CANFQ_init(&q);
 
     for (int i = 0; i < CANFQ_SIZE - 1; i++) {
-        CAN_MessageTypeDef m = {i, 3, {1, 2, 3}};
+        CAN_MessageTypeDef m = {i, 0, 3, {1, 2, 3}};
         CANFQ_push(q, &m);
     }
 

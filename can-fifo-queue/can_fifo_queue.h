@@ -21,7 +21,7 @@
     // to create a mock CAN_MessageTypeDef type as it not otherwise available.
     typedef struct {
         uint16_t id;
-        CAN_HandleTypeDef *hcan;
+        uint16_t hcan;
         uint16_t size;
         uint16_t data[8];
     } CAN_MessageTypeDef;
