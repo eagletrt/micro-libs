@@ -56,6 +56,7 @@ bool CANFQ_pop(_CANFQ_QueueTypeDef * fifo, CAN_MessageTypeDef * msg) {
 	CAN_MessageTypeDef * curr = &fifo->queue[fifo->tail];
 	msg->id = curr->id;
 	msg->size = curr->size;
+	msg->hcan  = curr->hcan;
 	for (int i = 0; i < curr->size; i++)
 		msg->data[i] = curr->data[i];
 	
@@ -78,6 +79,7 @@ bool CANFQ_push(_CANFQ_QueueTypeDef * fifo, CAN_MessageTypeDef * msg) {
 	CAN_MessageTypeDef * curr = &fifo->queue[fifo->head];
 	curr->id = msg->id;
 	curr->size = msg->size;
+	curr->hcan = msg->hcan;
 	for (int i = 0; i < msg->size; i++)
 		curr->data[i] = msg->data[i];
 	
