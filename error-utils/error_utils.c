@@ -15,7 +15,7 @@
  */
 
 #include "error_utils.h"
-#include "timer-utils/timer_utils.h"
+#include "timer_utils.h"
 
 /**
  * @brief Check if the first expiry happens before the second
@@ -86,7 +86,7 @@ ERROR_UTILS_InstanceTypeDef * _error_utils_find_first_expiring(ERROR_UTILS_Handl
     if (error_out != NULL) *error_out = NULL;
     uint32_t min_expiry = UINT32_MAX;
 
-    size_t count = handle->count;
+    size_t count = handle->running_count;
 
     // Check each error instance
     for (size_t i = 0; count > 0 && i < handle->errors_length; i++) {
@@ -121,7 +121,7 @@ HAL_StatusTypeDef _error_utils_find_next_expiring_and_set_timer(ERROR_UTILS_Hand
 
     ERROR_UTILS_ErrorTypeDef * error = NULL;
     ERROR_UTILS_InstanceTypeDef * instance =
-        _error_utils_find_first_expiring(handle, error);
+        _error_utils_find_first_expiring(handle, &error);
     
     // Set timer
     if (instance != NULL) {
@@ -153,7 +153,8 @@ HAL_StatusTypeDef error_utils_init(ERROR_UTILS_HandleTypeDef * handle,
     handle->timer = tim;
     handle->global_toggle_callback = global_toggle_callback;
     handle->global_expiry_callback = global_expiry_callback;
-    handle->count = 0;
+    handle->running_count = 0;
+    handle->expired_count = 0;
 
     handle->first_to_expire_error    = NULL;
     handle->first_to_expire_instance = NULL;
@@ -171,6 +172,7 @@ HAL_StatusTypeDef error_utils_init(ERROR_UTILS_HandleTypeDef * handle,
         // Init instances
         for (size_t j = 0; j < error->instances_length; j++) {
             error->instances[i].is_triggered       = false;
+            error->instances[i].is_expired         = false;
             error->instances[i].expected_expiry_ms = 0;
         }
     }
@@ -209,7 +211,7 @@ HAL_StatusTypeDef error_utils_error_set(ERROR_UTILS_HandleTypeDef * handle,
         }
 
         instance->is_triggered = true;
-        ++handle->count;
+        ++handle->running_count;
 
         // Call callbacks if possible
         if (error->toggle_callback != NULL)
@@ -244,7 +246,7 @@ HAL_StatusTypeDef error_utils_error_reset(ERROR_UTILS_HandleTypeDef * handle,
             return HAL_ERROR;
 
         instance->is_triggered = false;
-        --handle->count;
+        --handle->running_count;
 
         // Call callbacks if possible
         if (error->toggle_callback != NULL)
@@ -256,10 +258,33 @@ HAL_StatusTypeDef error_utils_error_reset(ERROR_UTILS_HandleTypeDef * handle,
     return HAL_OK;
 }
 
-size_t error_utils_get_count(ERROR_UTILS_HandleTypeDef * handle) {
+size_t error_utils_get_running_count(ERROR_UTILS_HandleTypeDef * handle) {
     if (handle == NULL)
         return 0;
-    return handle->count;
+    return handle->running_count;
+}
+size_t error_utils_get_expired_count(ERROR_UTILS_HandleTypeDef * handle) {
+    if (handle == NULL)
+        return 0;
+    return handle->expired_count;
+}
+
+HAL_StatusTypeDef error_utils_reset_all_expired(ERROR_UTILS_HandleTypeDef * handle) {
+    if (handle == NULL)
+        return HAL_ERROR;
+    
+    // Reset all expired flags
+    for (size_t i = 0; i < handle->errors_length; i++) {
+        ERROR_UTILS_ErrorTypeDef * error = &(handle->errors[i]);
+        for (size_t j = 0; j < error->instances_length; j++) {
+            ERROR_UTILS_InstanceTypeDef * instance = &(error->instances[j]);
+            instance->is_expired = false;
+        }
+    }
+    // Reset expired count
+    handle->expired_count = 0;
+
+    return HAL_OK;
 }
 
 HAL_StatusTypeDef ERROR_UTILS_TimerElapsedCallback(ERROR_UTILS_HandleTypeDef * handle, TIM_HandleTypeDef * tim) {
@@ -273,6 +298,10 @@ HAL_StatusTypeDef ERROR_UTILS_TimerElapsedCallback(ERROR_UTILS_HandleTypeDef * h
         // Check if there is a running error
         if (error != NULL && instance != NULL && instance->is_triggered) {
             instance->is_triggered = false;
+            instance->is_expired = true;
+            
+            --handle->running_count;
+            --handle->expired_count;
 
             if (_error_utils_find_next_expiring_and_set_timer(handle) != HAL_OK)
                 return HAL_ERROR;

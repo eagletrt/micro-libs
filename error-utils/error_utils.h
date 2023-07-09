@@ -21,11 +21,14 @@
 #include <stdbool.h>
 #include <inttypes.h>
 
+#include "stm32f4xx_hal.h"
+
 typedef void (* ERROR_UTILS_CallbackTypeDef) (size_t error_index, size_t instance_index);
 
 /** @brief Instance of a running error */
 typedef struct {
     bool is_triggered;
+    bool is_expired;
     uint32_t expected_expiry_ms;
 } ERROR_UTILS_InstanceTypeDef;
 /**
@@ -46,7 +49,8 @@ typedef struct {
     TIM_HandleTypeDef * timer;
     ERROR_UTILS_CallbackTypeDef global_toggle_callback;
     ERROR_UTILS_CallbackTypeDef global_expiry_callback;
-    size_t count;
+    size_t running_count;
+    size_t expired_count;
 
     ERROR_UTILS_ErrorTypeDef * first_to_expire_error;
     ERROR_UTILS_InstanceTypeDef * first_to_expire_instance;
@@ -103,7 +107,23 @@ HAL_StatusTypeDef error_utils_error_reset(ERROR_UTILS_HandleTypeDef * handle,
  * @param handle The error handler structure
  * @return size_t The number of running errors
  */
-size_t error_utils_get_count(ERROR_UTILS_HandleTypeDef * handle);
+size_t error_utils_get_running_count(ERROR_UTILS_HandleTypeDef * handle);
+
+/**
+ * @brief Get the number of currently expired errors
+ * 
+ * @param handle The error handler structure
+ * @return size_t The number of expired errors
+ */
+size_t error_utils_get_expired_count(ERROR_UTILS_HandleTypeDef * handle);
+
+/**
+ * @brief Reset all expired errors
+ * 
+ * @param handle The error handler structure
+ * @return HAL_StatusTypeDef The result of the operation
+ */
+HAL_StatusTypeDef error_utils_reset_all_expired(ERROR_UTILS_HandleTypeDef * handle);
 
 /**
  * @brief Timer elapsed callback function
