@@ -29,12 +29,12 @@ void LOG_init(LOG_LogLevelTypeDef loglevel, bool show_lineno, bool show_prefix, 
 
 void LOG_print_fenice_logo(char *subtitle) {
     _LOG_write_raw("\033[H");
-    _LOG_write_raw("         E - A g l e   T r e n t o   R a c i n g   T e a m        ");
-    _LOG_write_raw("██████████████████████████████     ████  ███  ████████████████████");
-    _LOG_write_raw("                           ████   ███                             ");
-    _LOG_write_raw("  ████████████  ████████  ██████ ███   ███  ███         ████████  ");
-    _LOG_write_raw("      ███      ███       ███  █████   ███  ███        ███         ");
-    _LOG_write_raw("     ███      ████████  ███    ███   ███  █████████  █████████    ");
+    _LOG_write_raw("         E - A g l e   T r e n t o   R a c i n g   T e a m                ");
+    _LOG_write_raw("██████████████████████████████     ████  ███  ████████████████████        ");
+    _LOG_write_raw("                           ████   ███                                     ");
+    _LOG_write_raw("  ████████████  ████████  ██████ ███   ███  ███         ████████    evo :)");
+    _LOG_write_raw("      ███      ███       ███  █████   ███  ███        ███                 ");
+    _LOG_write_raw("     ███      ████████  ███    ███   ███  █████████  █████████            ");
     _LOG_write_raw(subtitle);
     _LOG_write_raw("");
 }
