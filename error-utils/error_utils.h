@@ -3,6 +3,31 @@
  * @brief Error handling library targeted for microcontrollers
  * @details This library is independent from the type of microcontroller and abstraction library used
  * 
+ * @details In order to use this library it is needed to setup a few things:
+ * 
+ *  - Declare at least one error handler of type ErrorUtilsHandler (or more if you plan on using multiple)
+ *    The initialization is done via the error_utils_init function so remember to
+ *    call it JUST ONCE for each handler
+ *  - Declare an array of type ErrorUtilsRunningInstance and an array of pointers of the same type
+ *    and remember to pass them to the init function
+ *    They have to be the EXACTLY THE SAME SIZE
+ *    No initialization is needed
+ *  - Define a function as described by the ErrorUtilsTimestampCallback typedef
+ *    which need to return the time (use whathaver function from any library you prefer)
+ *    Remember to pass it to the init function
+ *  - Define a function as described by the ErrorUtilsTimeoutCallback typedef
+ *    which need to return the time needed for the given error to expire
+ *    The unit of measurement has to be THE SAME AS THE TIMESTAMP
+ *    Remember to pass it to the init function
+ *  - Define a function as described by the ErrorUtilsExpireUpdateCallback typedef
+ *    which need to update whatever handler you plan on using (like a timer for example)
+ *    to a new time calculated from the timestamp and the timeout given as parameters
+ *    Remember to pass it to the init function or pass NULL if you don't use any handler
+ *  - Remember to call error_utils_expire_errors function to effectively expire a single error
+ *    (multiple error is a work in progress)
+ * 
+ *  - Enjoy!!! :)
+ * 
  * @date Sep 13, 2023
  * @author Antonio Gelain [antonio.gelain@studenti.unitn.it]
  */
