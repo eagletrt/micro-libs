@@ -1,319 +1,462 @@
-/**
- * @file error_utils.c
- * @brief This file provide a generic time based error management
- * 
- * @date Apr 02, 2023
- * @author Federico Carbone [federico.carbone.sc@gmail.com]
- * @author Antonio Gelain [antonio.gelain@studenti.unitn.it]
- * 
- * "THE BEER-WARE LICENSE" (Revision 69):
- * Squadra Corse firmware team wrote this file. As long as you retain this notice
- * you can do whatever you want with this stuff. If we meet some day, and you 
- * think this stuff is worth it, you can buy us a beer in return.
- * 
- * @link https://github.com/squadracorsepolito/stmlibs/blob/master/error_utils/error_utils.c
- */
-
 #include "error_utils.h"
-#include "timer_utils.h"
+
+#include <string.h>
+
+/** @brief Invalid values used as default */
+#define ERROR_UTILS_INVALID_INT UINT32_MAX
+#define ERROR_UTILS_INVALID_STR ""
 
 /**
- * @brief Check if the first expiry happens before the second
+ * @brief Get the parent index of a node of the heap
+ * @attention The heap is implemented as an array
  * 
- * @param expiry1 The first expiry in ms
- * @param expiry2 The second expiry in ms
- * @return true If expiry1 happens before expiry2
- * @return false Otherwise
+ * @param index The index of the node in the heap
+ * @return size_t The parent index
  */
-bool _error_utils_is_before(uint32_t expiry1, uint32_t expiry2) {
-    uint64_t e1 = expiry1, e2 = expiry2, now = HAL_GetTick();
-    if (e1 < now)
-        e1 += UINT32_MAX;
-    if (e2 < now)
-        e2 += UINT32_MAX;
+#define ERROR_UTILS_HEAP_PARENT(index) (((index) - 1) / 2)
+/**
+ * @brief Get the left child index of a node of the heap
+ * @attention The heap is implemented as an array
+ * 
+ * @param index The index of the node in the heap
+ * @return size_t The parent index
+ */
+#define ERROR_UTILS_HEAP_LCHILD(index) (2 * (index) + 1)
+/**
+ * @brief Get the parent index of a node of the heap
+ * @attention The heap is implemented as an array
+ * 
+ * @param index The index of the node in the heap
+ * @return size_t The parent index
+ */
+#define ERROR_UTILS_HEAP_RCHILD(index) (2 * (index) + 2)
 
-    return e1 < e2;
+/**
+ * @brief Get the delta time between the current time and the expire time of the error
+ * 
+ * @param handler The error handler structure
+ * @param err A running error
+ * @return int32_t The delta time
+ */
+static inline int32_t _error_utils_get_delta(ErrorUtilsHandler * handler, ErrorUtilsRunningInstance * err) {
+    int32_t t = handler->get_timestamp();
+    return (int32_t)err->timestamp + (int32_t)handler->get_timeout(err->error) - t;
 }
 /**
- * @brief Get how much time is left until expiry from now
+ * @brief Compare the delta time of two errors
  * 
- * @param expiry Expiry time in ms
- * @return uint32_t The delta time from now
+ * @param handler The error handler structure
+ * @param first The first running error
+ * @param second The second running error
+ * @return True if the delta time of the first error is less than the second
+ * @return False otherwise
  */
-uint32_t _error_utils_get_delta_from_now(uint32_t expiry) {
-    uint64_t e = expiry, now = HAL_GetTick();
-    if (e < now)
-        e += UINT32_MAX;
-    
-    return e - now;
+static inline bool _error_utils_compare(ErrorUtilsHandler * handler, ErrorUtilsRunningInstance * first, ErrorUtilsRunningInstance * second) {
+    return _error_utils_get_delta(handler, first) < _error_utils_get_delta(handler, second);
 }
 /**
- * @brief Set the error timer
+ * @brief Check if an error is equal given a type and an instance
  * 
- * @param handle The error handler structure
- * @param expiry Time until the timer expires
- * @return HAL_StatusTypeDef The result of the operation
+ * @param err A running error
+ * @param error The error type
+ * @param instance The error instance
+ * @param is_string True if the instance is a string, otherwise is an integer
+ * @return True if the error is equal
+ * @return False otherwise
  */
-HAL_StatusTypeDef _error_utils_set_timer(ERROR_UTILS_HandleTypeDef * handle, uint32_t expiry) {
-    if (handle == NULL)
-        return HAL_ERROR;
-    
-    uint32_t ticks = TIM_MS_TO_TICKS(handle->timer, _error_utils_get_delta_from_now(expiry)) - 1;
-
-    if (ticks > TIM_GET_MAX_AUTORELOAD(handle->timer))
-        return HAL_ERROR;
-
-    __HAL_TIM_SetCounter(handle->timer, 0);
-    __HAL_TIM_SetAutoreload(handle->timer, ticks);
-    __HAL_TIM_CLEAR_IT(handle->timer, TIM_IT_UPDATE);
-    HAL_TIM_Base_Start_IT(handle->timer);
-
-    return HAL_OK;
+static inline bool _error_utils_is_equal(ErrorUtilsRunningInstance * err, uint32_t error, ErrorUtilsInstance instance, bool is_string) {
+    if (err->string_instance != is_string)
+        return false;
+    bool inst_cmp = err->string_instance ? strcmp(instance.s, err->instance.s) : instance.i == err->instance.i;
+    return err->error == error && inst_cmp;
 }
 /**
- * @brief Find the instance of the first running error that is about to expire
+ * @brief Check if an error is not running or expired
  * 
- * @param handle The error handler structure
- * @param error_out A pointer to the error of the found instance, NULL if not found (can be NULL)
- * @return ERROR_UTILS_InstanceTypeDef * A pointer to the error instance if found, NULL otherwise
+ * @param err A running error
+ * @return True if the error is not running and has not expired
+ * @return False otherwise
  */
-ERROR_UTILS_InstanceTypeDef * _error_utils_find_first_expiring(ERROR_UTILS_HandleTypeDef * handle,
-    ERROR_UTILS_ErrorTypeDef ** error_out) {
-    if (handle == NULL)
-        return NULL;
+static inline bool _error_utils_is_free(ErrorUtilsRunningInstance * err) {
+    return !(err->is_running || err->is_expired);
+}
+
+/******************************************************************************/
+/***************************** Heap functions *********************************/
+/******************************************************************************/
+
+/**
+ * @brief Get the error with the minimum delta time from the heap
+ * 
+ * @param handler The error handler structure
+ * @return ErrorUtilsRunningInstance * A pointer to the error
+ */
+static ErrorUtilsRunningInstance * _error_utils_heap_min(ErrorUtilsHandler * handler) {
+    return handler->expiring[0];
+}
+/**
+ * @brief Swap two errors inside the heap
+ * 
+ * @param first The first running error
+ * @param second The second running error
+ */
+static void _error_utils_heap_swap(ErrorUtilsRunningInstance ** first, ErrorUtilsRunningInstance ** second) {
+    // Swap pointers
+    ErrorUtilsRunningInstance * aux = *first;
+    *first = *second;
+    *second = aux;
+
+    // Swap heap ids
+    (*first)->heap_id += (*second)->heap_id;
+    (*second)->heap_id = (*first)->heap_id - (*second)->heap_id;
+    (*first)->heap_id -= (*second)->heap_id;
+}
+/**
+ * @brief Insert a new error in the heap
+ * 
+ * @param handler The error handler structure
+ * @param err The error to insert
+ */
+static void _error_utils_heap_insert(ErrorUtilsHandler * handler, ErrorUtilsRunningInstance * err) {
+    // Check to avoid buffer overflow
+    if (handler->expiring_end == handler->buffer_size)
+        return;
     
-    ERROR_UTILS_InstanceTypeDef * min_instance = NULL;
-    if (error_out != NULL) *error_out = NULL;
-    uint32_t min_expiry = UINT32_MAX;
+    // Insert the error instance to the end of the heap
+    err->heap_id = handler->expiring_end;
+    handler->expiring[handler->expiring_end++] = err;
 
-    size_t count = handle->running_count;
+    // Restore heap properties
+    size_t i = handler->expiring_end - 1;
+    size_t parent = ERROR_UTILS_HEAP_PARENT(i);
+    while (i != 0 && _error_utils_compare(handler, handler->expiring[i], handler->expiring[parent])) {
+        // Swap errors
+        _error_utils_heap_swap(handler->expiring + i, handler->expiring + parent);
 
-    // Check each error instance
-    for (size_t i = 0; count > 0 && i < handle->errors_length; i++) {
-        ERROR_UTILS_ErrorTypeDef * error = &handle->errors[i];
-        for (size_t j = 0; count > 0 && j < error->instances_length; j++) {
-            ERROR_UTILS_InstanceTypeDef * instance = &error->instances[j];
+        // Update indices
+        i = parent;
+        parent = ERROR_UTILS_HEAP_PARENT(i);
+    }
 
-            if (instance->is_triggered) {
-                // Check if current instance expires before min_instance
-                if (_error_utils_is_before(instance->expected_expiry_ms, min_expiry)) {
-                    if (error_out != NULL) *error_out = error;
-                    min_instance = instance;
-                    min_expiry = instance->expected_expiry_ms;
-                }
-                --count;
+    // Update error heap id
+    err->heap_id = i;
+}
+/**
+ * @brief Remove an error from the heap
+ * 
+ * @param handler The error handler structure
+ * @param err The error to remove
+ */
+static void _error_utils_heap_remove(ErrorUtilsHandler * handler, ErrorUtilsRunningInstance * err) {
+    size_t index = err->heap_id;
+    // The error is not in the heap
+    if (index == ERROR_UTILS_INVALID_INT)
+        return;
+
+    // Swap the error with the end of the heap
+    if (index < handler->expiring_end - 1)
+        _error_utils_heap_swap(handler->expiring + index, handler->expiring + handler->expiring_end - 1);
+
+    bool up_heapify = _error_utils_compare(handler, handler->expiring[index], handler->expiring[handler->expiring_end - 1]);
+
+    // Remove last element
+    --handler->expiring_end;
+    handler->expiring[handler->expiring_end]->heap_id = ERROR_UTILS_INVALID_INT;
+    handler->expiring[handler->expiring_end] = NULL;
+
+    if (index < handler->expiring_end) {
+        // Up-heapify
+        if (up_heapify) {
+            // Restore heap properties
+            size_t parent = ERROR_UTILS_HEAP_PARENT(index);
+            while (index != 0 && _error_utils_compare(handler, handler->expiring[index], handler->expiring[parent])) {
+                // Swap errors
+                _error_utils_heap_swap(handler->expiring + index, handler->expiring + parent);
+
+                // Update indices
+                index = parent;
+                parent = ERROR_UTILS_HEAP_PARENT(index);
             }
         }
-    }
+        // Down-heapify
+        else {
+            size_t l = ERROR_UTILS_HEAP_LCHILD(index);
+            size_t r = ERROR_UTILS_HEAP_RCHILD(index);
+            size_t child = (r >= handler->expiring_end) ? l : (
+                _error_utils_compare(handler, handler->expiring[l], handler->expiring[r]) ? l : r);
 
-    return min_instance;
+            // Until a leaf is reached (or the parent with only the left child)
+            while (r < handler->expiring_end && _error_utils_compare(handler, handler->expiring[child], handler->expiring[index])) {
+                // Swap errors
+                _error_utils_heap_swap(handler->expiring + index, handler->expiring + child);
+
+                // Update indices
+                index = child;
+                l = ERROR_UTILS_HEAP_LCHILD(index);
+                r = ERROR_UTILS_HEAP_RCHILD(index);
+                child = (r >= handler->expiring_end) ? l : (
+                    _error_utils_compare(handler, handler->expiring[l], handler->expiring[r]) ? l : r);
+            }
+            // Check left child
+            if (l < handler->expiring_end && _error_utils_compare(handler, handler->expiring[l], handler->expiring[index]))
+                _error_utils_heap_swap(handler->expiring + index, handler->expiring + child);
+        }
+    }
+}
+
+/******************************************************************************/
+/***************************** Hash functions *********************************/
+/******************************************************************************/
+
+/**
+ * @brief MurmurHash3 non-cryptographic hash function suitable for general hash-based lookup
+ * @details For details refer to https://en.wikipedia.org/wiki/MurmurHash
+ */
+static inline uint32_t murmur_32_scramble(uint32_t k) {
+    k *= 0xcc9e2d51;
+    k = (k << 15) | (k >> 17);
+    k *= 0x1b873593;
+    return k;
+}
+static uint32_t murmur3_32(const uint8_t * key, size_t len, uint32_t seed)
+{
+	uint32_t h = seed;
+    uint32_t k;
+    /* Read in groups of 4. */
+    for (size_t i = len >> 2; i; i--) {
+        // Here is a source of differing results across endiannesses.
+        // A swap here has no effects on hash properties though.
+        memcpy(&k, key, sizeof(uint32_t));
+        key += sizeof(uint32_t);
+        h ^= murmur_32_scramble(k);
+        h = (h << 13) | (h >> 19);
+        h = h * 5 + 0xe6546b64;
+    }
+    /* Read the rest. */
+    k = 0;
+    for (size_t i = len & 3; i; i--) {
+        k <<= 8;
+        k |= key[i - 1];
+    }
+    // A swap is *not* necessary here because the preceding loop already
+    // places the low bytes in the low places according to whatever endianness
+    // we use. Swaps only apply when the memory is copied in a chunk.
+    h ^= murmur_32_scramble(k);
+    /* Finalize. */
+	h ^= len;
+	h ^= h >> 16;
+	h *= 0x85ebca6b;
+	h ^= h >> 13;
+	h *= 0xc2b2ae35;
+	h ^= h >> 16;
+	return h;
 }
 /**
- * @brief Find the first instance of the error that is about to expire and it sets the
- * timer based on the found error
+ * @brief Generate an hash value from a string using an error type as the key
  * 
- * @param handle The error handler structure
- * @return HAL_StatusTypeDef The result of the operation
+ * @param error The error type
+ * @param str The string to get the hash from
+ * @return uint32_t The generated hash value
  */
-HAL_StatusTypeDef _error_utils_find_next_expiring_and_set_timer(ERROR_UTILS_HandleTypeDef * handle) {
-    if (handle == NULL)
-        return HAL_ERROR;
+inline uint32_t _error_utils_hash_string(uint32_t error, const char * str) {
+    return murmur3_32((uint8_t *)str, strlen(str), error);
+}
+/**
+ * @brief Generate an hash value from a integer using an error type as the key
+ * 
+ * @param error The error type
+ * @param val The integer to get the hash from
+ * @return uint32_t The generated hash value
+ */
+inline uint32_t _error_utils_hash_int(uint32_t error, uint32_t val) {
+    return murmur3_32((uint8_t *)(&val), sizeof(uint32_t), error);
+}
+/**
+ * @brief Generate an hash value from an error instance using an error type as the key
+ * 
+ * @param error The error type
+ * @param inst The error instance
+ * @param is_string True if the instance is a string, otherwise it is an integer
+ * @param buffer_size The total buffer size of the hash table
+ * @return uint32_t An hash value from 0 to buffer_size - 1
+ */
+inline uint32_t _error_utils_hash(uint32_t error, ErrorUtilsInstance inst, bool is_string, const size_t buffer_size) {
+    return (is_string ? _error_utils_hash_string(error, inst.s) : _error_utils_hash_int(error, inst.i)) % buffer_size;
+}
 
-    ERROR_UTILS_ErrorTypeDef * error = NULL;
-    ERROR_UTILS_InstanceTypeDef * instance =
-        _error_utils_find_first_expiring(handle, &error);
+
+
+void error_utils_init(
+    ErrorUtilsHandler * handler,
+    ErrorUtilsRunningInstance * errors,
+    ErrorUtilsRunningInstance ** expiring,
+    size_t buffer_size,
+    ErrorUtilsTimestampCallback get_timestamp,
+    ErrorUtilsTimeoutCallback get_timeout,
+    ErrorUtilsExpireUpdateCallback set_expire)
+{
+    if (handler == NULL || errors == NULL || expiring == NULL)
+        return;
+
+    // Init handler
+    handler->running = 0;
+    handler->expired = 0;
     
-    // Set timer
-    if (instance != NULL) {
-        if (_error_utils_set_timer(handle, instance->expected_expiry_ms) != HAL_OK)
-            return HAL_ERROR;
-        handle->first_to_expire_error    = error;
-        handle->first_to_expire_instance = instance;
-    }
-    else {
-        handle->first_to_expire_error    = NULL;
-        handle->first_to_expire_instance = NULL;
-        HAL_TIM_Base_Stop_IT(handle->timer);
-    }
-
-    return HAL_OK;
-}
-
-
-
-HAL_StatusTypeDef error_utils_init(ERROR_UTILS_HandleTypeDef * handle,
-    TIM_HandleTypeDef * tim,
-    ERROR_UTILS_ErrorTypeDef * errors,
-    size_t errors_length,
-    ERROR_UTILS_CallbackTypeDef global_toggle_callback,
-    ERROR_UTILS_CallbackTypeDef global_expiry_callback) {
-    if (handle == NULL || tim == NULL || !IS_TIM_INSTANCE(tim->Instance) || errors == NULL)
-        return HAL_ERROR;
-
-    handle->timer = tim;
-    handle->global_toggle_callback = global_toggle_callback;
-    handle->global_expiry_callback = global_expiry_callback;
-    handle->running_count = 0;
-    handle->expired_count = 0;
-
-    handle->first_to_expire_error    = NULL;
-    handle->first_to_expire_instance = NULL;
-
-    handle->errors_length = errors_length;
-    handle->errors = errors;
-
-    // Init errors
-    for (size_t i = 0; i < handle->errors_length; i++) {
-        ERROR_UTILS_ErrorTypeDef * error = &(handle->errors[i]);
-
-        if (TIM_MS_TO_TICKS(handle->timer, error->expiry_delay_ms) - 1 > TIM_GET_MAX_AUTORELOAD(handle->timer))
-            return HAL_ERROR;
-
-        // Init instances
-        for (size_t j = 0; j < error->instances_length; j++) {
-            error->instances[i].is_triggered       = false;
-            error->instances[i].is_expired         = false;
-            error->instances[i].expected_expiry_ms = 0;
-        }
-    }
-
-    return HAL_OK;
-}
-
-HAL_StatusTypeDef error_utils_error_set(ERROR_UTILS_HandleTypeDef * handle,
-    size_t error_index,
-    size_t instance_index) {
-    if (handle == NULL)
-        return HAL_ERROR;
-    if (error_index >= handle->errors_length)
-        return HAL_ERROR;
-
-    ERROR_UTILS_ErrorTypeDef * error = &(handle->errors[error_index]);
-
-    if (instance_index >= error->instances_length)
-        return HAL_ERROR;
-
-    ERROR_UTILS_InstanceTypeDef * instance = &(error->instances[instance_index]);
-
-    // Set error instance if it's not running
-    if (!instance->is_triggered) {
-        instance->expected_expiry_ms = HAL_GetTick() + error->expiry_delay_ms;
-
-        // Set timer if it's the next error that should be triggered
-        if (handle->first_to_expire_instance == NULL ||
-            !handle->first_to_expire_instance->is_triggered ||
-            _error_utils_is_before(instance->expected_expiry_ms, handle->first_to_expire_instance->expected_expiry_ms)) {
-            if (_error_utils_set_timer(handle, instance->expected_expiry_ms) != HAL_OK)
-                return HAL_ERROR;
-
-            handle->first_to_expire_error    = error;
-            handle->first_to_expire_instance = instance;
-        }
-
-        instance->is_triggered = true;
-        ++handle->running_count;
-
-        // Call callbacks if possible
-        if (error->toggle_callback != NULL)
-            error->toggle_callback(error_index, instance_index);
-       
-        if (handle->global_toggle_callback != NULL)
-            handle->global_toggle_callback(error_index, instance_index);
-    }
-
-    return HAL_OK;
-}
-HAL_StatusTypeDef error_utils_error_reset(ERROR_UTILS_HandleTypeDef * handle,
-    size_t error_index,
-    size_t instance_index) {
-    if (handle == NULL)
-        return HAL_ERROR;
-    if (error_index >= handle->errors_length)
-        return HAL_ERROR;
-
-    ERROR_UTILS_ErrorTypeDef * error = &(handle->errors[error_index]);
-
-    if (instance_index >= error->instances_length)
-        return HAL_ERROR;
-
-    ERROR_UTILS_InstanceTypeDef * instance = &(error->instances[instance_index]);
-
-    // Reset error instance if it's running
-    if (instance->is_triggered) {
-        // Check if it's the first error that is about to expire
-        if (instance != handle->first_to_expire_instance &&
-            _error_utils_find_next_expiring_and_set_timer(handle) != HAL_OK)
-            return HAL_ERROR;
-
-        instance->is_triggered = false;
-        --handle->running_count;
-
-        // Call callbacks if possible
-        if (error->toggle_callback != NULL)
-            error->toggle_callback(error_index, instance_index);
-        if (handle->global_toggle_callback != NULL)
-            handle->global_toggle_callback(error_index, instance_index);
-    }
-
-    return HAL_OK;
-}
-
-size_t error_utils_get_running_count(ERROR_UTILS_HandleTypeDef * handle) {
-    if (handle == NULL)
-        return 0;
-    return handle->running_count;
-}
-size_t error_utils_get_expired_count(ERROR_UTILS_HandleTypeDef * handle) {
-    if (handle == NULL)
-        return 0;
-    return handle->expired_count;
-}
-
-HAL_StatusTypeDef error_utils_reset_all_expired(ERROR_UTILS_HandleTypeDef * handle) {
-    if (handle == NULL)
-        return HAL_ERROR;
+    handler->buffer_size = buffer_size;
+    handler->errors = errors;
+    handler->expiring_end = 0;
+    handler->expiring = expiring;
     
-    // Reset all expired flags
-    for (size_t i = 0; i < handle->errors_length; i++) {
-        ERROR_UTILS_ErrorTypeDef * error = &(handle->errors[i]);
-        for (size_t j = 0; j < error->instances_length; j++) {
-            ERROR_UTILS_InstanceTypeDef * instance = &(error->instances[j]);
-            instance->is_expired = false;
-        }
-    }
-    // Reset expired count
-    handle->expired_count = 0;
+    handler->get_timestamp = get_timestamp;
+    handler->get_timeout = get_timeout;
+    handler->set_expire = set_expire;
 
-    return HAL_OK;
+    // Init error instances
+    for (size_t i = 0; i < handler->buffer_size; i++) {
+        handler->errors[i].error = ERROR_UTILS_INVALID_INT;
+        handler->errors[i].instance.i = ERROR_UTILS_INVALID_INT;
+        handler->errors[i].is_expired = false;
+        handler->errors[i].is_running = false;
+        handler->errors[i].heap_id = ERROR_UTILS_INVALID_INT;
+        handler->errors[i].timestamp = 0;
+        handler->errors[i].is_dead = false;
+        handler->errors[i].string_instance = false;
+
+        handler->expiring[i] = NULL;
+    }
 }
+bool error_utils_set(
+    ErrorUtilsHandler * handler,
+    uint32_t error,
+    ErrorUtilsInstance instance,
+    bool is_string)
+{
+    if (handler == NULL || handler->get_timestamp == NULL || handler->get_timeout == NULL)
+        return false;
 
-HAL_StatusTypeDef ERROR_UTILS_TimerElapsedCallback(ERROR_UTILS_HandleTypeDef * handle, TIM_HandleTypeDef * tim) {
-    if (handle == NULL || tim == NULL)
-        return HAL_ERROR;
+    // Get error instance index
+    uint32_t index = _error_utils_hash(error, instance, is_string, handler->buffer_size);
     
-    if (handle->timer == tim) {
-        ERROR_UTILS_ErrorTypeDef * error = handle->first_to_expire_error;
-        ERROR_UTILS_InstanceTypeDef * instance = handle->first_to_expire_instance;
+    ErrorUtilsRunningInstance * err = (handler->errors + index);
+    
+    // Iterate until a free spot is found
+    size_t off = 0;
+    for (; off < handler->buffer_size && !_error_utils_is_free(err); ++off) {
+        // Return if the error is already running or expired
+        if (_error_utils_is_equal(err, error, instance, is_string))
+            return true;
 
-        // Check if there is a running error
-        if (error != NULL && instance != NULL && instance->is_triggered) {
-            instance->is_triggered = false;
-            instance->is_expired = true;
-            
-            --handle->running_count;
-            --handle->expired_count;
-
-            if (_error_utils_find_next_expiring_and_set_timer(handle) != HAL_OK)
-                return HAL_ERROR;
-
-            size_t error_index = error - handle->errors;
-            size_t instance_index = instance - error->instances;
-            // Call callbacks if possible
-            if (error->expiry_callback != NULL)
-                error->expiry_callback(error_index, instance_index);
-            if (handle->global_expiry_callback != NULL)
-                handle->global_expiry_callback(error_index, instance_index);
-        }
+        // Update index using quadratic probing
+        index = (index + off * off) % handler->buffer_size;
+        err = (handler->errors + index);
     }
-    return HAL_OK;
+
+    // Buffer is full
+    if (off == handler->buffer_size) {
+        // TODO: Find error that expire after the new one
+        // Then: Swap
+        // Else: return false;
+        return false;
+    }
+
+    // Update error info
+    err->error = error;
+    err->instance = instance;
+    err->is_expired = false;
+    err->is_running = true;
+    err->timestamp = handler->get_timestamp();
+    err->is_dead = false;
+
+    // Update handler
+    ++(handler->running);
+
+    // Update heap
+    _error_utils_heap_insert(handler, err);
+
+    // Update error expire handler if the new error is the first that will expire
+    if (handler->set_expire != NULL && _error_utils_heap_min(handler) == err)
+        handler->set_expire(err->timestamp, handler->get_timeout(error));
+
+    return true;
+}
+bool error_utils_reset(
+    ErrorUtilsHandler * handler,
+    uint32_t error,
+    ErrorUtilsInstance instance,
+    bool is_string)
+{
+    if (handler == NULL || handler->get_timestamp == NULL || handler->get_timeout == NULL)
+        return false;
+
+    // Get error instance index
+    uint32_t index = _error_utils_hash(error, instance, is_string, handler->buffer_size);
+    
+    ErrorUtilsRunningInstance * err = (handler->errors + index);
+    
+    // Iterate until the error or a free spot is found
+    size_t off = 0;
+    for (; off < handler->buffer_size && _error_utils_is_equal(err, error, instance, is_string); ++off) {
+        // Return if a free spot is found (it means that the error is not set)
+        if (_error_utils_is_free(err))
+            return true;
+
+        // Update index
+        index = (index + 1) % handler->buffer_size;
+        err = (handler->errors + index);
+    }
+
+    // Buffer is full of other errors
+    if (off == handler->buffer_size)
+        return true;
+
+    // Set the dead bit of the error
+    err->is_dead = true;
+
+    ErrorUtilsRunningInstance * min = _error_utils_heap_min(handler);
+
+    // Remove error from heap
+    _error_utils_heap_remove(handler, err);
+
+    // Update error expire handler if the removed error will be the first to expire
+    if (handler->set_expire != NULL && handler->expiring[0] != min)
+        handler->set_expire((handler->expiring[0])->timestamp, handler->get_timeout((handler->expiring[0])->error));
+
+    // Update handler
+    --(handler->running);
+
+    // Update error
+    err->error = ERROR_UTILS_INVALID_INT;
+    err->instance.i = ERROR_UTILS_INVALID_INT;
+    err->is_expired = false;
+    err->is_running = false;
+    err->heap_id = ERROR_UTILS_INVALID_INT;
+    err->timestamp = 0;
+    err->is_dead = 0;
+
+    return true;
+}
+// TODO: Expire multiple errors
+void error_utils_expire_errors(ErrorUtilsHandler * handler) {
+    if (handler == NULL)
+        return;
+
+    // Get expired error
+    ErrorUtilsRunningInstance * err = _error_utils_heap_min(handler);
+    if (err->is_dead)
+        return;
+
+    // Remove error from heap
+    _error_utils_heap_remove(handler, err);
+
+    // Update error expire handler
+    if (handler->set_expire != NULL)
+        handler->set_expire((handler->expiring[0])->timestamp, handler->get_timeout((handler->expiring[0])->error));
+
+    // Update error info
+    err->is_expired = true;
+    err->is_running = false;
+
+    // Update handler info
+    ++(handler->expired);
+    --(handler->running);
 }

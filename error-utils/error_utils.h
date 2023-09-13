@@ -1,138 +1,205 @@
 /**
  * @file error_utils.h
- * @brief This file provide a generic time based error management
- *
- * @date Apr 02, 2023
- * @author Federico Carbone [federico.carbone.sc@gmail.com]
+ * @brief Error handling library targeted for microcontrollers
+ * @details This library is independent from the type of microcontroller and abstraction library used
+ * 
+ * @date Sep 13, 2023
  * @author Antonio Gelain [antonio.gelain@studenti.unitn.it]
- * 
- * "THE BEER-WARE LICENSE" (Revision 69):
- * Squadra Corse firmware team wrote this file. As long as you retain this notice
- * you can do whatever you want with this stuff. If we meet some day, and you 
- * think this stuff is worth it, you can buy us a beer in return.
- * 
- * @link https://github.com/squadracorsepolito/stmlibs/blob/master/error_utils/error_utils.h
  */
 
 #ifndef ERROR_UTILS_H
 #define ERROR_UTILS_H
 
+#include <inttypes.h>
 #include <stddef.h>
 #include <stdbool.h>
-#include <inttypes.h>
 
-#include "stm32f4xx_hal.h"
+/**
+ * @brief Set an error using an integer instance
+ * @attention Use this macro instead of the function to avoid possible problems
+ * and to increase simplicity and clarity of the code
+ * @details Useful to iterate over errors
+ * 
+ * @param handler The errors handler (see type ErrorUtilsHandler)
+ * @param error The error type (type uint32_t, should be and enum value)
+ * @param instance The instance of the error (type uint32_t)
+ * @return True if the error is set succesfully
+ * @return False otherwise
+ */
+#define ERROR_UTILS_SET_INT(handler, error, instance) error_utils_set(handler, error, (ErrorUtilsInstance){ .i = instance }, false)
+/**
+ * @brief Set an error using a constant string instance
+ * @attention Use this macro instead of the function to avoid possible problems
+ * and to increase simplicity and clarity of the code
+ * @attention Avoid the use of non constant strings, prefer literals over variables
+ * @details Useful to give meaning to an instance
+ * 
+ * @param handler The errors handler (see type ErrorUtilsHandler)
+ * @param error The error type (type uint32_t, should be and enum value)
+ * @param instance The instance of the error (type const char * const)
+ * @return True if the error is set succesfully
+ * @return False otherwise
+ */
+#define ERROR_UTILS_SET_STR(handler, error, instance) error_utils_set(handler, error, (ErrorUtilsInstance){ .s = instance }, true)
+/**
+ * @brief Reset an error using an integer instance
+ * @attention Use this macro instead of the function to avoid possible problems
+ * and to increase simplicity and clarity of the code
+ * @details Useful to iterate over errors
+ * 
+ * @param handler The errors handler (see type ErrorUtilsHandler)
+ * @param error The error type (type uint32_t, should be and enum value)
+ * @param instance The instance of the error (type uint32_t)
+ * @return True if the error is removed succesfully
+ * @return False otherwise
+ */
+#define ERROR_UTILS_RESET_INT(handler, error, instance) error_utils_reset(handler, error, (ErrorUtilsInstance){ .i = instance }, false)
+/**
+ * @brief Reset an error using a constant string instance
+ * @attention Use this macro instead of the function to avoid possible problems
+ * and to increase simplicity and clarity of the code
+ * @attention Avoid the use of non constant strings, prefer literals over variables
+ * @details Useful to give meaning to an instance
+ * 
+ * @param handler The errors handler (see type ErrorUtilsHandler)
+ * @param error The error type (type uint32_t, should be and enum value)
+ * @param instance The instance of the error (type const char * const)
+ * @return True if the error is removed succesfully
+ * @return False otherwise
+ */
+#define ERROR_UTILS_RESET_STR(handler, error, instance) error_utils_reset(handler, error, (ErrorUtilsInstance){ .s = instance }, true)
 
-typedef void (* ERROR_UTILS_CallbackTypeDef) (size_t error_index, size_t instance_index);
 
-/** @brief Instance of a running error */
+/**
+ * @brief Function callback used to get the current timestamp
+ * @details This function does not depend on the unit of measurement used
+ * 
+ * @return uint32_t The current timestamp
+ */
+typedef uint32_t (* ErrorUtilsTimestampCallback)(void);
+/**
+ * @brief Function callback used to get the timeout given a certain error type
+ * @attention The unit of measurement have to be the same as the timestamp
+ * 
+ * @param error The error type
+ * @return uint32_t The timeout of the given error
+ */
+typedef uint32_t (* ErrorUtilsTimeoutCallback)(uint32_t);
+/**
+ * @brief Function callback used to update the handler which should expire the errors
+ * @details Can be NULL
+ * @details The time when the error should expire can be calculated with this formula:
+ *     expire_time = timestamp + timeout
+ * How long does it take for the error to expire can be calculated as follows:
+ *     expire_delta_time = expire_time - current_time
+ * If the delta time is negative the error has already expired
+ * 
+ * @param timestamp The time when the error was set
+ * @param timeout How long does it take for the error to expire
+ */
+typedef void (* ErrorUtilsExpireUpdateCallback)(uint32_t, uint32_t);
+
+
+/** @brief A single error instance */
+typedef union {
+    uint32_t i;
+    const char * s;
+} ErrorUtilsInstance;
+
+/**
+ * @brief A single running error
+ * @attention For declaration use only, do not modify the values of this structure
+ * unless you know what you are doing
+ */
 typedef struct {
-    bool is_triggered;
-    bool is_expired;
-    uint32_t expected_expiry_ms;
-} ERROR_UTILS_InstanceTypeDef;
-/**
- * @brief Structure of an error
- * @details Can have multiple running instances
- */
+    uint32_t error;
+    ErrorUtilsInstance instance;
+    uint32_t timestamp;
+    size_t heap_id;
+    bool is_expired : 1;
+    bool is_running : 1;
+    bool is_dead : 1; // If set to 1 the error cannot expire until it is reset to 0
+    bool string_instance : 1; // If true the instance is a string, otherwise it is an integer
+} ErrorUtilsRunningInstance;
+
+/** @brief Error handler structure */
 typedef struct {
-    ERROR_UTILS_CallbackTypeDef toggle_callback;
-    ERROR_UTILS_CallbackTypeDef expiry_callback;
+    size_t running;  // Number of running errors
+    size_t expired;  // Number of expired errors
 
-    uint32_t expiry_delay_ms;
+    size_t buffer_size;
+    ErrorUtilsRunningInstance * errors;
 
-    size_t instances_length;
-    ERROR_UTILS_InstanceTypeDef * instances;
-} ERROR_UTILS_ErrorTypeDef;
-/** @brief Error handler */
-typedef struct {
-    TIM_HandleTypeDef * timer;
-    ERROR_UTILS_CallbackTypeDef global_toggle_callback;
-    ERROR_UTILS_CallbackTypeDef global_expiry_callback;
-    size_t running_count;
-    size_t expired_count;
+    size_t expiring_end;
+    ErrorUtilsRunningInstance ** expiring;
 
-    ERROR_UTILS_ErrorTypeDef * first_to_expire_error;
-    ERROR_UTILS_InstanceTypeDef * first_to_expire_instance;
-
-    size_t errors_length;
-    ERROR_UTILS_ErrorTypeDef * errors;
-} ERROR_UTILS_HandleTypeDef;
+    ErrorUtilsTimestampCallback get_timestamp;
+    ErrorUtilsTimeoutCallback get_timeout;
+    ErrorUtilsExpireUpdateCallback set_expire;
+} ErrorUtilsHandler;
 
 
 /**
- * @brief Initialize the error handler structure
+ * @brief Initialize the error handler
+ * @attention The 'errors' and 'expiring' arrays have to be the same length
  * 
- * @param handle The error handler structure
- * @param tim The timer used for error handling
- * @param errors An array of errors
- * @param errors_length The length of the errors array
- * @param global_toggle_callback A global toggle callback function
- * @param global_expiry_callback A global expiry callback function
- * @return HAL_StatusTypeDef The result of the operation
+ * @param handler The error handler structure
+ * @param errors An array of errors (don't need to be initialized)
+ * @param expiring An array of pointers to errors (don't need to be initialized)
+ * @param buffer_size The size of the arrays
+ * @param get_timestamp The timestamp callback function
+ * @param get_timeout The timeout callback function
+ * @param set_expire The expire update callback function
  */
-HAL_StatusTypeDef error_utils_init(ERROR_UTILS_HandleTypeDef * handle,
-    TIM_HandleTypeDef * tim,
-    ERROR_UTILS_ErrorTypeDef * errors,
-    size_t errors_length,
-    ERROR_UTILS_CallbackTypeDef global_toggle_callback,
-    ERROR_UTILS_CallbackTypeDef global_expiry_callback);
+void error_utils_init(
+    ErrorUtilsHandler * handler,
+    ErrorUtilsRunningInstance * errors,
+    ErrorUtilsRunningInstance ** expiring,
+    size_t buffer_size,
+    ErrorUtilsTimestampCallback get_timestamp,
+    ErrorUtilsTimeoutCallback get_timeout,
+    ErrorUtilsExpireUpdateCallback set_expire
+);
+/**
+ * @brief Set an error
+ * @attention Use this if you can't read or you like pain and suffering (please don't)
+ * 
+ * @param handler The error handler structure
+ * @param error The error type
+ * @param instance The error instance
+ * @param is_string True if the instance is a string, otherwise it is an integer
+ * @return True if the error is set correctly
+ * @return False otherwise
+ */
+bool error_utils_set(
+    ErrorUtilsHandler * handler,
+    uint32_t error,
+    ErrorUtilsInstance instance,
+    bool is_string
+);
+/**
+ * @brief Reset an error
+ * @attention Use this if you can't read or you like pain and suffering (please don't)
+ * 
+ * @param handler The error handler structure
+ * @param error The error type
+ * @param instance The error instance
+ * @param is_string True if the instance is a string, otherwise it is an integer
+ * @return True if the error is removed correctly
+ * @return False otherwise
+ */
+bool error_utils_reset(
+    ErrorUtilsHandler * handler,
+    uint32_t error,
+    ErrorUtilsInstance instance,
+    bool is_string
+);
+/**
+ * @brief Function to call when the first error to expire has effectively expired
+ * 
+ * @param handler The error handler structure
+ */
+void error_utils_expire_errors(ErrorUtilsHandler * handler);
 
-/**
- * @brief Sets an error instance
- * 
- * @param handle The error handler structure
- * @param error_index The index of the error in the errors array
- * @param instance_index The index of the instance in the instances array of the error
- * @return HAL_StatusTypeDef The result of the operation
- */
-HAL_StatusTypeDef error_utils_error_set(ERROR_UTILS_HandleTypeDef * handle,
-    size_t error_index,
-    size_t instance_index);
-/**
- * @brief Reset an error instance
- * 
- * @param handle The error handler structure
- * @param error_index The index of the error in the errors array
- * @param instance_index The index of the instance in the instances array of the error
- * @return HAL_StatusTypeDef The result of the operation
- */
-HAL_StatusTypeDef error_utils_error_reset(ERROR_UTILS_HandleTypeDef * handle,
-    size_t error_index,
-    size_t instance_index);
-
-/**
- * @brief Get the number of currently running errors
- * 
- * @param handle The error handler structure
- * @return size_t The number of running errors
- */
-size_t error_utils_get_running_count(ERROR_UTILS_HandleTypeDef * handle);
-
-/**
- * @brief Get the number of currently expired errors
- * 
- * @param handle The error handler structure
- * @return size_t The number of expired errors
- */
-size_t error_utils_get_expired_count(ERROR_UTILS_HandleTypeDef * handle);
-
-/**
- * @brief Reset all expired errors
- * 
- * @param handle The error handler structure
- * @return HAL_StatusTypeDef The result of the operation
- */
-HAL_StatusTypeDef error_utils_reset_all_expired(ERROR_UTILS_HandleTypeDef * handle);
-
-/**
- * @brief Timer elapsed callback function
- * @details Sets the timer based on the next running error that is about to expire if there is one
- * 
- * @param handle The error handler structure
- * @param tim The elapsed timer
- * @return HAL_StatusTypeDef The result of the operation
- */
-HAL_StatusTypeDef ERROR_UTILS_TimerElapsedCallback(ERROR_UTILS_HandleTypeDef * handle, TIM_HandleTypeDef * tim);
 
 #endif // ERROR_UTILS_H
