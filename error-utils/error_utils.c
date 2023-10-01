@@ -460,3 +460,13 @@ void error_utils_expire_errors(ErrorUtilsHandler * handler) {
     ++(handler->expired);
     --(handler->running);
 }
+size_t error_utils_running_count(ErrorUtilsHandler * handler) {
+    if (handler == NULL)
+        return 0;
+    return handler->running;
+}
+size_t error_utils_expired_count(ErrorUtilsHandler * handler) {
+    if (handler == NULL)
+        return 0;
+    return handler->expired;
+}

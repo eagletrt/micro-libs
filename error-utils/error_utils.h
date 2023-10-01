@@ -225,6 +225,19 @@ bool error_utils_reset(
  * @param handler The error handler structure
  */
 void error_utils_expire_errors(ErrorUtilsHandler * handler);
-
+/**
+ * @brief Get the number of currently running errors
+ * 
+ * @param handler The error handler structure
+ * @return size_t The number of running errors
+ */
+size_t error_utils_running_count(ErrorUtilsHandler * handler);
+/**
+ * @brief Get the numer of expired errors
+ *
+ * @param handler The error handler structure
+ * @return size_t The number of expired errors
+ */
+size_t error_utils_expired_count(ErrorUtilsHandler * handler);
 
 #endif // ERROR_UTILS_H
