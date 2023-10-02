@@ -258,7 +258,7 @@ static uint32_t murmur3_32(const uint8_t * key, size_t len, uint32_t seed)
  * @param str The string to get the hash from
  * @return uint32_t The generated hash value
  */
-inline uint32_t _error_utils_hash_string(uint32_t error, const char * str) {
+static inline uint32_t _error_utils_hash_string(uint32_t error, const char * str) {
     return murmur3_32((uint8_t *)str, strlen(str), error);
 }
 /**
@@ -268,7 +268,7 @@ inline uint32_t _error_utils_hash_string(uint32_t error, const char * str) {
  * @param val The integer to get the hash from
  * @return uint32_t The generated hash value
  */
-inline uint32_t _error_utils_hash_int(uint32_t error, uint32_t val) {
+static inline uint32_t _error_utils_hash_int(uint32_t error, uint32_t val) {
     return murmur3_32((uint8_t *)(&val), sizeof(uint32_t), error);
 }
 /**
@@ -280,7 +280,7 @@ inline uint32_t _error_utils_hash_int(uint32_t error, uint32_t val) {
  * @param buffer_size The total buffer size of the hash table
  * @return uint32_t An hash value from 0 to buffer_size - 1
  */
-inline uint32_t _error_utils_hash(uint32_t error, ErrorUtilsInstance inst, bool is_string, const size_t buffer_size) {
+static inline uint32_t _error_utils_hash(uint32_t error, ErrorUtilsInstance inst, bool is_string, const size_t buffer_size) {
     return (is_string ? _error_utils_hash_string(error, inst.s) : _error_utils_hash_int(error, inst.i)) % buffer_size;
 }
 
