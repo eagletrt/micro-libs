@@ -143,7 +143,6 @@ typedef struct {
     size_t heap_id;
     bool is_expired : 1;
     bool is_running : 1;
-    bool is_dead : 1; // If set to 1 the error cannot expire until it is reset to 0
     bool string_instance : 1; // If true the instance is a string, otherwise it is an integer
 } ErrorUtilsRunningInstance;
 
@@ -161,6 +160,9 @@ typedef struct {
     ErrorUtilsTimestampCallback get_timestamp;
     ErrorUtilsTimeoutCallback get_timeout;
     ErrorUtilsExpireUpdateCallback set_expire;
+
+    bool is_expire_invalidated : 1; // Flag that invalidate the next function call to the expire callback
+    bool is_expired_on_invalidation : 1; // Flag set to true when the expire callback is called
 } ErrorUtilsHandler;
 
 

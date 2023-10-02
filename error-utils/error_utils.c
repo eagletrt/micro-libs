@@ -311,6 +311,9 @@ void error_utils_init(
     handler->get_timeout = get_timeout;
     handler->set_expire = set_expire;
 
+    handler->is_expire_invalidated = false;
+    handler->is_expired_on_invalidation = false;
+
     // Init error instances
     for (size_t i = 0; i < handler->buffer_size; i++) {
         handler->errors[i].error = ERROR_UTILS_INVALID_INT;
@@ -319,7 +322,6 @@ void error_utils_init(
         handler->errors[i].is_running = false;
         handler->errors[i].heap_id = ERROR_UTILS_INVALID_INT;
         handler->errors[i].timestamp = 0;
-        handler->errors[i].is_dead = false;
         handler->errors[i].string_instance = false;
 
         handler->expiring[i] = NULL;
@@ -365,10 +367,12 @@ bool error_utils_set(
     err->is_expired = false;
     err->is_running = true;
     err->timestamp = handler->get_timestamp();
-    err->is_dead = false;
 
     // Update handler
     ++(handler->running);
+
+    // Invalidate expire
+    handler->is_expire_invalidated = true;
 
     // Update heap
     _error_utils_heap_insert(handler, err);
@@ -376,6 +380,13 @@ bool error_utils_set(
     // Update error expire handler if the new error is the first that will expire
     if (handler->set_expire != NULL && _error_utils_heap_min(handler) == err)
         handler->set_expire(err->timestamp, handler->get_timeout(error));
+
+    // Resume expire function
+    handler->is_expire_invalidated = false;
+    if (handler->is_expired_on_invalidation) {
+        handler->is_expired_on_invalidation = false;
+        error_utils_expire_errors(handler);
+    }
 
     return true;
 }
@@ -409,8 +420,8 @@ bool error_utils_reset(
     if (off == handler->buffer_size)
         return true;
 
-    // Set the dead bit of the error
-    err->is_dead = true;
+    // Invalidate expire
+    handler->is_expire_invalidated = true;
 
     ErrorUtilsRunningInstance * min = _error_utils_heap_min(handler);
 
@@ -418,11 +429,20 @@ bool error_utils_reset(
     _error_utils_heap_remove(handler, err);
 
     // Update error expire handler if the removed error will be the first to expire
-    if (handler->set_expire != NULL && handler->expiring[0] != min)
+    if (handler->set_expire != NULL && handler->expiring[0] != min) {
         handler->set_expire((handler->expiring[0])->timestamp, handler->get_timeout((handler->expiring[0])->error));
+        handler->is_expired_on_invalidation = false;
+    }
 
     // Update handler
     --(handler->running);
+
+    // Resume expire function
+    handler->is_expire_invalidated = false;
+    if (handler->is_expired_on_invalidation) {
+        handler->is_expired_on_invalidation = false;
+        error_utils_expire_errors(handler);
+    }
 
     // Update error
     err->error = ERROR_UTILS_INVALID_INT;
@@ -431,7 +451,6 @@ bool error_utils_reset(
     err->is_running = false;
     err->heap_id = ERROR_UTILS_INVALID_INT;
     err->timestamp = 0;
-    err->is_dead = 0;
 
     return true;
 }
@@ -439,11 +458,13 @@ bool error_utils_reset(
 void error_utils_expire_errors(ErrorUtilsHandler * handler) {
     if (handler == NULL)
         return;
+    if (handler->is_expire_invalidated) {
+        handler->is_expired_on_invalidation = true;
+        return;
+    }
 
     // Get expired error
     ErrorUtilsRunningInstance * err = _error_utils_heap_min(handler);
-    if (err->is_dead)
-        return;
 
     // Remove error from heap
     _error_utils_heap_remove(handler, err);
