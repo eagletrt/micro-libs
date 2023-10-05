@@ -385,6 +385,7 @@ bool error_utils_set(
     err->is_expired = false;
     err->is_running = true;
     err->timestamp = handler->get_timestamp();
+    err->string_instance = is_string;
 
     // Update handler
     ++(handler->running);
