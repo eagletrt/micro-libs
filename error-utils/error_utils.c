@@ -67,7 +67,7 @@ static inline bool _error_utils_compare(ErrorUtilsHandler * handler, ErrorUtilsR
 static inline bool _error_utils_is_equal(ErrorUtilsRunningInstance * err, uint32_t error, ErrorUtilsInstance instance, bool is_string) {
     if (err->string_instance != is_string)
         return false;
-    bool inst_cmp = err->string_instance ? strcmp(instance.s, err->instance.s) : instance.i == err->instance.i;
+    bool inst_cmp = err->string_instance ? strcmp(instance.s, err->instance.s) == 0 : instance.i == err->instance.i;
     return err->error == error && inst_cmp;
 }
 /**
