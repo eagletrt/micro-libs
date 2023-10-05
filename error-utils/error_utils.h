@@ -144,6 +144,7 @@ typedef struct {
     bool is_expired : 1;
     bool is_running : 1;
     bool string_instance : 1; // If true the instance is a string, otherwise it is an integer
+    bool is_init : 1; // Flag set to false if the error is not initialized
 } ErrorUtilsRunningInstance;
 
 /** @brief Error handler structure */

@@ -78,7 +78,7 @@ static inline bool _error_utils_is_equal(ErrorUtilsRunningInstance * err, uint32
  * @return False otherwise
  */
 static inline bool _error_utils_is_free(ErrorUtilsRunningInstance * err) {
-    return !(err->is_running || err->is_expired);
+    return !err->is_init;
 }
 
 /******************************************************************************/
@@ -341,6 +341,7 @@ void error_utils_init(
         handler->errors[i].heap_id = ERROR_UTILS_INVALID_INT;
         handler->errors[i].timestamp = 0;
         handler->errors[i].string_instance = false;
+        handler->errors[i].is_init = false;
 
         handler->expiring[i] = NULL;
     }
@@ -358,13 +359,17 @@ bool error_utils_set(
     uint32_t index = _error_utils_hash(error, instance, is_string, handler->buffer_size);
     
     ErrorUtilsRunningInstance * err = (handler->errors + index);
-    
+
     // Iterate until a free spot is found
     size_t off = 0;
     for (; off < handler->buffer_size && !_error_utils_is_free(err); ++off) {
-        // Return if the error is already running or expired
-        if (_error_utils_is_equal(err, error, instance, is_string))
+        // Check if the error is already set
+        if (_error_utils_is_equal(err, error, instance, is_string)) {
+            // Set the error if it was reset
+            if (!err->is_running && !err->is_expired)
+                break;
             return true;
+        }
 
         // Update index using quadratic probing
         index = _error_utils_hash_probe(index, off, handler->buffer_size);
@@ -386,6 +391,7 @@ bool error_utils_set(
     err->is_running = true;
     err->timestamp = handler->get_timestamp();
     err->string_instance = is_string;
+    err->is_init = true;
 
     // Update handler
     ++(handler->running);
@@ -423,20 +429,28 @@ bool error_utils_reset(
     
     ErrorUtilsRunningInstance * err = (handler->errors + index);
 
-    // Return if a free spot is found (it means the error is not set)
-    if (_error_utils_is_free(err))
-        return true;
-    
     // Iterate until the error is found or the buffer is full and the error is not present
     size_t off = 0;
-    for (; off < handler->buffer_size && !_error_utils_is_free(err) && !_error_utils_is_equal(err, error, instance, is_string); ++off) {
+    for (; off < handler->buffer_size; ++off) {
+        // Check if the error is initialized
+        if (_error_utils_is_free(err))
+            return true;
+
+        // Check if the error is already set
+        if (_error_utils_is_equal(err, error, instance, is_string)) {
+            // Reset the error if it was set
+            if (err->is_running || err->is_expired)
+                break;
+            return true;
+        }
+
         // Update index
         index = _error_utils_hash_probe(index, off, handler->buffer_size);
         err = (handler->errors + index);
     }
 
-    // Buffer is full of other errors or error is not set
-    if (off == handler->buffer_size || (!err->is_running && !err->is_expired))
+    // Buffer is full of other errors
+    if (off == handler->buffer_size)
         return true;
 
     // Invalidate expire
@@ -464,12 +478,9 @@ bool error_utils_reset(
     }
 
     // Update error
-    err->error = ERROR_UTILS_INVALID_INT;
-    err->instance.i = ERROR_UTILS_INVALID_INT;
     err->is_expired = false;
     err->is_running = false;
     err->heap_id = ERROR_UTILS_INVALID_INT;
-    err->timestamp = 0;
 
     return true;
 }
