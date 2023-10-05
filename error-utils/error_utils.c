@@ -283,6 +283,24 @@ static inline uint32_t _error_utils_hash_int(uint32_t error, uint32_t val) {
 static inline uint32_t _error_utils_hash(uint32_t error, ErrorUtilsInstance inst, bool is_string, const size_t buffer_size) {
     return (is_string ? _error_utils_hash_string(error, inst.s) : _error_utils_hash_int(error, inst.i)) % buffer_size;
 }
+/**
+ * @brief Get the new index in the hash table from a start index with a given offset
+ * @example If there is a collision on the index 3 of the array (of length 11)
+ * the next index can be calculated with an offset of 1 as follow:
+ *      next_index = (3 + 1 * 1) % 11 = 4
+ * If there is another collision the next index can be calulated by adding 1 to the offset
+ * and repeating the calculation:
+ *      next_index = (next_index + 2 * 2) % 11 = 8
+ * 
+ * @param start The start index
+ * @param offset The offset from the first element
+ * @param buffer_size The total buffer size of the hash table
+ * @return uint32_t The next index in the hash table
+ */
+inline uint32_t _error_utils_hash_probe(uint32_t start, uint32_t offset, uint32_t buffer_size) {
+    // Quadratic probing
+    return (start + offset * offset) % buffer_size;
+}
 
 
 
@@ -349,7 +367,7 @@ bool error_utils_set(
             return true;
 
         // Update index using quadratic probing
-        index = (index + off * off) % handler->buffer_size;
+        index = _error_utils_hash_probe(index, off, handler->buffer_size);
         err = (handler->errors + index);
     }
 
@@ -403,21 +421,21 @@ bool error_utils_reset(
     uint32_t index = _error_utils_hash(error, instance, is_string, handler->buffer_size);
     
     ErrorUtilsRunningInstance * err = (handler->errors + index);
-    
-    // Iterate until the error or a free spot is found
-    size_t off = 0;
-    for (; off < handler->buffer_size && _error_utils_is_equal(err, error, instance, is_string); ++off) {
-        // Return if a free spot is found (it means that the error is not set)
-        if (_error_utils_is_free(err))
-            return true;
 
+    // Return if a free spot is found (it means the error is not set)
+    if (_error_utils_is_free(err))
+        return true;
+    
+    // Iterate until the error is found or the buffer is full and the error is not present
+    size_t off = 0;
+    for (; off < handler->buffer_size && !_error_utils_is_free(err) && !_error_utils_is_equal(err, error, instance, is_string); ++off) {
         // Update index
-        index = (index + 1) % handler->buffer_size;
+        index = _error_utils_hash_probe(index, off, handler->buffer_size);
         err = (handler->errors + index);
     }
 
-    // Buffer is full of other errors
-    if (off == handler->buffer_size)
+    // Buffer is full of other errors or error is not set
+    if (off == handler->buffer_size || (!err->is_running && !err->is_expired))
         return true;
 
     // Invalidate expire
