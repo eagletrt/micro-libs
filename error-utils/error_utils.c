@@ -6,6 +6,16 @@
 #define ERROR_UTILS_INVALID_INT UINT32_MAX
 #define ERROR_UTILS_INVALID_STR ""
 
+/** @brief Critical section entry and exit point */
+#define CS_ENTER() do {            \
+    if (handler->cs_enter != NULL) \
+        handler->cs_enter();       \
+    } while(0)
+#define CS_EXIT() do {            \
+    if (handler->cs_exit != NULL) \
+        handler->cs_exit();       \
+    } while(0)
+
 /**
  * @brief Get the parent index of a node of the heap
  * @attention The heap is implemented as an array
@@ -70,16 +80,6 @@ static inline bool _error_utils_is_equal(ErrorUtilsRunningInstance * err, uint32
     bool inst_cmp = err->string_instance ? strcmp(instance.s, err->instance.s) == 0 : instance.i == err->instance.i;
     return err->error == error && inst_cmp;
 }
-/**
- * @brief Check if an error is not running or expired
- * 
- * @param err A running error
- * @return True if the error is not running and has not expired
- * @return False otherwise
- */
-static inline bool _error_utils_is_free(ErrorUtilsRunningInstance * err) {
-    return !err->is_init;
-}
 
 /******************************************************************************/
 /***************************** Heap functions *********************************/
@@ -107,9 +107,9 @@ static void _error_utils_heap_swap(ErrorUtilsRunningInstance ** first, ErrorUtil
     *second = aux;
 
     // Swap heap ids
-    (*first)->heap_id += (*second)->heap_id;
-    (*second)->heap_id = (*first)->heap_id - (*second)->heap_id;
-    (*first)->heap_id -= (*second)->heap_id;
+    size_t aux_id = (*first)->heap_id;
+    (*first)->heap_id = (*second)->heap_id;
+    (*second)->heap_id = aux_id;
 }
 /**
  * @brief Insert a new error in the heap
@@ -297,11 +297,21 @@ static inline uint32_t _error_utils_hash(uint32_t error, ErrorUtilsInstance inst
  * @param buffer_size The total buffer size of the hash table
  * @return uint32_t The next index in the hash table
  */
-inline uint32_t _error_utils_hash_probe(uint32_t start, uint32_t offset, uint32_t buffer_size) {
+static inline uint32_t _error_utils_hash_probe(uint32_t start, uint32_t offset, uint32_t buffer_size) {
     // Quadratic probing
-    return (start + offset * offset) % buffer_size;
+    return (start + (offset * offset) % buffer_size) % buffer_size;
 }
-
+/**
+ * @brief Check if the error in the hash table is a free spot
+ * @details A free spot in the hash table is defined when the error is not running and has not expired
+ * 
+ * @param err A running error
+ * @return True if the error is a free spot 
+ * @return False otherwise
+ */
+static inline bool _error_utils_hash_is_free(ErrorUtilsRunningInstance * err) {
+    return !(err->is_running || err->is_expired);
+}
 
 
 void error_utils_init(
@@ -311,9 +321,18 @@ void error_utils_init(
     size_t buffer_size,
     ErrorUtilsTimestampCallback get_timestamp,
     ErrorUtilsTimeoutCallback get_timeout,
-    ErrorUtilsExpireUpdateCallback set_expire)
+    ErrorUtilsExpireUpdateCallback set_expire,
+    ErrorUtilsExpireStopCallback stop_expire,
+    ErrorUtilsCriticalSectionEnterCallback cs_enter,
+    ErrorUtilsCriticalSectionExitCallback cs_exit)
 {
-    if (handler == NULL || errors == NULL || expiring == NULL)
+    if (handler == NULL ||
+        errors == NULL ||
+        expiring == NULL ||
+        get_timestamp == NULL ||
+        get_timeout == NULL ||
+        set_expire == NULL ||
+        stop_expire == NULL)
         return;
 
     // Init handler
@@ -328,9 +347,10 @@ void error_utils_init(
     handler->get_timestamp = get_timestamp;
     handler->get_timeout = get_timeout;
     handler->set_expire = set_expire;
-
-    handler->is_expire_invalidated = false;
-    handler->is_expired_on_invalidation = false;
+    handler->stop_expire = stop_expire;
+    
+    handler->cs_enter = cs_enter;
+    handler->cs_exit = cs_exit;
 
     // Init error instances
     for (size_t i = 0; i < handler->buffer_size; i++) {
@@ -341,10 +361,12 @@ void error_utils_init(
         handler->errors[i].heap_id = ERROR_UTILS_INVALID_INT;
         handler->errors[i].timestamp = 0;
         handler->errors[i].string_instance = false;
-        handler->errors[i].is_init = false;
 
         handler->expiring[i] = NULL;
     }
+
+    // Set handler init flag
+    handler->is_init = true;
 }
 bool error_utils_set(
     ErrorUtilsHandler * handler,
@@ -352,8 +374,13 @@ bool error_utils_set(
     ErrorUtilsInstance instance,
     bool is_string)
 {
-    if (handler == NULL || handler->get_timestamp == NULL || handler->get_timeout == NULL)
+    if (handler == NULL ||
+        !handler->is_init ||
+        (is_string && instance.s == NULL))
         return false;
+
+    // Enter critical section
+    CS_ENTER();
 
     // Get error instance index
     uint32_t index = _error_utils_hash(error, instance, is_string, handler->buffer_size);
@@ -362,12 +389,11 @@ bool error_utils_set(
 
     // Iterate until a free spot is found
     size_t off = 0;
-    for (; off < handler->buffer_size && !_error_utils_is_free(err); ++off) {
-        // Check if the error is already set
+    for (; off < handler->buffer_size && !_error_utils_hash_is_free(err); ++off) {
+        // Return if the error is already running or expired
         if (_error_utils_is_equal(err, error, instance, is_string)) {
-            // Set the error if it was reset
-            if (!err->is_running && !err->is_expired)
-                break;
+            // Exit from the critical section
+            CS_EXIT();
             return true;
         }
 
@@ -381,38 +407,32 @@ bool error_utils_set(
         // TODO: Find error that expire after the new one
         // Then: Swap
         // Else: return false;
+
+        // Exit from the critical section
+        CS_EXIT();
         return false;
     }
 
     // Update error info
     err->error = error;
     err->instance = instance;
-    err->is_expired = false;
-    err->is_running = true;
     err->timestamp = handler->get_timestamp();
+    err->is_running = true;
+    err->is_expired = false;
     err->string_instance = is_string;
-    err->is_init = true;
 
     // Update handler
     ++(handler->running);
-
-    // Invalidate expire
-    handler->is_expire_invalidated = true;
 
     // Update heap
     _error_utils_heap_insert(handler, err);
 
     // Update error expire handler if the new error is the first that will expire
-    if (handler->set_expire != NULL && _error_utils_heap_min(handler) == err)
+    if (_error_utils_heap_min(handler) == err)
         handler->set_expire(err->timestamp, handler->get_timeout(error));
 
-    // Resume expire function
-    handler->is_expire_invalidated = false;
-    if (handler->is_expired_on_invalidation) {
-        handler->is_expired_on_invalidation = false;
-        error_utils_expire_errors(handler);
-    }
-
+    // Exit from the critical section
+    CS_EXIT();
     return true;
 }
 bool error_utils_reset(
@@ -421,8 +441,13 @@ bool error_utils_reset(
     ErrorUtilsInstance instance,
     bool is_string)
 {
-    if (handler == NULL || handler->get_timestamp == NULL || handler->get_timeout == NULL)
+    if (handler == NULL ||
+        !handler->is_init ||
+        (is_string && instance.s == NULL))
         return false;
+
+    // Enter critical section
+    CS_ENTER();
 
     // Get error instance index
     uint32_t index = _error_utils_hash(error, instance, is_string, handler->buffer_size);
@@ -433,14 +458,19 @@ bool error_utils_reset(
     size_t off = 0;
     for (; off < handler->buffer_size; ++off) {
         // Check if the error is initialized
-        if (_error_utils_is_free(err))
+        if (_error_utils_hash_is_free(err)) {
+            // Exit from the critical section
+            CS_EXIT();
             return true;
+        }
 
         // Check if the error is already set
         if (_error_utils_is_equal(err, error, instance, is_string)) {
             // Reset the error if it was set
-            if (err->is_running || err->is_expired)
+            if (err->is_running)
                 break;
+            // Exit from the critical section
+            CS_EXIT();
             return true;
         }
 
@@ -450,66 +480,70 @@ bool error_utils_reset(
     }
 
     // Buffer is full of other errors
-    if (off == handler->buffer_size)
+    if (off == handler->buffer_size) {
+        // Exit from the critical section
+        CS_EXIT();
         return true;
+    }
 
-    // Invalidate expire
-    handler->is_expire_invalidated = true;
-
-    ErrorUtilsRunningInstance * min = _error_utils_heap_min(handler);
+    ErrorUtilsRunningInstance * prev_min = _error_utils_heap_min(handler);
 
     // Remove error from heap
     _error_utils_heap_remove(handler, err);
 
-    // Update error expire handler if the removed error will be the first to expire
-    if (handler->set_expire != NULL && handler->expiring[0] != min) {
-        handler->set_expire((handler->expiring[0])->timestamp, handler->get_timeout((handler->expiring[0])->error));
-        handler->is_expired_on_invalidation = false;
-    }
+    ErrorUtilsRunningInstance * curr_min = _error_utils_heap_min(handler);
+
+    // Stop the expire handler if there are no running errors
+    if (handler->expiring_end == 0)
+        handler->stop_expire();
+    // Otherwise update the expire handler
+    else if (prev_min != curr_min)
+        handler->set_expire(curr_min->timestamp, handler->get_timeout(curr_min->error));
 
     // Update handler
     --(handler->running);
 
-    // Resume expire function
-    handler->is_expire_invalidated = false;
-    if (handler->is_expired_on_invalidation) {
-        handler->is_expired_on_invalidation = false;
-        error_utils_expire_errors(handler);
-    }
-
     // Update error
     err->is_expired = false;
     err->is_running = false;
-    err->heap_id = ERROR_UTILS_INVALID_INT;
 
+    // Exit from the critical section
+    CS_EXIT();
     return true;
 }
 // TODO: Expire multiple errors
 void error_utils_expire_errors(ErrorUtilsHandler * handler) {
-    if (handler == NULL)
+    if (handler == NULL || !handler->is_init)
         return;
-    if (handler->is_expire_invalidated) {
-        handler->is_expired_on_invalidation = true;
-        return;
-    }
 
-    // Get expired error
-    ErrorUtilsRunningInstance * err = _error_utils_heap_min(handler);
+    // Enter critical section
+    CS_ENTER();
+
+    // Get first error that has expired
+    ErrorUtilsRunningInstance * prev_min = _error_utils_heap_min(handler);
 
     // Remove error from heap
-    _error_utils_heap_remove(handler, err);
+    _error_utils_heap_remove(handler, prev_min);
 
-    // Update error expire handler
-    if (handler->set_expire != NULL)
-        handler->set_expire((handler->expiring[0])->timestamp, handler->get_timeout((handler->expiring[0])->error));
+    ErrorUtilsRunningInstance * curr_min = _error_utils_heap_min(handler);
+
+    // Stop expire handler if there are no running errors
+    if (handler->expiring_end == 0)
+        handler->stop_expire();
+    // Otherwise update the expire handler
+    else if (handler->set_expire != NULL)
+        handler->set_expire(curr_min->timestamp, handler->get_timeout(curr_min->error));
 
     // Update error info
-    err->is_expired = true;
-    err->is_running = false;
+    prev_min->is_expired = true;
+    prev_min->is_running = false;
 
     // Update handler info
     ++(handler->expired);
     --(handler->running);
+
+    // Exit from the critical section
+    CS_EXIT();
 }
 size_t error_utils_running_count(ErrorUtilsHandler * handler) {
     if (handler == NULL)

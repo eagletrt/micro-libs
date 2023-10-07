@@ -20,9 +20,17 @@
  *    The unit of measurement has to be THE SAME AS THE TIMESTAMP
  *    Remember to pass it to the init function
  *  - Define a function as described by the ErrorUtilsExpireUpdateCallback typedef
- *    which need to update whatever handler you plan on using (like a timer for example)
- *    to a new time calculated from the timestamp and the timeout given as parameters
- *    Remember to pass it to the init function or pass NULL if you don't use any handler
+ *    which need to update the error expire handler (like a timer) based on the timestamp of the error
+ *    and its timeout
+ *    Remember to pass it to the init function
+ *  - Define a function as described by the ErrorUtilsExpireStopCallback typedef
+ *    which need to stop the error expire handler (like a timer)
+ *    Remember to pass it to the init function
+ *  - If this library is used in a multithreaded environment or in an interrupt
+ *    driven system the ErrorUtilsCriticalSectionEnterCallback and the ErrorUtilsCriticalSectionExitCallback
+ *    function callbacks have to be defined in order to prevent data races between the internal data structure
+ *    used by the library
+ *    In that case remember to pass them to the init function otherwise pass NULL
  *  - Remember to call error_utils_expire_errors function to effectively expire a single error
  *    (multiple error is a work in progress)
  * 
@@ -112,7 +120,8 @@ typedef uint32_t (* ErrorUtilsTimestampCallback)(void);
 typedef uint32_t (* ErrorUtilsTimeoutCallback)(uint32_t);
 /**
  * @brief Function callback used to update the handler which should expire the errors
- * @details Can be NULL
+ * @attention This library can stop the handler that should expire the errors,
+ * so when this callback gets called the handler should be restarted, if it was stopped
  * @details The time when the error should expire can be calculated with this formula:
  *     expire_time = timestamp + timeout
  * How long does it take for the error to expire can be calculated as follows:
@@ -123,6 +132,28 @@ typedef uint32_t (* ErrorUtilsTimeoutCallback)(uint32_t);
  * @param timeout How long does it take for the error to expire
  */
 typedef void (* ErrorUtilsExpireUpdateCallback)(uint32_t, uint32_t);
+/**
+ * @brief Function callback used to stop the handler which should expire the errors
+ * @details This function should stop the expire handler so that the expire update callback
+ * does not get called when there are no running errors
+ */
+typedef void (* ErrorUtilsExpireStopCallback)(void);
+/**
+ * @brief Function callback used to enter a critical section
+ * @details Can be NULL
+ * @details This function is used by the library to avoid data races on the internal data structures
+ * that are used when the error is set or reset, this behaviour can be caused by multithreaded programs
+ * or interrupt driven systems like microcontrollers for example
+ */
+typedef void (* ErrorUtilsCriticalSectionEnterCallback)(void);
+/**
+ * @brief Function callback used to exit from a critical section
+ * @details Can be NULL
+ * @details This function is used by the library to avoid data races on the internal data structures
+ * that are used when the error is set or reset, this behaviour can be caused by multithreaded programs
+ * or interrupt driven systems like microcontrollers for example
+ */
+typedef void (* ErrorUtilsCriticalSectionExitCallback)(void);
 
 
 /** @brief A single error instance */
@@ -144,7 +175,6 @@ typedef struct {
     bool is_expired : 1;
     bool is_running : 1;
     bool string_instance : 1; // If true the instance is a string, otherwise it is an integer
-    bool is_init : 1; // Flag set to false if the error is not initialized
 } ErrorUtilsRunningInstance;
 
 /** @brief Error handler structure */
@@ -161,9 +191,12 @@ typedef struct {
     ErrorUtilsTimestampCallback get_timestamp;
     ErrorUtilsTimeoutCallback get_timeout;
     ErrorUtilsExpireUpdateCallback set_expire;
+    ErrorUtilsExpireStopCallback stop_expire;
 
-    bool is_expire_invalidated : 1; // Flag that invalidate the next function call to the expire callback
-    bool is_expired_on_invalidation : 1; // Flag set to true when the expire callback is called
+    ErrorUtilsCriticalSectionEnterCallback cs_enter;
+    ErrorUtilsCriticalSectionExitCallback cs_exit;
+
+    bool is_init : 1; // Flag to check if the handler is initialized correctly
 } ErrorUtilsHandler;
 
 
@@ -178,6 +211,9 @@ typedef struct {
  * @param get_timestamp The timestamp callback function
  * @param get_timeout The timeout callback function
  * @param set_expire The expire update callback function
+ * @param stop_expire The expire stop callback function
+ * @param cs_enter The critical section enter point callback function
+ * @param cs_exit The critical section exit point callback function
  */
 void error_utils_init(
     ErrorUtilsHandler * handler,
@@ -186,7 +222,10 @@ void error_utils_init(
     size_t buffer_size,
     ErrorUtilsTimestampCallback get_timestamp,
     ErrorUtilsTimeoutCallback get_timeout,
-    ErrorUtilsExpireUpdateCallback set_expire
+    ErrorUtilsExpireUpdateCallback set_expire,
+    ErrorUtilsExpireStopCallback stop_expire,
+    ErrorUtilsCriticalSectionEnterCallback cs_enter,
+    ErrorUtilsCriticalSectionExitCallback cs_exit
 );
 /**
  * @brief Set an error
