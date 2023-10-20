@@ -43,7 +43,6 @@
 #ifndef ERROR_UTILS_H
 #define ERROR_UTILS_H
 
-#include <cstdint>
 #include <inttypes.h>
 #include <stddef.h>
 #include <stdbool.h>
