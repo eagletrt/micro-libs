@@ -102,6 +102,60 @@
  * @return False otherwise
  */
 #define ERROR_UTILS_RESET_STR(handler, error, instance) error_utils_reset(handler, error, (ErrorUtilsInstance){ .s = instance }, true)
+/**
+ * @brief Check if an error is running or not using a constant string instance
+ * @attention Use this macro instead of the function to avoid possible problems
+ * and to increase simplicity and clarity of the code
+ * @details Useful to iterate over errors
+ * 
+ * @param handler The errors handler (see type ErrorUtilsHandler)
+ * @param error The error type (type uint32_t, should be and enum value)
+ * @param instance The instance of the error (type uint32_t)
+ * @return True if the error is removed succesfully
+ * @return False otherwise
+ */
+#define ERROR_UTILS_IS_RUNNING_INT(handler, error, instance) error_utils_is_running(handler, error, (ErrorUtilsInstance){ .i = instance }, false)
+/**
+ * @brief Check if an error is running or not using a constant string instance
+ * @attention Use this macro instead of the function to avoid possible problems
+ * and to increase simplicity and clarity of the code
+ * @attention Avoid the use of non constant strings, prefer literals over variables
+ * @details Useful to give meaning to an instance
+ *
+ * @param handler The errors handler (see type ErrorUtilsHandler)
+ * @param error The error type (type uint32_t, should be and enum value)
+ * @param instance The instance of the error (type const char * const)
+ * @return True if the error is removed succesfully
+ * @return False otherwise
+ */
+#define ERROR_UTILS_IS_RUNNING_STR(handler, error, instance) error_utils_is_running(handler, error, (ErrorUtilsInstance){ .s = instance }, true)
+/**
+ * @brief Check if an error is expired or not using a constant string instance
+ * @attention Use this macro instead of the function to avoid possible problems
+ * and to increase simplicity and clarity of the code
+ * @details Useful to iterate over errors
+ * 
+ * @param handler The errors handler (see type ErrorUtilsHandler)
+ * @param error The error type (type uint32_t, should be and enum value)
+ * @param instance The instance of the error (type uint32_t)
+ * @return True if the error is removed succesfully
+ * @return False otherwise
+ */
+#define ERROR_UTILS_IS_EXPIRED_INT(handler, error, instance) error_utils_is_expired(handler, error, (ErrorUtilsInstance){ .i = instance }, false)
+/**
+ * @brief Check if an error is expired or not using a constant string instance
+ * @attention Use this macro instead of the function to avoid possible problems
+ * and to increase simplicity and clarity of the code
+ * @attention Avoid the use of non constant strings, prefer literals over variables
+ * @details Useful to give meaning to an instance
+ *
+ * @param handler The errors handler (see type ErrorUtilsHandler)
+ * @param error The error type (type uint32_t, should be and enum value)
+ * @param instance The instance of the error (type const char * const)
+ * @return True if the error is removed succesfully
+ * @return False otherwise
+ */
+#define ERROR_UTILS_IS_EXPIRED_STR(handler, error, instance) error_utils_is_expired(handler, error, (ErrorUtilsInstance){ .s = instance }, true)
 
 
 /**
@@ -284,6 +338,7 @@ size_t error_utils_running_count(ErrorUtilsHandler * handler);
 size_t error_utils_expired_count(ErrorUtilsHandler * handler);
 /**
  * @brief Check if an error is running
+ * @attention Use this if you can't read or you like pain and suffering (please don't)
  *
  * @param handler The error handler structure
  * @param error The error type
@@ -300,6 +355,7 @@ bool error_utils_is_running(
 );
 /**
  * @brief Check if an error is expired
+ * @attention Use this if you can't read or you like pain and suffering (please don't)
  *
  * @param handler The error handler structure
  * @param error The error type
