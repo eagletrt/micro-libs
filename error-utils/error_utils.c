@@ -555,3 +555,85 @@ size_t error_utils_expired_count(ErrorUtilsHandler * handler) {
         return 0;
     return handler->expired;
 }
+bool error_utils_is_running(
+    ErrorUtilsHandler * handler,
+    uint32_t error,
+    ErrorUtilsInstance instance,
+    bool is_string)
+{
+    if (handler == NULL)
+        return false;
+
+    // Get error instance index
+    uint32_t index = _error_utils_hash(error, instance, is_string, handler->buffer_size);
+    ErrorUtilsRunningInstance * err = (handler->errors + index);
+
+    // Iterate until the error is found or the buffer is full and the error is not present
+    size_t off = 0;
+    for (; off < handler->buffer_size; ++off) {
+        // Check if the error is initialized
+        if (_error_utils_hash_is_free(err)) {
+            // Exit from the critical section
+            CS_EXIT();
+            return false;
+        }
+
+        // Check if the error is already set
+        if (_error_utils_is_equal(err, error, instance, is_string)) {
+            bool is_running = err->is_running;
+            
+            // Exit from the critical section
+            CS_EXIT();
+            return is_running;
+        }
+
+        // Update index
+        index = _error_utils_hash_probe(index, off, handler->buffer_size);
+        err = (handler->errors + index);
+    }
+
+    // Exit from the critical section
+    CS_EXIT();
+    return false;
+}
+bool error_utils_is_expired(
+    ErrorUtilsHandler * handler,
+    uint32_t error,
+    ErrorUtilsInstance instance,
+    bool is_string)
+{
+    if (handler == NULL)
+        return false;
+
+    // Get error instance index
+    uint32_t index = _error_utils_hash(error, instance, is_string, handler->buffer_size);
+    ErrorUtilsRunningInstance * err = (handler->errors + index);
+
+    // Iterate until the error is found or the buffer is full and the error is not present
+    size_t off = 0;
+    for (; off < handler->buffer_size; ++off) {
+        // Check if the error is initialized
+        if (_error_utils_hash_is_free(err)) {
+            // Exit from the critical section
+            CS_EXIT();
+            return false;
+        }
+
+        // Check if the error is already set
+        if (_error_utils_is_equal(err, error, instance, is_string)) {
+            bool is_expired = err->is_expired;
+            
+            // Exit from the critical section
+            CS_EXIT();
+            return is_expired;
+        }
+
+        // Update index
+        index = _error_utils_hash_probe(index, off, handler->buffer_size);
+        err = (handler->errors + index);
+    }
+
+    // Exit from the critical section
+    CS_EXIT();
+    return false;
+}

@@ -43,6 +43,7 @@
 #ifndef ERROR_UTILS_H
 #define ERROR_UTILS_H
 
+#include <cstdint>
 #include <inttypes.h>
 #include <stddef.h>
 #include <stdbool.h>
@@ -281,5 +282,37 @@ size_t error_utils_running_count(ErrorUtilsHandler * handler);
  * @return size_t The number of expired errors
  */
 size_t error_utils_expired_count(ErrorUtilsHandler * handler);
+/**
+ * @brief Check if an error is running
+ *
+ * @param handler The error handler structure
+ * @param error The error type
+ * @param instance The error instance
+ * @param is_string True if the instance is a string, otherwise it is an integer
+ * @return True if the error is running
+ * @return False otherwise
+ */
+bool error_utils_is_running(
+    ErrorUtilsHandler * handler,
+    uint32_t error,
+    ErrorUtilsInstance instance,
+    bool is_string
+);
+/**
+ * @brief Check if an error is expired
+ *
+ * @param handler The error handler structure
+ * @param error The error type
+ * @param instance The error instance
+ * @param is_string True if the instance is a string, otherwise it is an integer
+ * @return True if the error is expired
+ * @return False otherwise
+ */
+bool error_utils_is_expired(
+    ErrorUtilsHandler * handler,
+    uint32_t error,
+    ErrorUtilsInstance instance,
+    bool is_string
+);
 
 #endif // ERROR_UTILS_H
