@@ -1,10 +1,12 @@
 #include "generic_queue.h"
 
-void GENQ_init(generic_queue_t *q, size_t elem_size)
+void GENQ_init(generic_queue_t *q, size_t size, size_t elem_size, uint8_t *queue)
 {
+    q->size = size;
     q->queue_elem_size = elem_size;
     q->tail = q->head = q->cnt_elems = 0;
-    q->max_elems = GENQ_SIZE/q->queue_elem_size;
+    q->max_elems = q->size/q->queue_elem_size;
+    q->queue = queue;
 }
 bool GENQ_is_empty(generic_queue_t *q)
 {
@@ -14,7 +16,7 @@ bool GENQ_is_full(generic_queue_t *q)
 {
     return q->cnt_elems >= q->max_elems;
 }
-bool GENQ_pop(generic_queue_t *q, void *e)
+bool GENQ_pop(generic_queue_t *q, uint8_t *e)
 {
     if(GENQ_is_empty(q)) return 0;
     q->cnt_elems--;
@@ -24,7 +26,7 @@ bool GENQ_pop(generic_queue_t *q, void *e)
     q->head %= q->max_elems;
     return 1;
 }
-bool GENQ_push(generic_queue_t *q, void *e)
+bool GENQ_push(generic_queue_t *q, uint8_t *e)
 {
     if(GENQ_is_full(q)) return 0;
     q->cnt_elems++;
