@@ -1,18 +1,23 @@
 #include "can-manager.h"
+#include "main.h"
 
 float CAN_error_rate;
-CANFQ_QueueTypeDef primary_rx_queue;
-CANFQ_QueueTypeDef secondary_rx_queue;
-CANFQ_QueueTypeDef primary_tx_queue;
-CANFQ_QueueTypeDef secondary_tx_queue;
+generic_queue_t primary_rx_queue;
+generic_queue_t secondary_rx_queue;
+generic_queue_t primary_tx_queue;
+generic_queue_t secondary_tx_queue;
 bool readPrimary = true;
 CAN_HandleTypeDef *_can_primary;
 CAN_HandleTypeDef *_can_secondary;
+uint32_t _CAN_err_count = 0;
+uint32_t _CAN_tot_tx_count = 0;
 
-can_init_primary(CAN_HandleTypeDef * hcan, void(primary_can_rx_handler)(void)) {
+bool can_init_primary(CAN_HandleTypeDef * hcan, void(primary_can_rx_handler)(void)) {
     _can_primary = hcan;
 
-    CAN_FilterTypeDef filter;
+    // GENQ_init(&primary_can_add_rx_message, 1000 * sizeof(CAN_MessageTypeDef), sizeof(CAN_MessageTypeDef), );
+
+    CAN_FilterTypeDef *filter;
 
     filter->FilterMode = CAN_FILTERMODE_IDMASK;
     filter->FilterIdLow = 0;
@@ -28,6 +33,7 @@ can_init_primary(CAN_HandleTypeDef * hcan, void(primary_can_rx_handler)(void)) {
 
     if (HAL_CAN_Start(hcan) != HAL_OK)
         _CAN_error_handler("HAL_CAN_Start() failed");
+        return false;
 
     return true;
 }
@@ -35,7 +41,7 @@ can_init_primary(CAN_HandleTypeDef * hcan, void(primary_can_rx_handler)(void)) {
 bool can_init_secondary(CAN_HandleTypeDef * hcan, void(secondary_can_rx_handler)(void)) {
     _can_secondary = hcan;
 
-    CAN_FilterTypeDef filter;
+    CAN_FilterTypeDef *filter;
 
     filter->FilterMode = CAN_FILTERMODE_IDMASK;
     filter->FilterIdLow = 0;
@@ -52,6 +58,7 @@ bool can_init_secondary(CAN_HandleTypeDef * hcan, void(secondary_can_rx_handler)
 
     if (HAL_CAN_Start(hcan) != HAL_OK)
         _CAN_error_handler("HAL_CAN_Start() failed");
+        return false;
 
     return true;
 }
@@ -197,22 +204,12 @@ HAL_StatusTypeDef CAN_send(CAN_MessageTypeDef *message, CAN_HandleTypeDef *hcan)
 
 void flush_tx_queue() {
     CAN_MessageTypeDef message;
-    while (!CANFQ_is_empty(*primary_tx_queue)) {
+    while (!GENQ_is_empty(&primary_tx_queue)) {
         CANFQ_pop(&primary_rx_queue, &message);
         CAN_send(&message, _can_primary);
     }
-    while (!CANFQ_is_empty(*secondary_tx_queue)) {
+    while (!GENQ_is_empty(&secondary_tx_queue)) {
         CANFQ_pop(&secondary_rx_queue, &message);
         CAN_send(&message, _can_secondary);
     }
-}
-
-void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
-    _CAN_process_incoming_rx(hcan, CAN_RX_FIFO0);
-    CAN_RxHeaderTypeDef header = {};
-	CAN_MessageTypeDef msg = {};
-    HAL_CAN_GetRxMessage(hcan, rx_fifo, &header, msg.data);
-	msg.id = header.StdId;
-	msg.size = header.DLC;
-    msg.hcan = hcan;
 }
