@@ -240,7 +240,7 @@ HAL_StatusTypeDef init_default(MCP23017_t* hdev, I2C_HandleTypeDef* hi2c) {
     }
 
     HAL_Status = reset_config(hdev);
-    //configure the board with good defaults
+    //to-do configure the board with good defaults
 
     return HAL_Status;
 }
@@ -257,25 +257,32 @@ HAL_StatusTypeDef reset_bank_config(MCP23017_t* hdev) {
     if (HAL_Status != HAL_OK) {
         return HAL_Status;
     }
+
     //Save old value
     old_bit_value = get_register_bit(register_value, 7);
+
     //Clear bit 7 (BANK bit)
     set_register_bit(&register_value, 7, 0);
     HAL_Status = write_register(hdev, IOCON_address, register_value);
     if (HAL_Status != HAL_OK) {
         return HAL_Status;
     }
+
     //Save new state
     current_registers_addresses = bank0_registers_addresses;
+
     /**
      * At this point you have either:
      * Switched from BANK = 1 to BANK = 0
      * or
      * Disabled GPINTENB.GPINT7
     */
+
     //Restore GPINTENB.GPINT7
     HAL_Status = write_register_bit(hdev, current_registers_addresses.GPINTENB, 7, old_bit_value);
+    
     //Now you are in known state IOCON.BANK = 0
+    
     return HAL_Status;
 }
 
