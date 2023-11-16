@@ -219,11 +219,12 @@ HAL_StatusTypeDef reset_config(MCP23017_t* hdev) {
     return HAL_Status;
 }
 
-HAL_StatusTypeDef init(MCP23017_t* hdev, I2C_HandleTypeDef* hi2c, uint8_t device_address, MCP23017_configuration_t config) {
+HAL_StatusTypeDef init(MCP23017_t* hdev, I2C_HandleTypeDef* hi2c, uint8_t device_address, uint8_t i2c_timeout, MCP23017_configuration_t config) {
     HAL_StatusTypeDef HAL_Status;
 
     hdev->hi2c = hi2c;
     hdev->device_address = device_address;
+    hdev->i2c_timeout = i2c_timeout;
     HAL_Status = set_config(hdev, config);
 
     return HAL_Status;
@@ -233,7 +234,7 @@ HAL_StatusTypeDef init_default(MCP23017_t* hdev, I2C_HandleTypeDef* hi2c) {
     HAL_StatusTypeDef HAL_Status;
     uint8_t mcp23017_address = 0x20;
 
-    HAL_Status = init(hdev, hi2c, mcp23017_address, default_configuration);
+    HAL_Status = init(hdev, hi2c, mcp23017_address, 1000, default_configuration);
     if (HAL_Status != HAL_OK) {
         return HAL_Status;
     }
@@ -244,7 +245,6 @@ HAL_StatusTypeDef init_default(MCP23017_t* hdev, I2C_HandleTypeDef* hi2c) {
     return HAL_Status;
 }
 
-//https://electronics.stackexchange.com/questions/325916/mcp23017-detecting-state-of-iocon-bank-bit-after-mcu-reset
 HAL_StatusTypeDef reset_bank_config(MCP23017_t* hdev) {
     HAL_StatusTypeDef HAL_Status;
     //Assume IOCON.BANK = 1
