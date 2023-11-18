@@ -13,7 +13,7 @@ uint8_t _rx_queues_data[CAN_MANAGER_MAX_QUEUE_ELEMENTS * sizeof(generic_queue_t)
 uint8_t _tx_queues_data[CAN_MANAGER_MAX_QUEUE_ELEMENTS * sizeof(generic_queue_t) * MAX_CAN_BUSES];
 void (*can_rx_msg_handlers[MAX_CAN_BUSES])(can_manager_message_t *);
 
-#ifdef FDCAN_MANAGER
+#if FDCAN_MANAGER_ENABLED == 1
 
 FDCAN_HandleTypeDef *fdcan_buses[MAX_CAN_BUSES];
 
@@ -151,7 +151,7 @@ int can_init(
      .FilterFIFOAssignment = filter_config,
      .FilterBank           = 0,
      .FilterScale          = CAN_FILTERSCALE_16BIT,
-     .FilterActivation     = ENABLE }
+     .FilterActivation     = ENABLE };
 
     // TODO better error handling
     if (HAL_CAN_ConfigFilter(hcan, &filter) != HAL_OK) {
@@ -180,7 +180,7 @@ int _can_send(int can_id, can_manager_message_t *msg) {
     CM_CAN_ID_CHECK(can_id);
     CAN_HandleTypeDef *hcan = can_buses[can_id];
     CAN_TxHeaderTypeDef header =
-        {.StdId = msg->id, .IDE = CAN_ID_STD, .RTR = CAN_RTR_DATA, .DLC = msg->size, .TransmitGlobalTime = DISABLE}
+        {.StdId = msg->id, .IDE = CAN_ID_STD, .RTR = CAN_RTR_DATA, .DLC = msg->size, .TransmitGlobalTime = DISABLE};
 
     // TODO flag for this
     _can_wait(hcan);
