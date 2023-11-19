@@ -230,21 +230,6 @@ HAL_StatusTypeDef init(MCP23017_t* hdev, I2C_HandleTypeDef* hi2c, uint8_t device
     return HAL_Status;
 }
 
-HAL_StatusTypeDef init_default(MCP23017_t* hdev, I2C_HandleTypeDef* hi2c) {
-    HAL_StatusTypeDef HAL_Status;
-    uint8_t mcp23017_address = 0x20;
-
-    HAL_Status = init(hdev, hi2c, mcp23017_address, 1000, default_configuration);
-    if (HAL_Status != HAL_OK) {
-        return HAL_Status;
-    }
-
-    HAL_Status = reset_config(hdev);
-    //to-do configure the board with good defaults
-
-    return HAL_Status;
-}
-
 HAL_StatusTypeDef reset_bank_config(MCP23017_t* hdev) {
     HAL_StatusTypeDef HAL_Status;
     //Assume IOCON.BANK = 1

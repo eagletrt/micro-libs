@@ -178,11 +178,6 @@ HAL_StatusTypeDef reset_config(MCP23017_t* hdev);
 HAL_StatusTypeDef init(MCP23017_t* hdev, I2C_HandleTypeDef* hi2c, uint8_t device_address, uint8_t i2c_timeout, MCP23017_configuration_t config);
 
 /**
- * @brief Not fully implemented.
- */
-//HAL_StatusTypeDef init_default(MCP23017_t* hdev, I2C_HandleTypeDef* hi2c);
-
-/**
  * @brief
  * 
  * https://electronics.stackexchange.com/questions/325916/mcp23017-detecting-state-of-iocon-bank-bit-after-mcu-reset
