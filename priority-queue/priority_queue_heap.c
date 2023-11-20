@@ -42,7 +42,7 @@ bool PQH_insert(PQH *pq, int priority, uint8_t *element)
     int i = pq->tail;
     pq->tail++;
     pq->elem_cnt++;
-    while(i > 0 && pq->compare(pq->priority[_PQ_parent(i)], pq->priority[i]))
+    while(i > 0 && pq->compare(pq->priority[_PQH_parent(i)], pq->priority[i]))
     {
         _PQH_swap(pq, _PQH_parent(i), i);
         i = _PQH_parent(i);
@@ -70,7 +70,7 @@ bool PQH_pop(PQH *pq, int *priority, uint8_t *element)
 
 void _PQH_heap_restore(PQH *pq, int i)
 {
-    int l = _PQH_left(i), r = _PQ_right(i);
+    int l = _PQH_left(i), r = _PQH_right(i);
     int best = i;
     if(l < pq->elem_cnt && pq->compare(pq->priority[i], pq->priority[l]))
         best = l;
