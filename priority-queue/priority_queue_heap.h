@@ -14,20 +14,20 @@ typedef struct{
     bool (*compare)(int, int);
     uint8_t *queue;
     int *priority;
-} PQ;
+} PQH;
 
 /*
     DEFAULT COMPARE FUNCTIONS
 */
 
 /* greater or equal */
-bool PQ_GE(int a, int b); 
+bool PQH_GE(int a, int b); 
 /* greater than */
-bool PQ_GT(int a, int b);
+bool PQH_GT(int a, int b);
 /* less or equal */
-bool PQ_LE(int a, int b); 
+bool PQH_LE(int a, int b); 
 /* less then */
-bool PQ_LT(int a, int b); 
+bool PQH_LT(int a, int b); 
 
 /**
  *
@@ -40,7 +40,7 @@ bool PQ_LT(int a, int b);
  * 
  * @warning the last member is used for swapping, if you need n elements remember to allocate n+1 elements
  */
-void PQ_init(PQ *pq, int pq_size, int elem_size, uint8_t *queue, int *priority, bool (*compare)(int, int));
+void PQH_init(PQH *pq, int pq_size, int elem_size, uint8_t *queue, int *priority, bool (*compare)(int, int));
 
 /**
  * 
@@ -50,7 +50,7 @@ void PQ_init(PQ *pq, int pq_size, int elem_size, uint8_t *queue, int *priority, 
  * @param priority destination pointer for priority
  * @param element destination pointer for the element
 */
-void PQ_top(PQ *pq, int *priority, uint8_t *element);
+void PQH_top(PQH *pq, int *priority, uint8_t *element);
 
 /**
  * 
@@ -62,7 +62,7 @@ void PQ_top(PQ *pq, int *priority, uint8_t *element);
  * 
  * @returns true if inserted successfully, false otherwise
 */
-bool PQ_insert(PQ *pq, int priority, uint8_t *element);
+bool PQH_insert(PQH *pq, int priority, uint8_t *element);
 
 
 /**
@@ -75,7 +75,7 @@ bool PQ_insert(PQ *pq, int priority, uint8_t *element);
  * 
  * @returns true if popped successfully, false otherwise
 */
-bool PQ_pop(PQ *pq, int *priority, uint8_t *element);
+bool PQH_pop(PQH *pq, int *priority, uint8_t *element);
 
 /**
  * 
@@ -83,7 +83,7 @@ bool PQ_pop(PQ *pq, int *priority, uint8_t *element);
  * 
  * @returns true if the queue is full, false otherwise
 */
-bool PQ_is_full(PQ *pq);
+bool PQH_is_full(PQH *pq);
 
 /**
  * 
@@ -91,18 +91,18 @@ bool PQ_is_full(PQ *pq);
  * 
  * @returns true if the queue is full, false otherwise
 */
-bool PQ_is_empty(PQ *pq);
+bool PQH_is_empty(PQH *pq);
 
 
 /*
     PRIVATE METHODS
 */
 
-void _PQ_heap_restore(PQ *pq, int i);
-int _PQ_parent(int i);
-int _PQ_left(int i);
-int _PQ_right(int i);
-void _PQ_swap(PQ *pq, int a, int b);
+void _PQH_heap_restore(PQH *pq, int i);
+int _PQH_parent(int i);
+int _PQH_left(int i);
+int _PQH_right(int i);
+void _PQH_swap(PQH *pq, int a, int b);
 
 
 #endif
