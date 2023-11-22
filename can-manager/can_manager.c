@@ -40,6 +40,14 @@
  *  .IsCalibrationMsg = 0,
  *  .RxBufferIndex    = 0};
  * 
+ * This is instead a template for the standard CAN interrupt
+ * 
+ * CAN_IT_TX_MAILBOX_EMPTY | CAN_IT_ERROR_WARNING | CAN_IT_ERROR_PASSIVE | CAN_IT_BUSOFF | CAN_IT_LAST_ERROR_CODE | CAN_IT_ERROR
+ * 
+ * with also the correct fifo assignment
+ * 
+ * CAN_IT_RX_FIFO0_MSG_PENDING
+ * 
  * ++++++++++++++++++++++++
  * *** EXAMPLE CODE
  * ++++++++++++++++++++++++
@@ -217,13 +225,6 @@ int can_init(
         can_manager_error_code = CAN_MGR_CAN_INIT_IT_ERROR_CODE;
         return -1;
     }
-    if ((can_manager_hal_status_retval = HAL_CAN_ActivateNotification(
-             hcan, CAN_IT_TX_MAILBOX_EMPTY | CAN_IT_ERROR_WARNING | CAN_IT_ERROR_PASSIVE | CAN_IT_BUSOFF |
-                       CAN_IT_LAST_ERROR_CODE | CAN_IT_ERROR)) != HAL_OK) {
-        can_manager_error_code = CAN_MGR_CAN_INIT_IT_ERROR_CODE;
-        return -1;
-    }
-
     if ((can_manager_hal_status_retval = HAL_CAN_Start(hcan)) != HAL_OK) {
         can_manager_error_code = CAN_MGR_CAN_START_ERROR_CODE;
         return -1;
