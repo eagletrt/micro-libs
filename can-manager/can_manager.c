@@ -210,9 +210,9 @@ int can_init(
     can_rx_msg_handlers[assigned_id] = can_rx_msg_handler;
 
     GENQ_init(
-        &_rx_queues[assigned_id], sizeof(can_manager_message_t), CAN_MGR_MAX_QUEUE_ELEMENTS, &_rx_queues_data[assigned_id]);
+        &_rx_queues[assigned_id], CAN_MGR_MAX_QUEUE_ELEMENTS * sizeof(can_manager_message_t), sizeof(can_manager_message_t), &_rx_queues_data[assigned_id]);
     GENQ_init(
-        &_tx_queues[assigned_id], sizeof(can_manager_message_t), CAN_MGR_MAX_QUEUE_ELEMENTS, &_tx_queues_data[assigned_id]);
+        &_tx_queues[assigned_id], CAN_MGR_MAX_QUEUE_ELEMENTS * sizeof(can_manager_message_t), sizeof(can_manager_message_t), &_tx_queues_data[assigned_id]);
 
     can_buses[assigned_id] = hcan;
     _n_active_can++;
@@ -279,7 +279,7 @@ int consume_rx_queue(int can_id) {
 int flush_tx_queue(int can_id) {
     CAN_MGR_ID_CHECK(can_id);
     can_manager_message_t msg;
-    if (GENQ_pop(&_tx_queues[can_id], (uint8_t *)&msg)) {
+    while (GENQ_pop(&_tx_queues[can_id], (uint8_t *)&msg)) {
 #ifdef FDCAN_MGR
         return _fdcan_send(can_id, &msg);
 #else
