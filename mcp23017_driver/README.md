@@ -1,6 +1,11 @@
-# Documentation
+# MCP23017 I/O Expander - Driver 
 
-[Datasheet](https://ww1.microchip.com/downloads/aemDocuments/documents/APID/ProductDocuments/DataSheets/MCP23017-Data-Sheet-DS20001952.pdf)
+- **Author - Enrico Dalla Croce (Kalsifer-742)**
+- **Date - 30/11/2023**
+
+## Documentation
+
+- [Datasheet](https://ww1.microchip.com/downloads/aemDocuments/documents/APID/ProductDocuments/DataSheets/MCP23017-Data-Sheet-DS20001952.pdf)
 
 
 ### API
