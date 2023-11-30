@@ -1,38 +1,58 @@
 /**
- * @file mcp23017.h
- * @version 1.0
- * @date 16/11/2023
  * @author Enrico Dalla Croce (Kalsifer-742)
+ * @date 30/11/2023
  * 
- * @brief Driver to configure and operate the MCP23X17 I/O Expander
-*/
-
-/**
- * @paragraph Documentation
- * 
- * This file contains declarations and partial documentation for the MCP23017 I/O expander driver.
- * Specific functions are fully documented to serve as examples for similar functions,
- * assuming a consistent behavior across the driver.
- * Specific functions should be thoroughly documented, outlining any unique behaviors.
- * For comprehensive details, consult the MCP23017 datasheet.
+ * @brief Driver to configure and operate the MCP23017 I/O Expander
 */
 
 #ifndef mcp_23017_h
 #define mcp_23017_h
 
-/// Includes
 #include "main.h"
 #include <stdint.h>
 #include <stdbool.h>
 
-/**
- * @struct MCP23017_t
- * @brief rapresents the MCP23017 device
- */
+#define GET_VALUE_ON_PIN(function_name, REGISTER_A, REGISTER_B, output_parameter_name)                                                          \
+    HAL_StatusTypeDef get##_##function_name##_##on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t* output_parameter_name) {    \
+        HAL_StatusTypeDef HAL_Status;                                                                                                           \
+        uint8_t bit_value;                                                                                                                      \
+                                                                                                                                                \
+        if (port == MCP23017_PORTA) {                                                                                                           \
+            HAL_Status = read_register_bit(hdev, REGISTER_A, pin_number, &bit_value);                                                           \
+        } else if (port == MCP23017_PORTB) {                                                                                                    \
+            HAL_Status = read_register_bit(hdev, REGISTER_B, pin_number, &bit_value);                                                           \
+        }                                                                                                                                       \
+                                                                                                                                                \
+        if (HAL_Status == HAL_OK) {                                                                                                             \
+            *output_parameter_name = bit_value;                                                                                                 \
+        }                                                                                                                                       \
+                                                                                                                                                \
+        return HAL_Status;                                                                                                                      \
+    }                                                                                                                                           \
+
+#define SET_VALUE_ON_PIN(function_name, REGISTER_A, REGISTER_B, input_parameter_name)                                                           \
+    HAL_StatusTypeDef set##_##function_name##_##on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t input_parameter_name) {      \
+        HAL_StatusTypeDef HAL_Status;                                                                                                           \
+                                                                                                                                                \
+        if (port == MCP23017_PORTA) {                                                                                                           \
+            HAL_Status = write_register_bit(hdev, REGISTER_A, pin_number, input_parameter_name);                                                \
+        } else if (port == MCP23017_PORTB) {                                                                                                    \
+            HAL_Status = write_register_bit(hdev, REGISTER_B, pin_number, input_parameter_name);                                                \
+        }                                                                                                                                       \
+                                                                                                                                                \
+        return HAL_Status;                                                                                                                      \
+    }                                                                                                                                           \
+
+#define GET_SET_VALUE_ON_PIN(function_name, REGISTER_A, REGISTER_B, parameter_name)                                                             \
+    GET_VALUE_ON_PIN(function_name, REGISTER_A, REGISTER_B, parameter_name)                                                                     \
+                                                                                                                                                \
+    SET_VALUE_ON_PIN(function_name, REGISTER_A, REGISTER_B, parameter_name)                                                                     \
+
+/// This struct rapresents the MCP23017 device
 typedef struct {
-    I2C_HandleTypeDef *hi2c; ///I2C handle used for communication.
-    uint8_t device_address; ///I2C address of the MCP23017 device.
-    uint8_t i2c_timeout; ///Timeout value for I2C communication in milliseconds
+    I2C_HandleTypeDef *hi2c; //I2C handle used for communication
+    uint8_t device_address; //I2C address of the MCP23017 device
+    uint8_t i2c_timeout; //Timeout value for I2C communication in milliseconds
 } MCP23017_t;
 
 /// Registers
@@ -67,12 +87,6 @@ typedef struct {
 #define MCP23017_PORTB    0x01
 
 /**
- * @paragraph Simple
- * 
- * The following function are for simplified use of the device.
-*/
-
-/**
  * @brief Initializes the MCP23017 using the specified configuration.
  *
  * @param hdev Pointer to the MCP23017 device structure.
@@ -81,6 +95,10 @@ typedef struct {
  * @param i2c_timeout Timeout value for I2C communication in milliseconds.
  */
 HAL_StatusTypeDef init(MCP23017_t* hdev, I2C_HandleTypeDef* hi2c, uint8_t device_address, uint8_t i2c_timeout);
+
+// Look at 3.5.6 section of the datasheet for details
+HAL_StatusTypeDef get_config(MCP23017_t* hdev, uint8_t* config);
+HAL_StatusTypeDef set_config(MCP23017_t* hdev, uint8_t config);
 
 /**  
  * You cannot determine the state of IOCON.BANK without hardware resetting it.
@@ -91,25 +109,19 @@ HAL_StatusTypeDef init(MCP23017_t* hdev, I2C_HandleTypeDef* hi2c, uint8_t device
 */
 HAL_StatusTypeDef reset_bank_config_to_default(MCP23017_t* hdev);
 
-/**
- * @brief Look at 3.5.1 section of the datasheet for details
-*/
+/// Look at 3.5.1 section of the datasheet for details
 HAL_StatusTypeDef get_io_direction_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t* direction);
 HAL_StatusTypeDef set_io_direction_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t direction);
 
-/**
- * @brief Look at 3.5.2 section of the datasheet for details
-*/
+/// Look at 3.5.2 section of the datasheet for details
 HAL_StatusTypeDef get_input_polarity_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t* mode);
 HAL_StatusTypeDef set_input_polarity_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t mode);
 
-/**
- * @brief Look at 3.5.3 section of the datasheet for details
-*/
-HAL_StatusTypeDef get_interrupt_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t* status);
+/// Look at 3.5.3 section of the datasheet for details
+HAL_StatusTypeDef get_interrupt_status_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t* status);
 
 /**
- * @brief You need to also set the DEFVAL and INTCON register for this bit
+ * IMPORTANT: You need to also set the DEFVAL and INTCON register for this bit
  * 
  * The DEFVAL and INTCON registers must also be configured
  * if any pins are enabled for interrupt-on-change.
@@ -117,35 +129,29 @@ HAL_StatusTypeDef get_interrupt_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t p
  * DEFVAL -> set_defval_on_pin()
  * INTCON -> set_interrupt_compare_mode_on_pin()
 */
-HAL_StatusTypeDef set_interrupt_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t status);
+HAL_StatusTypeDef set_interrupt_status_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t status);
 
-/**
- * @brief Look at 3.5.4 section of the datasheet for details
-*/
+/// Look at 3.5.4 section of the datasheet for details
 HAL_StatusTypeDef get_defval_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t* defval);
 HAL_StatusTypeDef set_defval_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t defval);
 
-/**
- * @brief Look at 3.5.5 section of the datasheet for details
-*/
+/// Look at 3.5.5 section of the datasheet for details
 HAL_StatusTypeDef get_interrupt_compare_mode_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t* mode);
 HAL_StatusTypeDef set_interrupt_compare_mode_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t mode);
 
-/**
- * @brief Look at 3.5.7 section of the datasheet for details
-*/
+/// Look at 3.5.7 section of the datasheet for details
 HAL_StatusTypeDef get_pull_up_resistor_status_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t* status);
 HAL_StatusTypeDef set_pull_up_resistor_status_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t status);
 
 /**
- * @brief Look at 3.5.8 section of the datasheet for details
- * 
- * This is a read-only register
+ * @note Look at 3.5.8 section of the datasheet for details  
+ * IMPORTANT: This is a read-only register
 */
-HAL_StatusTypeDef get_interrupt_flag_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t* status);
+HAL_StatusTypeDef get_interrupt_flag_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t* value);
 
 /**
- * @brief Look at 3.5.9 section of the datasheet for details
+ * @note Look at 3.5.9 section of the datasheet for details
+ * IMPORTANT: This is a read-only register
  * 
  * The INTCAP register captures the GPIO port value at
  * the time the interrupt occurred. The register is
@@ -154,16 +160,13 @@ HAL_StatusTypeDef get_interrupt_flag_on_pin(MCP23017_t* hdev, uint8_t port, uint
  * interrupt is cleared via a read of INTCAP or GPIO.
  * 
  * INTCAP -> get_interrupt_value_on_pin()
- * GPIO   -> read_value_on_pin()
-*/
-HAL_StatusTypeDef get_interrupt_value_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t* status);
-
-/**
- * @paragraph Interrupt Logic
+ * GPIO   -> get_value_on_pin()
+ *
+ * @note Interrupt Logic
+ * Look at 3.6.1 section of the datasheet for details
  * 
- * Section 3.6.1
  * There are two interrupt pins: INTA and INTB.
- * Bydefault,INTA is associated with GPAn pins (PORTA)
+ * By default, INTA is associated with GPAn pins (PORTA)
  * and INTB is associated with GPBn pins (PORTB).
  * Each port has an independent signal which is cleared if
  * its associated GPIO or INTCAP register is read.
@@ -172,66 +175,23 @@ HAL_StatusTypeDef get_interrupt_value_on_pin(MCP23017_t* hdev, uint8_t port, uin
  * If INTn pin pins are configured to mirror each other
  * the interrupt will only be cleared if both associated registers are read.
 */
+HAL_StatusTypeDef get_interrupt_value_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t* value);
+
+/// Look at 3.5.10 section of the datasheet for details
+HAL_StatusTypeDef get_value_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t* value);
+HAL_StatusTypeDef read_value_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t value);
 
 /**
- * @brief Read the value on a specific pin of the MCP23017 device.
- *
- * This function reads the value (high or low) on the specified pin
- * of the MCP23017 device.
- * 
- * Look at 3.5.10 section of the datasheet for details
- *
- * @param hdev Pointer to the MCP23017 device structure.
- * @param port Specifies the port (PORTA or PORTB) to which the pin belongs.
- * @param pin_number The pin number for which to read the logic level (0 to 7).
- * @param status Pointer to the variable where the read logic level will be stored.
- *
- * @return HAL_StatusTypeDef
- *   - HAL_OK: reading successful, and the result is stored in the 'status' parameter.
- *   - HAL_ERROR: An error occurred during the reading.
- *   - HAL_BUSY: The MCP23017 device is busy, and the operation cannot be performed.
- *   - HAL_TIMEOUT: The operation timed out while communicating with the MCP23017 device.
- *
- * @note The 'status' parameter will be populated with either 1 or 0,
- *       indicating the current logic level on the specified pin.
- */
-HAL_StatusTypeDef read_value_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t* status);
-
-/**
- * @brief Write a value to a specific pin of the MCP23017 device.
- *
- * This function sets value (high or low) on the specified pin of
- * the MCP23017 device.
- * 
- * Look at 3.5.10 section of the datasheet for details
- *
- * @param hdev Pointer to the MCP23017 device structure.
- * @param port Specifies the port (PORTA or PORTB) to which the pin belongs.
- * @param pin_number The pin number for which to set the logic level (0 to 7).
- * @param value Desired value to be set on the specified pin (0 or 1).
- *
- * @return HAL_StatusTypeDef
- *   - HAL_OK: value writing successful.
- *   - HAL_ERROR: An error occurred during the value writing.
- *   - HAL_BUSY: The MCP23017 device is busy, and the operation cannot be performed.
- *   - HAL_TIMEOUT: The operation timed out while communicating with the MCP23017 device.
- */
-HAL_StatusTypeDef write_value_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t value);
-
-/**
- * @paragraph Advanced
- * 
- * The following function are for advanced use of the device.
- * You need to know the specifications to use this functions correctly.
+ * @note Advanced
+ * To use the following functions you need to know the specification
 */
-
 HAL_StatusTypeDef read_register(MCP23017_t* hdev, uint8_t register_address, uint8_t* register_value);
 HAL_StatusTypeDef write_register(MCP23017_t* hdev, uint8_t register_address, uint8_t register_value);
 HAL_StatusTypeDef read_register_bit(MCP23017_t* hdev, uint8_t register_address, uint8_t index, uint8_t* register_bit_value);
 HAL_StatusTypeDef write_register_bit(MCP23017_t* hdev, uint8_t register_address, uint8_t index, uint8_t register_bit_value);
 
 /**
- * @brief Look at 3.5.11 section of the datasheet for details
+ * @note Look at 3.5.11 section of the datasheet for details
  * 
  * The OLAT register provides access to the output
  * latches. A read from this register results in a read of the
@@ -239,8 +199,7 @@ HAL_StatusTypeDef write_register_bit(MCP23017_t* hdev, uint8_t register_address,
  * modifies  the  output  latches  that  modifies  the  pins
  * configured as outputs.
 */
-HAL_StatusTypeDef get_output_latch_value_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t* status);
-HAL_StatusTypeDef set_output_latch_value_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t status);
+HAL_StatusTypeDef get_output_latch_value_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t* value);
+HAL_StatusTypeDef set_output_latch_value_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t value);
 
-///Include guards
 #endif

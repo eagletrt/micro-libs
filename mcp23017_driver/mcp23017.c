@@ -1,3 +1,8 @@
+/**
+ * @author Enrico Dalla Croce (Kalsifer-742)
+ * @date 30/11/2023
+*/ 
+
 #include "mcp23017.h"
 
 uint8_t get_register_bit(uint8_t register_value, uint8_t index) {
@@ -71,6 +76,16 @@ HAL_StatusTypeDef write_register_bit(MCP23017_t* hdev, uint8_t register_address,
     return HAL_Status;
 }
 
+HAL_StatusTypeDef init(MCP23017_t* hdev, I2C_HandleTypeDef* hi2c, uint8_t device_address, uint8_t i2c_timeout) {
+    HAL_StatusTypeDef HAL_Status;
+
+    hdev->hi2c = hi2c;
+    hdev->device_address = device_address;
+    hdev->i2c_timeout = i2c_timeout;
+
+    return HAL_Status;
+}
+
 HAL_StatusTypeDef get_config(MCP23017_t* hdev, uint8_t* config) {
     HAL_StatusTypeDef HAL_Status;
 
@@ -89,16 +104,6 @@ HAL_StatusTypeDef set_config(MCP23017_t* hdev, uint8_t config) {
     set_register_bit(&config, 7, 0);
 
     HAL_Status = write_register(hdev, REGISTER_IOCON, config);
-
-    return HAL_Status;
-}
-
-HAL_StatusTypeDef init(MCP23017_t* hdev, I2C_HandleTypeDef* hi2c, uint8_t device_address, uint8_t i2c_timeout) {
-    HAL_StatusTypeDef HAL_Status;
-
-    hdev->hi2c = hi2c;
-    hdev->device_address = device_address;
-    hdev->i2c_timeout = i2c_timeout;
 
     return HAL_Status;
 }
@@ -141,268 +146,22 @@ HAL_StatusTypeDef reset_bank_config(MCP23017_t* hdev) {
     return HAL_Status;
 }
 
-HAL_StatusTypeDef get_io_direction_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t* direction) {
-    HAL_StatusTypeDef HAL_Status;
-    uint8_t bit_value;
+GET_SET_VALUE_ON_PIN(io_direction, REGISTER_IODIRA, REGISTER_IODIRB, direction)
 
-    if (port == MCP23017_PORTA) {
-        HAL_Status = read_register_bit(hdev, REGISTER_GPIOA, pin_number, &bit_value);
-    } else if (port == MCP23017_PORTB) {
-        HAL_Status = read_register_bit(hdev, REGISTER_GPIOB, pin_number, &bit_value);
-    }
+GET_SET_VALUE_ON_PIN(input_polarity, REGISTER_IPOLA, REGISTER_IPOLB, mode)
 
-    if (HAL_Status == HAL_OK) {
-        *direction = bit_value;
-    }
+GET_SET_VALUE_ON_PIN(interrupt_status, REGISTER_GPINTENA, REGISTER_GPINTENB, status)
 
-    return HAL_Status;
-}
+GET_SET_VALUE_ON_PIN(defval, REGISTER_DEFVALA, REGISTER_DEFVALB, defval)
 
-HAL_StatusTypeDef set_io_direction_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t direction) {
-    HAL_StatusTypeDef HAL_Status;
+GET_SET_VALUE_ON_PIN(interrupt_compare_mode, REGISTER_INTCONA, REGISTER_INTCONB, mode)
 
-    if (port == MCP23017_PORTA) {
-        HAL_Status = write_register_bit(hdev, REGISTER_IODIRA, pin_number, direction);
-    } else if (port == MCP23017_PORTB) {
-        HAL_Status = write_register_bit(hdev, REGISTER_IODIRB, pin_number, direction);
-    }
+GET_SET_VALUE_ON_PIN(pull_up_resistor_status, REGISTER_GPPUA, REGISTER_GPPUB, status)
 
-    return HAL_Status;
-}
+GET_VALUE_ON_PIN(interrupt_flag, REGISTER_INTFA, REGISTER_INTFB, status)
 
-HAL_StatusTypeDef get_input_polarity_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t* mode) {
-    HAL_StatusTypeDef HAL_Status;
-    uint8_t bit_value;
+GET_VALUE_ON_PIN(interrupt_value, REGISTER_INTCAPA, REGISTER_INTCAPB, status)
 
-    if (port == MCP23017_PORTA) {
-        HAL_Status = read_register_bit(hdev, REGISTER_IPOLA, pin_number, &bit_value);
-    } else if (port == MCP23017_PORTB) {
-        HAL_Status = read_register_bit(hdev, REGISTER_IPOLB, pin_number, &bit_value);
-    }
+GET_SET_VALUE_ON_PIN(value, REGISTER_GPIOA, REGISTER_GPIOB, value)
 
-    if (HAL_Status == HAL_OK) {
-        *mode = bit_value;
-    }
-
-    return HAL_Status;
-}
-
-HAL_StatusTypeDef set_input_polarity_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t mode) {
-    HAL_StatusTypeDef HAL_Status;
-
-    if (port == MCP23017_PORTA) {
-        HAL_Status = write_register_bit(hdev, REGISTER_IPOLA, pin_number, mode);
-    } else if (port == MCP23017_PORTB) {
-        HAL_Status = write_register_bit(hdev, REGISTER_IPOLB, pin_number, mode);
-    }
-
-    return HAL_Status;
-}
-
-HAL_StatusTypeDef get_interrupt_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t* status) {
-    HAL_StatusTypeDef HAL_Status;
-    uint8_t bit_value;
-
-    if (port == MCP23017_PORTA) {
-        HAL_Status = read_register_bit(hdev, REGISTER_GPINTENA, pin_number, &bit_value);
-    } else if (port == MCP23017_PORTB) {
-        HAL_Status = read_register_bit(hdev, REGISTER_GPINTENB, pin_number, &bit_value);
-    }
-
-    if (HAL_Status == HAL_OK) {
-        *status = bit_value;
-    }
-
-    return HAL_Status;
-}
-
-HAL_StatusTypeDef set_interrupt_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t status) {
-    HAL_StatusTypeDef HAL_Status;
-
-    if (port == MCP23017_PORTA) {
-        HAL_Status = write_register_bit(hdev, REGISTER_GPINTENA, pin_number, status);
-    } else if (port == MCP23017_PORTB) {
-        HAL_Status = write_register_bit(hdev, REGISTER_GPINTENB, pin_number, status);
-    }
-
-    return HAL_Status;
-}
-
-HAL_StatusTypeDef get_defval_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t* defval) {
-    HAL_StatusTypeDef HAL_Status;
-    uint8_t bit_value;
-    
-    if (port == MCP23017_PORTA) {
-        HAL_Status = read_register_bit(hdev, REGISTER_DEFVALA, pin_number, &bit_value);
-    } else if (port == MCP23017_PORTB) {
-        HAL_Status = read_register_bit(hdev, REGISTER_DEFVALB, pin_number, &bit_value);
-    }
-
-    if (HAL_Status == HAL_OK) {
-        *defval = bit_value;
-    }
-
-    return HAL_Status;
-}
-
-HAL_StatusTypeDef set_defval_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t defval) {
-    HAL_StatusTypeDef HAL_Status;
-
-    if (port == MCP23017_PORTA) {
-        HAL_Status = write_register_bit(hdev, REGISTER_DEFVALA, pin_number, defval);
-    } else if (port == MCP23017_PORTB) {
-        HAL_Status = write_register_bit(hdev, REGISTER_DEFVALB, pin_number, defval);
-    }
-
-    return HAL_Status;
-}
-
-HAL_StatusTypeDef get_interrupt_compare_mode_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t* mode) {
-    HAL_StatusTypeDef HAL_Status;
-    uint8_t bit_value;
-    
-    if (port == MCP23017_PORTA) {
-        HAL_Status = read_register_bit(hdev, REGISTER_INTCONA, pin_number, &bit_value);
-    } else if (port == MCP23017_PORTB) {
-        HAL_Status = read_register_bit(hdev, REGISTER_INTCONB, pin_number, &bit_value);
-    }
-
-    if (HAL_Status == HAL_OK) {
-        *mode = bit_value;
-    }
-
-    return HAL_Status;
-}
-
-HAL_StatusTypeDef set_interrupt_compare_mode_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t mode) {
-    HAL_StatusTypeDef HAL_Status;
-    
-    if (port == MCP23017_PORTA) {
-        HAL_Status = write_register_bit(hdev, REGISTER_INTCONA, pin_number, mode);
-    } else if (port == MCP23017_PORTB) {
-        HAL_Status = write_register_bit(hdev, REGISTER_INTCONB, pin_number, mode);
-    }
-
-    return HAL_Status;
-}
-
-HAL_StatusTypeDef get_pull_up_resistor_status_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t* status) {
-    HAL_StatusTypeDef HAL_Status;
-    uint8_t bit_value;
-    
-    if (port == MCP23017_PORTA) {
-        HAL_Status = read_register_bit(hdev, REGISTER_INTCONA, pin_number, &bit_value);
-    } else if (port == MCP23017_PORTB) {
-        HAL_Status = read_register_bit(hdev, REGISTER_INTCONB, pin_number, &bit_value);
-    }
-
-    if (HAL_Status == HAL_OK) {
-        *status = bit_value;
-    }
-
-    return HAL_Status;
-}
-
-HAL_StatusTypeDef set_pull_up_resistor_status_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t status) {
-    HAL_StatusTypeDef HAL_Status;
-    
-    if (port == MCP23017_PORTA) {
-        HAL_Status = write_register_bit(hdev, REGISTER_INTCONA, pin_number, status);
-    } else if (port == MCP23017_PORTB) {
-        HAL_Status = write_register_bit(hdev, REGISTER_INTCONB, pin_number, status);
-    }
-
-    return HAL_Status;
-}
-
-HAL_StatusTypeDef get_interrupt_flag_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t* status) {
-    HAL_StatusTypeDef HAL_Status;
-    uint8_t bit_value;
-    
-    if (port == MCP23017_PORTA) {
-        HAL_Status = read_register_bit(hdev, REGISTER_INTFA, pin_number, &bit_value);
-    } else if (port == MCP23017_PORTB) {
-        HAL_Status = read_register_bit(hdev, REGISTER_INTFB, pin_number, &bit_value);
-    }
-
-    if (HAL_Status == HAL_OK) {
-        *status = bit_value;
-    }
-
-    return HAL_Status;
-}
-
-HAL_StatusTypeDef get_interrupt_value_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t* status) {
-    HAL_StatusTypeDef HAL_Status;
-    uint8_t bit_value;
-    
-    if (port == MCP23017_PORTA) {
-        HAL_Status = read_register_bit(hdev, REGISTER_INTCAPA, pin_number, &bit_value);
-    } else if (port == MCP23017_PORTB) {
-        HAL_Status = read_register_bit(hdev, REGISTER_INTCAPB, pin_number, &bit_value);
-    }
-
-    if (HAL_Status == HAL_OK) {
-        *status = bit_value;
-    }
-
-    return HAL_Status;
-}
-
-HAL_StatusTypeDef read_value_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t* status) {
-    HAL_StatusTypeDef HAL_Status;
-    uint8_t bit_value;
-    
-    if (port == MCP23017_PORTA) {
-        HAL_Status = read_register_bit(hdev, REGISTER_GPIOA, pin_number, &bit_value);
-    } else if (port == MCP23017_PORTB) {
-        HAL_Status = read_register_bit(hdev, REGISTER_GPIOB, pin_number, &bit_value);
-    }
-
-    if (HAL_Status == HAL_OK) {
-        *status = bit_value;
-    }
-
-    return HAL_Status;
-}
-
-HAL_StatusTypeDef write_value_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t value) {
-    HAL_StatusTypeDef HAL_Status;
-    
-    if (port == MCP23017_PORTA) {
-        HAL_Status = write_register_bit(hdev, REGISTER_GPPUA, pin_number, value);
-    } else if (port == MCP23017_PORTB) {
-        HAL_Status = write_register_bit(hdev, REGISTER_GPPUB, pin_number, value);
-    }
-
-    return HAL_Status;
-}
-
-HAL_StatusTypeDef get_output_latch_value_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t* status) {
-    HAL_StatusTypeDef HAL_Status;
-    uint8_t bit_value;
-    
-    if (port == MCP23017_PORTA) {
-        HAL_Status = read_register_bit(hdev, REGISTER_INTCONA, pin_number, &bit_value);
-    } else if (port == MCP23017_PORTB) {
-        HAL_Status = read_register_bit(hdev, REGISTER_INTCONB, pin_number, &bit_value);
-    }
-
-    if (HAL_Status == HAL_OK) {
-        *status = bit_value;
-    }
-
-    return HAL_Status;
-}
-
-HAL_StatusTypeDef set_output_latch_value_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t status) {
-    HAL_StatusTypeDef HAL_Status;
-    
-    if (port == MCP23017_PORTA) {
-        HAL_Status = write_register_bit(hdev, REGISTER_INTCONA, pin_number, status);
-    } else if (port == MCP23017_PORTB) {
-        HAL_Status = write_register_bit(hdev, REGISTER_INTCONB, pin_number, status);
-    }
-
-    return HAL_Status;
-}
+GET_SET_VALUE_ON_PIN(output_latch_value, REGISTER_OLATA, REGISTER_OLATB, status)
