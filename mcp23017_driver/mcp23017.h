@@ -44,8 +44,7 @@
     }                                                                                                                                           \
 
 #define GET_SET_VALUE_ON_PIN(function_name, REGISTER_A, REGISTER_B, parameter_name)                                                             \
-    GET_VALUE_ON_PIN(function_name, REGISTER_A, REGISTER_B, parameter_name)                                                                     \
-                                                                                                                                                \
+    GET_VALUE_ON_PIN(function_name, REGISTER_A, REGISTER_B, parameter_name)                                                                     \                                                                                                                                 \
     SET_VALUE_ON_PIN(function_name, REGISTER_A, REGISTER_B, parameter_name)                                                                     \
 
 /// This struct rapresents the MCP23017 device
