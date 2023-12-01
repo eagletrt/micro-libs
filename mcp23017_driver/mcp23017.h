@@ -12,8 +12,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define GET_VALUE_ON_PIN(function_name, REGISTER_A, REGISTER_B, output_parameter_name)                                                          \
-    HAL_StatusTypeDef get##_##function_name##_##on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t* output_parameter_name) {    \
+#define GET_VALUE_ON_PIN(function_name, REGISTER_A, REGISTER_B)                                                                                 \
+    HAL_StatusTypeDef get##_##function_name##_##on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t* output_parameter) {         \
         HAL_StatusTypeDef HAL_Status;                                                                                                           \
         uint8_t bit_value;                                                                                                                      \
                                                                                                                                                 \
@@ -24,29 +24,29 @@
         }                                                                                                                                       \
                                                                                                                                                 \
         if (HAL_Status == HAL_OK) {                                                                                                             \
-            *output_parameter_name = bit_value;                                                                                                 \
+            *output_parameter = bit_value;                                                                                                      \
         }                                                                                                                                       \
                                                                                                                                                 \
         return HAL_Status;                                                                                                                      \
     }                                                                                                                                           \
 
-#define SET_VALUE_ON_PIN(function_name, REGISTER_A, REGISTER_B, input_parameter_name)                                                           \
-    HAL_StatusTypeDef set##_##function_name##_##on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t input_parameter_name) {      \
+#define SET_VALUE_ON_PIN(function_name, REGISTER_A, REGISTER_B)                                                                                 \
+    HAL_StatusTypeDef set##_##function_name##_##on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t input_parameter) {           \
         HAL_StatusTypeDef HAL_Status;                                                                                                           \
                                                                                                                                                 \
         if (port == MCP23017_PORTA) {                                                                                                           \
-            HAL_Status = write_register_bit(hdev, REGISTER_A, pin_number, input_parameter_name);                                                \
+            HAL_Status = write_register_bit(hdev, REGISTER_A, pin_number, input_parameter);                                                     \
         } else if (port == MCP23017_PORTB) {                                                                                                    \
-            HAL_Status = write_register_bit(hdev, REGISTER_B, pin_number, input_parameter_name);                                                \
+            HAL_Status = write_register_bit(hdev, REGISTER_B, pin_number, input_parameter);                                                     \
         }                                                                                                                                       \
                                                                                                                                                 \
         return HAL_Status;                                                                                                                      \
     }                                                                                                                                           \
 
-#define GET_SET_VALUE_ON_PIN(function_name, REGISTER_A, REGISTER_B, parameter_name)                                                             \
-    GET_VALUE_ON_PIN(function_name, REGISTER_A, REGISTER_B, parameter_name)                                                                     \                                                                                                                                 \
-    SET_VALUE_ON_PIN(function_name, REGISTER_A, REGISTER_B, parameter_name)                                                                     \
-
+#define GET_SET_VALUE_ON_PIN(function_name, REGISTER_A, REGISTER_B)                                                                             \
+    GET_VALUE_ON_PIN(function_name, REGISTER_A, REGISTER_B)                                                                                     \
+    SET_VALUE_ON_PIN(function_name, REGISTER_A, REGISTER_B)                                                                                     \
+    
 /// This struct rapresents the MCP23017 device
 typedef struct {
     I2C_HandleTypeDef *hi2c; //I2C handle used for communication
