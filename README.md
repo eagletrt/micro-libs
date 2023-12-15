@@ -19,6 +19,10 @@ The `test` folders contains files used for [unit testing](https://it.wikipedia.o
 with the [Unity Test Framework](http://www.throwtheswitch.org/unity). \
 These folder is usually only needed for development of the library, but you can test it by running `make test_all`.
 
+## Documentation
+
+Check out the [docs](docs) folder for the documentation of each library
+
 ## Usage
 
 If you need to use one or more libraries from this repo, include it as a submodule
@@ -35,7 +39,7 @@ git submodule add git@github.com:eagletrt/micro-libs.git
 ## Developement
 
 If you want to add a new library to this repo run the script `gen_library_template.sh`
-located in the `scripts` folder providing the name of the library.
+located in the [scripts](scripts) folder providing the name of the library.
 
 The library name is validated by the script and have to match the following restrictions:
 - Be at least two characters long
@@ -47,8 +51,7 @@ The library name is validated by the script and have to match the following rest
 > Avoid fancy or *hard-to-read* names, even though they are technically valid
 > they will not make life easier for others.
 
-Remember to **update** the `README.md` and the documentation in the `docs` folder
-every time you make important changes to the library.
+Remember to **update** the `README.md` and the documentation every time you make important changes to the library.
 
 Every time a new feature is added or an old one is removed in a file, **update**
 the corresponding test file in the `test` folder. \
