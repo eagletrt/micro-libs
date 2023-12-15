@@ -26,6 +26,7 @@ function panic {
     exit 1
 }
 
+LWD=$(pwd)
 cd $SCRIPT_DIR
 
 # Check parameters
@@ -153,6 +154,8 @@ EOF
 
 echo
 echo "Library test template generation done!"
+
+cd $LWD
 
 # Giacomo Mazzucchi in data giovedì 14 dicembre 2023 all'ora 18:03:30 ha detto: "Pusha pure sul master, Enrico"
 

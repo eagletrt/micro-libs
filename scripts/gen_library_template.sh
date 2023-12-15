@@ -26,6 +26,7 @@ function panic {
     exit 1
 }
 
+LWD=$(pwd) # Last working directory
 cd $SCRIPT_DIR
 
 # Check parameters
@@ -107,7 +108,10 @@ cat > "$INC_FILE" <<EOF
 EOF
 
 ./gen_library_test_template.sh "$LIB_NAME"
+./get_library_docs.sh "$LIB_NAME"
 
 echo
 echo "Library template generation done!"
+
+cd $LWD
 
