@@ -47,7 +47,8 @@ The library name is validated by the script and have to match the following rest
 > Avoid fancy or *hard-to-read* names, even though they are technically valid
 > they will not make life easier for others.
 
-Remember to **update** the `README.md` every time you make important changes to the library.
+Remember to **update** the `README.md` and the documentation in the `docs` folder
+every time you make important changes to the library.
 
 Every time a new feature is added or an old one is removed in a file, **update**
 the corresponding test file in the `test` folder. \
