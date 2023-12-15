@@ -51,5 +51,9 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
+# Miscellaneous
+.clang-format
 .vscode/
-
+.SD_Store
+.cache/
+compile_commands.json
