@@ -120,7 +120,10 @@ C_INCLUDES = \\
 \$(UNITY_DIR) \\
 \$(INC_DIR)
 
-CFLAGS = \$(addprefix -I,\$(C_INCLUDES)) \$(OPT) -Wall
+C_DEFINES = \\
+UNITY_OUTPUT_COLOR=1
+
+CFLAGS = \$(addprefix -I,\$(C_INCLUDES)) \$(OPT) -Wall \$(addprefix -D,\$(C_DEFINES))
 
 # List of object files
 OBJECTS = \$(addprefix \$(BUILD_DIR)/, \$(notdir \$(C_SOURCES:.c=.o)))
