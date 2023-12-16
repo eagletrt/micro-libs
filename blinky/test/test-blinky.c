@@ -1,9 +1,9 @@
 /**
  * @file test-blinky.c
- * @brief 
+ * @brief Test if the blinky library works
  *
  * @date 14 Dec 2023
- * @author Name Surname [your@email.here]
+ * @author Antonio Gelain [antonio.gelain2@gmail.com]
  */
 
 #include "unity.h"

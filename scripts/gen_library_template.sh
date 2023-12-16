@@ -108,7 +108,7 @@ cat > "$INC_FILE" <<EOF
 EOF
 
 ./gen_library_test_template.sh "$LIB_NAME"
-./get_library_docs.sh "$LIB_NAME"
+./gen_library_docs.sh "$LIB_NAME"
 
 echo
 echo "Library template generation done!"

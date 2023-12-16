@@ -1,6 +1,7 @@
 /**
  * @file blinky.c
- * @brief Blink 
+ * @brief Blink a digital led following a given pattern
+ * without using timers or blocking code
  *
  * @date 14 Dec 2023
  * @author Antonio Gelain [antonio.gelain2@gmail.com]
