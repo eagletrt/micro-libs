@@ -100,51 +100,74 @@ MAKEFILE="$TEST_DIR/Makefile"
 TAB="$(printf '\t')"
 
 cat > "$MAKEFILE" <<EOF
-TARGET=test-$LIB_NAME
+.PHONY: all test_all clear
 
+# Build directories
 BUILD_DIR=build
+BUILD_DEPS_DIR=\$(BUILD_DIR)/deps
+
+# Source and include directories
 SRC_DIR=../src
 INC_DIR=../inc
 UNITY_DIR=../../Unity/src
 
+# Tools
 CC=\$(shell command -v gcc || command -v clang || echo /bin/gcc)
 SZ=\$(shell command -v size)
 
-OPT = -Og
+# Sources
+C_SOURCES=\$(wildcard *.c)
+DEPS_SOURCES=\$(wildcard \$(SRC_DIR)/*.c \$(UNITY_DIR)/unity.c)
+SOURCES=\$(C_SOURCES) \$(DEPS_SOURCES)
 
-C_SOURCES = \\
-\$(UNITY_DIR)/unity.c \\
-\$(wildcard \$(SRC_DIR)/*.c) \\
-\$(wildcard *.c)
-
-C_INCLUDES = \\
+# Include directories
+C_INCLUDES= \\
 \$(UNITY_DIR) \\
 \$(INC_DIR)
 
-C_DEFINES = \\
+# Executables
+TARGETS=\$(addprefix \$(BUILD_DIR)/, \$(basename \$(C_SOURCES)))
+
+OPT=-Og
+
+C_DEFINES= \\
 UNITY_OUTPUT_COLOR=1
 
-CFLAGS = \$(addprefix -I,\$(C_INCLUDES)) \$(OPT) -Wall \$(addprefix -D,\$(C_DEFINES))
+
+CFLAGS=\$(addprefix -I,\$(C_INCLUDES)) \$(OPT) -Wall \$(addprefix -D,\$(C_DEFINES))
 
 # List of object files
-OBJECTS = \$(addprefix \$(BUILD_DIR)/, \$(notdir \$(C_SOURCES:.c=.o)))
-vpath %.c \$(sort \$(dir \$(C_SOURCES)))
+C_OBJECTS=\$(addprefix \$(BUILD_DIR)/, \$(notdir \$(C_SOURCES:.c=.o)))
+DEPS_OBJECTS=\$(addprefix \$(BUILD_DIR)/, \$(notdir \$(DEPS_SOURCES:.c=.o) \$(UNITY_SOURCES:.c=.o)))
+OBJECTS=\$(C_OBJECTS) \$(DEPS_OBJECTS)
+vpath %.c \$(sort \$(dir \$(SOURCES)))
 
+# File with the final test results
+TEST_RESULTS=\$(BUILD_DIR)/result.txt
+
+all: \$(TARGETS)
 
 # Build
-\$(BUILD_DIR)/\$(TARGET): \$(OBJECTS) Makefile
-${TAB}\$(CC) \$(OBJECTS) -o \$@
-${TAB}@[ -n \$(SZ) ] && \$(SZ) \$@
+\$(TARGETS): \$(OBJECTS) Makefile
+${TAB}\$(CC) \$@.o \$(DEPS_OBJECTS) -o \$@
+
+\$(BUILD_DEPS_DIR)/%.o: %.c Makefile | \$(BUILD_DIR)
+${TAB}\$(CC) -c \$(CFLAGS) $< -o \$@
 
 \$(BUILD_DIR)/%.o: %.c Makefile | \$(BUILD_DIR)
 ${TAB}\$(CC) -c \$(CFLAGS) $< -o \$@
 
-\$(BUILD_DIR):
-${TAB}mkdir \$@
+\$(BUILD_DIR): \$(BUILD_DEPS_DIR)
 
-# Run test
-test_all: \$(BUILD_DIR)/\$(TARGET)
-${TAB}./\$<
+\$(BUILD_DEPS_DIR):
+${TAB}mkdir -p \$@
+
+# Run all tests
+test_all: \$(TARGETS)
+${TAB}@echo -n "" > \$(TEST_RESULTS)
+${TAB}@for target in \$?; do \\
+${TAB}${TAB}./\$\$target | tee -a \$(TEST_RESULTS); \\
+${TAB}done
 
 # Clean all
 clean:
