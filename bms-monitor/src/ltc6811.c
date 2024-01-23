@@ -101,18 +101,6 @@ static inline bool _ltc6811_pec_check(uint8_t * data, size_t len) {
 }
 
 /**
- * @brief Encode the command to wakeup the isoSPI port of the LTC6811
- *
- * @param chain The 
- */
-static inline size_t _ltc6811_wakeup_encode_broadcast(Ltc6811Chain * chain, uint8_t * out, uint32_t t) {
-    if (t - chain->last_comm_time < LTC6811_T_IDLE)
-        return 0U;
-    memset(out, 0xFF, chain->count);
-    return chain->count;
-}
-
-/**
  * @brief Set the ADC conversion mode option inside the command
  *
  * @param cmd The command to modify
@@ -211,25 +199,22 @@ void ltc6811_chain_init(Ltc6811Chain * chain, size_t ltc_count) {
     if (chain == NULL)
         return;
     chain->count = ltc_count;
-    chain->last_comm_time = 0;
 }
 
 size_t ltc6811_wrcfg_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Cfgr * config,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 {
     if (chain == NULL || config == NULL || out == NULL)
         return 0U;
 
     // Get command
     Ltc6811Command cmd = WRCFGA;
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    size_t encoded = LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 
     // Encode data with corresponsing PEC
     for (size_t i = 0; i < chain->count; ++i) {
@@ -252,20 +237,17 @@ size_t ltc6811_wrcfg_encode_broadcast(
 
 size_t ltc6811_rdcfg_encode_broadcast(
     Ltc6811Chain * chain,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 {
     if (chain == NULL || out == NULL)
         return 0U;
     
     // Get command
     Ltc6811Command cmd = RDCFGA;
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
-    return encoded;
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    return LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 }
 
 size_t ltc6811_rdcfg_decode_broadcast(
@@ -301,8 +283,7 @@ size_t ltc6811_rdcfg_decode_broadcast(
 size_t ltc6811_rdcv_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Cvxr reg,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 {
     if (chain == NULL || out == NULL)
         return 0U;
@@ -326,12 +307,10 @@ size_t ltc6811_rdcv_encode_broadcast(
             cmd = RDCVA;
             break;
     }
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
-    return encoded;
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    return LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 }
 
 size_t ltc6811_rdcv_decode_broadcast(
@@ -362,8 +341,7 @@ size_t ltc6811_rdcv_decode_broadcast(
 size_t ltc6811_rdaux_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Avxr reg,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 {
     if (chain == NULL || out == NULL)
         return 0U; 
@@ -381,13 +359,10 @@ size_t ltc6811_rdaux_encode_broadcast(
             cmd = RDAUXA;
             break;
     }
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
-    return encoded;
-
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    return LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 }
 
 size_t ltc6811_rdaux_decode_broadcast(
@@ -418,8 +393,7 @@ size_t ltc6811_rdaux_decode_broadcast(
 size_t ltc6811_rdstat_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Stxr reg,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 {
     if (chain == NULL || out == NULL)
         return 0U; 
@@ -437,13 +411,10 @@ size_t ltc6811_rdstat_encode_broadcast(
             cmd = RDSTATA;
             break;
     }
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
-    return encoded;
-
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    return LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 }
 
 size_t ltc6811_rdstat_decode_broadcast(
@@ -495,19 +466,17 @@ size_t ltc6811_rdstat_decode_broadcast(
 size_t ltc6811_wrsctrl_encode_broadcast(
     Ltc6811Chain * chain,
     uint8_t * data,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 {
     if (chain == NULL || data == NULL || out == NULL)
         return 0U;
 
     // Get command
     Ltc6811Command cmd = WRSCTRL;
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    size_t encoded = LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 
     // Encode data with corresponsing PEC
     for (size_t i = 0; i < chain->count; ++i) {
@@ -523,20 +492,17 @@ size_t ltc6811_wrsctrl_encode_broadcast(
 
 size_t ltc6811_rdsctrl_encode_broadcast(
     Ltc6811Chain * chain,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 {
     if (chain == NULL || out == NULL)
         return 0U;
 
     // Get command
     Ltc6811Command cmd = RDSCTRL;
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
-    return encoded;
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    return LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 }
 
 size_t ltc6811_rdsctrl_decode_broadcast(
@@ -567,56 +533,48 @@ size_t ltc6811_rdsctrl_decode_broadcast(
 
 size_t ltc6811_stsctrl_encode_broadcast(
     Ltc6811Chain * chain,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 {
     if (chain == NULL || out == NULL)
         return 0U;
 
     // Get command
     Ltc6811Command cmd = STSCTRL;
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
-    return encoded;
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    return LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 }
 
 size_t ltc6811_clrsctrl_encode_broadcast(
     Ltc6811Chain * chain,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 {
     if (chain == NULL || out == NULL)
         return 0U;
 
     // Get command
     Ltc6811Command cmd = CLRSCTRL;
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
-    return encoded;
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    return LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 }
 
 size_t ltc6811_wrpwm_encode_broadcast(
     Ltc6811Chain * chain,
     uint8_t * data,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 {
     if (chain == NULL || data == NULL || out == NULL)
         return 0U;
 
     // Get command
     Ltc6811Command cmd = WRPWM;
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    size_t encoded = LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 
     // Encode data with corresponsing PEC
     for (size_t i = 0; i < chain->count; ++i) {
@@ -632,20 +590,17 @@ size_t ltc6811_wrpwm_encode_broadcast(
 
 size_t ltc6811_rdpwm_encode_broadcast(
     Ltc6811Chain * chain,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 {
     if (chain == NULL || out == NULL)
         return 0U;
 
     // Get command
     Ltc6811Command cmd = RDPWM;
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
-    return encoded;
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    return LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 }
 
 size_t ltc6811_rdpwm_decode_broadcast(
@@ -679,8 +634,7 @@ size_t ltc6811_adcv_encode_broadcast(
     Ltc6811Md mode,
     Ltc6811Dcp dcp,
     Ltc6811Ch cells,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 { 
     if (chain == NULL || out == NULL)
         return 0U;
@@ -690,12 +644,10 @@ size_t ltc6811_adcv_encode_broadcast(
     cmd = _ltc6811_cmd_set_md(cmd, mode);
     cmd = _ltc6811_cmd_set_dcp(cmd, dcp);
     cmd = _ltc6811_cmd_set_ch(cmd, cells);
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
-    return encoded;
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    return LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 }
 
 size_t ltc6811_adow_encode_broadcast(
@@ -704,8 +656,7 @@ size_t ltc6811_adow_encode_broadcast(
     Ltc6811Pup pup,
     Ltc6811Dcp dcp,
     Ltc6811Ch cells,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 { 
     if (chain == NULL || out == NULL)
         return 0U;
@@ -716,20 +667,17 @@ size_t ltc6811_adow_encode_broadcast(
     cmd = _ltc6811_cmd_set_pup(cmd, mode);
     cmd = _ltc6811_cmd_set_dcp(cmd, dcp);
     cmd = _ltc6811_cmd_set_ch(cmd, cells);
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
-    return encoded;
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    return LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 }
 
 size_t ltc6811_cvst_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Md mode,
     Ltc6811St test_mode,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 { 
     if (chain == NULL || out == NULL)
         return 0U;
@@ -738,20 +686,17 @@ size_t ltc6811_cvst_encode_broadcast(
     Ltc6811Command cmd = CVST;
     cmd = _ltc6811_cmd_set_md(cmd, mode);
     cmd = _ltc6811_cmd_set_st(cmd, test_mode);
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
-    return encoded;
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    return LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 }
 
 size_t ltc6811_adol_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Md mode,
     Ltc6811Dcp dcp,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 { 
     if (chain == NULL || out == NULL)
         return 0U;
@@ -760,20 +705,17 @@ size_t ltc6811_adol_encode_broadcast(
     Ltc6811Command cmd = ADOL;
     cmd = _ltc6811_cmd_set_md(cmd, mode);
     cmd = _ltc6811_cmd_set_dcp(cmd, dcp);
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
-    return encoded;
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    return LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 }
 
 size_t ltc6811_adax_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Md mode,
     Ltc6811Chg gpios,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 {
     if (chain == NULL || out == NULL)
         return 0U;
@@ -782,20 +724,17 @@ size_t ltc6811_adax_encode_broadcast(
     Ltc6811Command cmd = ADAX;
     cmd = _ltc6811_cmd_set_md(cmd, mode);
     cmd = _ltc6811_cmd_set_chg(cmd, gpios);
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
-    return encoded;
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    return LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 }
 
 size_t ltc6811_adaxd_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Md mode,
     Ltc6811Chg gpios,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 {
     if (chain == NULL || out == NULL)
         return 0U;
@@ -804,20 +743,17 @@ size_t ltc6811_adaxd_encode_broadcast(
     Ltc6811Command cmd = ADAXD;
     cmd = _ltc6811_cmd_set_md(cmd, mode);
     cmd = _ltc6811_cmd_set_chg(cmd, gpios);
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
-    return encoded;
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    return LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 }
 
 size_t ltc6811_axst_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Md mode,
     Ltc6811St test_mode,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 { 
     if (chain == NULL || out == NULL)
         return 0U;
@@ -826,20 +762,17 @@ size_t ltc6811_axst_encode_broadcast(
     Ltc6811Command cmd = AXST;
     cmd = _ltc6811_cmd_set_md(cmd, mode);
     cmd = _ltc6811_cmd_set_st(cmd, test_mode);
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
-    return encoded;
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    return LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 }
 
 size_t ltc6811_adstat_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Md mode,
     Ltc6811Chst groups,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 {
     if (chain == NULL || out == NULL)
         return 0U;
@@ -848,20 +781,17 @@ size_t ltc6811_adstat_encode_broadcast(
     Ltc6811Command cmd = ADSTAT;
     cmd = _ltc6811_cmd_set_md(cmd, mode);
     cmd = _ltc6811_cmd_set_chst(cmd, groups);
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
-    return encoded;
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    return LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 }
 
 size_t ltc6811_adstatd_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Md mode,
     Ltc6811Chst groups,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 {
     if (chain == NULL || out == NULL)
         return 0U;
@@ -870,20 +800,17 @@ size_t ltc6811_adstatd_encode_broadcast(
     Ltc6811Command cmd = ADSTATD;
     cmd = _ltc6811_cmd_set_md(cmd, mode);
     cmd = _ltc6811_cmd_set_chst(cmd, groups);
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
-    return encoded;
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    return LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 }
 
 size_t ltc6811_statst_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Md mode,
     Ltc6811St test_mode,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 { 
     if (chain == NULL || out == NULL)
         return 0U;
@@ -892,20 +819,17 @@ size_t ltc6811_statst_encode_broadcast(
     Ltc6811Command cmd = STATST;
     cmd = _ltc6811_cmd_set_md(cmd, mode);
     cmd = _ltc6811_cmd_set_st(cmd, test_mode);
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
-    return encoded;
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    return LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 }
 
 size_t ltc6811_adcvax_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Md mode,
     Ltc6811Dcp dcp,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 { 
     if (chain == NULL || out == NULL)
         return 0U;
@@ -914,20 +838,17 @@ size_t ltc6811_adcvax_encode_broadcast(
     Ltc6811Command cmd = ADCVAX;
     cmd = _ltc6811_cmd_set_md(cmd, mode);
     cmd = _ltc6811_cmd_set_dcp(cmd, dcp);
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
-    return encoded;
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    return LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 }
 
 size_t ltc6811_adcvsc_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Md mode,
     Ltc6811Dcp dcp,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 { 
     if (chain == NULL || out == NULL)
         return 0U;
@@ -936,120 +857,101 @@ size_t ltc6811_adcvsc_encode_broadcast(
     Ltc6811Command cmd = ADCVSC;
     cmd = _ltc6811_cmd_set_md(cmd, mode);
     cmd = _ltc6811_cmd_set_dcp(cmd, dcp);
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
-    return encoded;
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    return LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 }
 
 size_t ltc6811_clrcell_encode_broadcast(
     Ltc6811Chain * chain,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 {
     if (chain == NULL || out == NULL)
         return 0U;
 
     // Get command
     Ltc6811Command cmd = CLRCELL;
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode the command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
-    return encoded;
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    return LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 }
 
 size_t ltc6811_clraux_encode_broadcast(
     Ltc6811Chain * chain,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 {
     if (chain == NULL || out == NULL)
         return 0U;
 
     // Get command
     Ltc6811Command cmd = CLRAUX;
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode the command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
-    return encoded;
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    return LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 }
 
 size_t ltc6811_clrstat_encode_broadcast(
     Ltc6811Chain * chain,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 {
     if (chain == NULL || out == NULL)
         return 0U;
 
     // Get command
     Ltc6811Command cmd = CLRSTAT;
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode the command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
-    return encoded;
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    return LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 }
 
 size_t ltc6811_pladc_encode_broadcast(
     Ltc6811Chain * chain,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 {
     if (chain == NULL || out == NULL)
         return 0U;
 
     // Get command
     Ltc6811Command cmd = PLADC;
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode the command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
-    return encoded;
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    return LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 }
 
 size_t ltc6811_diagn_encode_broadcast(
     Ltc6811Chain * chain,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 {
     if (chain == NULL || out == NULL)
         return 0U;
 
     // Get command
     Ltc6811Command cmd = DIAGN;
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode the command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
-    return encoded;
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    return LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 }
 
 size_t ltc6811_wrcomm_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Comm * comm,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 {
     if (chain == NULL || comm == NULL || out == NULL)
         return 0U;
 
     // Get command
     Ltc6811Command cmd = WRCOMM;
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    size_t encoded = LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 
     // Encode data with corresponsing PEC
     for (size_t i = 0; i < chain->count; ++i) {
@@ -1072,20 +974,17 @@ size_t ltc6811_wrcomm_encode_broadcast(
 
 size_t ltc6811_rdcomm_encode_broadcast(
     Ltc6811Chain * chain,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 {
     if (chain == NULL || out == NULL)
         return 0U;
     
     // Get command
     Ltc6811Command cmd = RDCOMM;
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
-    return encoded;
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    return LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
 }
 
 size_t ltc6811_rdcomm_decode_broadcast(
@@ -1120,19 +1019,17 @@ size_t ltc6811_rdcomm_decode_broadcast(
 
 size_t ltc6811_stcomm_encode_broadcast(
     Ltc6811Chain * chain,
-    uint8_t * out,
-    uint32_t t)
+    uint8_t * out)
 {
     if (chain == NULL || out == NULL)
         return 0U;
     
     // Get command
     Ltc6811Command cmd = STCOMM;
-    size_t encoded = _ltc6811_wakeup_encode_broadcast(chain, out, t);
 
     // Encode command with corresponding PEC
-    _ltc6811_cmd_encode(cmd, false, 0U, out + encoded);
-    encoded += LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
+    _ltc6811_cmd_encode(cmd, false, 0U, out);
+    size_t encoded = LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
     
     // Add dummy data
     memset(out + encoded, 0xFF, LTC6811_STCOMM_CYCLES);

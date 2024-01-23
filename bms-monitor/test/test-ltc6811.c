@@ -8,7 +8,6 @@
 
 #include "unity.h"
 #include "ltc6811.h"
-#include <stdio.h>
 
 #define LTC_COUNT 3
 
@@ -170,32 +169,14 @@ void tearDown(void) {
 
 }
 
-void check_wrcfg_encode_broadcast_length_without_wakeup() {
+void check_wrcfg_encode_broadcast_length() {
     uint8_t out[LTC6811_WRITE_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_wrcfg_encode_broadcast(
         &chain,
         config,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_WRITE_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_wrcfg_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_WRITE_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_wrcfg_encode_broadcast(
-        &chain,
-        config,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_WRITE_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_wrcfg_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_WRITE_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_wrcfg_encode_broadcast(
-        &chain,
-        config,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_wrcfg_encode_broadcast_cmd_bytes() {
     uint8_t cmd[] = { WRCFGA >> 8, WRCFGA & 0xFF };
@@ -203,8 +184,8 @@ void check_wrcfg_encode_broadcast_cmd_bytes() {
     ltc6811_wrcfg_encode_broadcast(
         &chain,
         config,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_wrcfg_encode_broadcast_cmd_pec_bytes() {
@@ -213,8 +194,8 @@ void check_wrcfg_encode_broadcast_cmd_pec_bytes() {
     ltc6811_wrcfg_encode_broadcast(
         &chain,
         config,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 void check_wrcfg_encode_broadcast_data_bytes() {
@@ -222,8 +203,8 @@ void check_wrcfg_encode_broadcast_data_bytes() {
     ltc6811_wrcfg_encode_broadcast(
         &chain,
         config,
-        out,
-        0);
+        out
+    );
     size_t off = LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
     for (size_t i = 0; i < LTC_COUNT; ++i) {
         TEST_ASSERT_EQUAL_HEX8_ARRAY(config_bytes[LTC_COUNT - i - 1], out + off, LTC6811_REG_BYTE_COUNT);
@@ -235,8 +216,8 @@ void check_wrcfg_encode_broadcast_data_pec_bytes() {
     ltc6811_wrcfg_encode_broadcast(
         &chain,
         config,
-        out,
-        0);
+        out
+    );
     size_t off = LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
     for (size_t i = 0; i < LTC_COUNT; ++i) {
         off += LTC6811_REG_BYTE_COUNT;
@@ -245,37 +226,21 @@ void check_wrcfg_encode_broadcast_data_pec_bytes() {
     }
 }
 
-void check_rdcfg_encode_broadcast_length_without_wakeup() {
+void check_rdcfg_encode_broadcast_length() {
     uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_rdcfg_encode_broadcast(
         &chain,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_READ_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_rdcfg_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_rdcfg_encode_broadcast(
-        &chain,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_READ_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_rdcfg_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_rdcfg_encode_broadcast(
-        &chain,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_rdcfg_encode_broadcast_cmd_bytes() {
     uint8_t cmd[] = { RDCFGA >> 8, RDCFGA & 0xFF };
     uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
     ltc6811_rdcfg_encode_broadcast(
         &chain,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_rdcfg_encode_broadcast_cmd_pec_bytes() {
@@ -283,8 +248,8 @@ void check_rdcfg_encode_broadcast_cmd_pec_bytes() {
     uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
     ltc6811_rdcfg_encode_broadcast(
         &chain,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 
@@ -319,32 +284,14 @@ void check_rdcfg_decode_broadcast_data() {
     TEST_ASSERT_EQUAL_MEMORY_ARRAY(config, decoded, sizeof(Ltc6811Cfgr), LTC_COUNT);
 }
 
-void check_rdcv_encode_broadcast_length_without_wakeup() {
+void check_rdcv_encode_broadcast_length() {
     uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_rdcv_encode_broadcast(
         &chain,
         LTC6811_CVAR,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_READ_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_rdcv_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_rdcv_encode_broadcast(
-        &chain,
-        LTC6811_CVAR,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_READ_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_rdcv_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_rdcv_encode_broadcast(
-        &chain,
-        LTC6811_CVAR,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_rdcv_encode_broadcast_cmd_bytes() {
     uint8_t cmd[] = { RDCVA >> 8, RDCVA & 0xFF };
@@ -352,8 +299,8 @@ void check_rdcv_encode_broadcast_cmd_bytes() {
     ltc6811_rdcv_encode_broadcast(
         &chain,
         LTC6811_CVAR,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_rdcv_encode_broadcast_cmd_pec_bytes() {
@@ -362,8 +309,8 @@ void check_rdcv_encode_broadcast_cmd_pec_bytes() {
     ltc6811_rdcv_encode_broadcast(
         &chain,
         LTC6811_CVAR,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 
@@ -404,32 +351,14 @@ void check_rdcv_decode_broadcast_data() {
     TEST_ASSERT_EQUAL_UINT16_ARRAY(volts, decoded, LTC_COUNT * LTC6811_REG_CELL_COUNT);
 }
 
-void check_rdaux_encode_broadcast_length_without_wakeup() {
+void check_rdaux_encode_broadcast_length() {
     uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_rdaux_encode_broadcast(
         &chain,
         LTC6811_AVAR,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_READ_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_rdaux_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_rdaux_encode_broadcast(
-        &chain,
-        LTC6811_AVAR,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_READ_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_rdaux_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_rdaux_encode_broadcast(
-        &chain,
-        LTC6811_AVAR,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_rdaux_encode_broadcast_cmd_bytes() {
     uint8_t cmd[] = { RDAUXA >> 8, RDAUXA & 0xFF };
@@ -437,8 +366,8 @@ void check_rdaux_encode_broadcast_cmd_bytes() {
     ltc6811_rdaux_encode_broadcast(
         &chain,
         LTC6811_AVAR,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_rdaux_encode_broadcast_cmd_pec_bytes() {
@@ -447,8 +376,8 @@ void check_rdaux_encode_broadcast_cmd_pec_bytes() {
     ltc6811_rdaux_encode_broadcast(
         &chain,
         LTC6811_AVAR,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 
@@ -489,32 +418,14 @@ void check_rdaux_decode_broadcast_data() {
     TEST_ASSERT_EQUAL_UINT16_ARRAY(volts, decoded, LTC_COUNT * LTC6811_REG_CELL_COUNT);
 }
 
-void check_rdstat_encode_broadcast_length_without_wakeup() {
+void check_rdstat_encode_broadcast_length() {
     uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_rdstat_encode_broadcast(
         &chain,
         LTC6811_STAR,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_READ_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_rdstat_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_rdstat_encode_broadcast(
-        &chain,
-        LTC6811_STAR,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_READ_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_rdstat_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_rdstat_encode_broadcast(
-        &chain,
-        LTC6811_STAR,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_rdstat_encode_broadcast_cmd_bytes() {
     uint8_t cmd[] = { RDSTATA >> 8, RDSTATA & 0xFF };
@@ -522,8 +433,8 @@ void check_rdstat_encode_broadcast_cmd_bytes() {
     ltc6811_rdstat_encode_broadcast(
         &chain,
         LTC6811_STAR,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_rdstat_encode_broadcast_cmd_pec_bytes() {
@@ -532,8 +443,8 @@ void check_rdstat_encode_broadcast_cmd_pec_bytes() {
     ltc6811_rdstat_encode_broadcast(
         &chain,
         LTC6811_STAR,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 
@@ -581,32 +492,14 @@ void check_rdstat_decode_broadcast_data() {
     TEST_ASSERT_EQUAL_MEMORY_ARRAY(status, decoded, sizeof(Ltc6811Str), LTC_COUNT);
 }
 
-void check_wrsctrl_encode_broadcast_length_without_wakeup() {
+void check_wrsctrl_encode_broadcast_length() {
     uint8_t out[LTC6811_WRITE_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_wrsctrl_encode_broadcast(
         &chain,
         sctrl,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_WRITE_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_wrsctrl_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_WRITE_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_wrsctrl_encode_broadcast(
-        &chain,
-        sctrl,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_WRITE_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_wrsctrl_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_WRITE_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_wrsctrl_encode_broadcast(
-        &chain,
-        sctrl,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_wrsctrl_encode_broadcast_cmd_bytes() {
     uint8_t cmd[] = { WRSCTRL >> 8, WRSCTRL & 0xFF };
@@ -614,8 +507,8 @@ void check_wrsctrl_encode_broadcast_cmd_bytes() {
     ltc6811_wrsctrl_encode_broadcast(
         &chain,
         sctrl,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_wrsctrl_encode_broadcast_cmd_pec_bytes() {
@@ -624,8 +517,8 @@ void check_wrsctrl_encode_broadcast_cmd_pec_bytes() {
     ltc6811_wrsctrl_encode_broadcast(
         &chain,
         sctrl,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 void check_wrsctrl_encode_broadcast_data_bytes() {
@@ -633,8 +526,8 @@ void check_wrsctrl_encode_broadcast_data_bytes() {
     ltc6811_wrsctrl_encode_broadcast(
         &chain,
         sctrl,
-        out,
-        0);
+        out
+    );
     size_t off = LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
     for (size_t i = 0; i < LTC_COUNT; ++i) {
         TEST_ASSERT_EQUAL_HEX8_ARRAY(sctrl_bytes[LTC_COUNT - i - 1], out + off, LTC6811_REG_BYTE_COUNT);
@@ -646,8 +539,8 @@ void check_wrsctrl_encode_broadcast_data_pec_bytes() {
     ltc6811_wrsctrl_encode_broadcast(
         &chain,
         sctrl,
-        out,
-        0);
+        out
+    );
     size_t off = LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
     for (size_t i = 0; i < LTC_COUNT; ++i) {
         off += LTC6811_REG_BYTE_COUNT;
@@ -656,37 +549,21 @@ void check_wrsctrl_encode_broadcast_data_pec_bytes() {
     }
 }
 
-void check_rdsctrl_encode_broadcast_length_without_wakeup() {
+void check_rdsctrl_encode_broadcast_length() {
     uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_rdsctrl_encode_broadcast(
         &chain,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_READ_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_rdsctrl_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_rdsctrl_encode_broadcast(
-        &chain,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_READ_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_rdsctrl_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_rdsctrl_encode_broadcast(
-        &chain,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_rdsctrl_encode_broadcast_cmd_bytes() {
     uint8_t cmd[] = { RDSCTRL >> 8, RDSCTRL & 0xFF };
     uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
     ltc6811_rdsctrl_encode_broadcast(
         &chain,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_rdsctrl_encode_broadcast_cmd_pec_bytes() {
@@ -694,8 +571,8 @@ void check_rdsctrl_encode_broadcast_cmd_pec_bytes() {
     uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
     ltc6811_rdsctrl_encode_broadcast(
         &chain,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 
@@ -730,37 +607,21 @@ void check_rdsctrl_decode_broadcast_data() {
     TEST_ASSERT_EQUAL_UINT8_ARRAY(sctrl, decoded, LTC_COUNT * LTC6811_SCTL_COUNT);
 }
 
-void check_stsctrl_encode_broadcast_length_without_wakeup() {
+void check_stsctrl_encode_broadcast_length() {
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_stsctrl_encode_broadcast(
         &chain,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_stsctrl_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_stsctrl_encode_broadcast(
-        &chain,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_stsctrl_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_stsctrl_encode_broadcast(
-        &chain,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_stsctrl_encode_broadcast_cmd_bytes() {
     uint8_t cmd[] = { STSCTRL >> 8, STSCTRL & 0xFF };
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     ltc6811_stsctrl_encode_broadcast(
         &chain,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_stsctrl_encode_broadcast_cmd_pec_bytes() {
@@ -768,42 +629,26 @@ void check_stsctrl_encode_broadcast_cmd_pec_bytes() {
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     ltc6811_stsctrl_encode_broadcast(
         &chain,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 
-void check_clrsctrl_encode_broadcast_length_without_wakeup() {
+void check_clrsctrl_encode_broadcast_length() {
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_clrsctrl_encode_broadcast(
         &chain,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_clrsctrl_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_clrsctrl_encode_broadcast(
-        &chain,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_clrsctrl_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_clrsctrl_encode_broadcast(
-        &chain,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_clrsctrl_encode_broadcast_cmd_bytes() {
     uint8_t cmd[] = { CLRSCTRL >> 8, CLRSCTRL & 0xFF };
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     ltc6811_clrsctrl_encode_broadcast(
         &chain,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_clrsctrl_encode_broadcast_cmd_pec_bytes() {
@@ -811,38 +656,20 @@ void check_clrsctrl_encode_broadcast_cmd_pec_bytes() {
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     ltc6811_clrsctrl_encode_broadcast(
         &chain,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 
 // The same data of the 'sctrl' command is used as 'pwm' data for simplicity
-void check_wrpwm_encode_broadcast_length_without_wakeup() {
+void check_wrpwm_encode_broadcast_length() {
     uint8_t out[LTC6811_WRITE_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_wrpwm_encode_broadcast(
         &chain,
         sctrl,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_WRITE_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_wrpwm_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_WRITE_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_wrpwm_encode_broadcast(
-        &chain,
-        sctrl,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_WRITE_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_wrpwm_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_WRITE_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_wrpwm_encode_broadcast(
-        &chain,
-        sctrl,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_wrpwm_encode_broadcast_cmd_bytes() {
     uint8_t cmd[] = { WRPWM >> 8, WRPWM & 0xFF };
@@ -850,8 +677,8 @@ void check_wrpwm_encode_broadcast_cmd_bytes() {
     ltc6811_wrpwm_encode_broadcast(
         &chain,
         sctrl,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_wrpwm_encode_broadcast_cmd_pec_bytes() {
@@ -860,8 +687,8 @@ void check_wrpwm_encode_broadcast_cmd_pec_bytes() {
     ltc6811_wrpwm_encode_broadcast(
         &chain,
         sctrl,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 void check_wrpwm_encode_broadcast_data_bytes() {
@@ -869,8 +696,8 @@ void check_wrpwm_encode_broadcast_data_bytes() {
     ltc6811_wrpwm_encode_broadcast(
         &chain,
         sctrl,
-        out,
-        0);
+        out
+    );
     size_t off = LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
     for (size_t i = 0; i < LTC_COUNT; ++i) {
         TEST_ASSERT_EQUAL_HEX8_ARRAY(sctrl_bytes[LTC_COUNT - i - 1], out + off, LTC6811_REG_BYTE_COUNT);
@@ -882,8 +709,8 @@ void check_wrpwm_encode_broadcast_data_pec_bytes() {
     ltc6811_wrpwm_encode_broadcast(
         &chain,
         sctrl,
-        out,
-        0);
+        out
+    );
     size_t off = LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
     for (size_t i = 0; i < LTC_COUNT; ++i) {
         off += LTC6811_REG_BYTE_COUNT;
@@ -892,37 +719,21 @@ void check_wrpwm_encode_broadcast_data_pec_bytes() {
     }
 }
 
-void check_rdpwm_encode_broadcast_length_without_wakeup() {
+void check_rdpwm_encode_broadcast_length() {
     uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_rdpwm_encode_broadcast(
         &chain,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_READ_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_rdpwm_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_rdpwm_encode_broadcast(
-        &chain,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_READ_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_rdpwm_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_rdpwm_encode_broadcast(
-        &chain,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_rdpwm_encode_broadcast_cmd_bytes() {
     uint8_t cmd[] = { RDPWM >> 8, RDPWM & 0xFF };
     uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
     ltc6811_rdpwm_encode_broadcast(
         &chain,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_rdpwm_encode_broadcast_cmd_pec_bytes() {
@@ -930,8 +741,8 @@ void check_rdpwm_encode_broadcast_cmd_pec_bytes() {
     uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
     ltc6811_rdpwm_encode_broadcast(
         &chain,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 
@@ -966,38 +777,16 @@ void check_rdpwm_decode_broadcast_data() {
     TEST_ASSERT_EQUAL_UINT8_ARRAY(sctrl, decoded, LTC_COUNT * LTC6811_PWM_COUNT);
 }
 
-void check_adcv_encode_broadcast_length_without_wakeup() {
+void check_adcv_encode_broadcast_length() {
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_adcv_encode_broadcast(
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_DCP_ENABLED,
         LTC6811_CH_12,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_adcv_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_adcv_encode_broadcast(
-        &chain,
-        LTC6811_MD_26HZ_2KHZ,
-        LTC6811_DCP_ENABLED,
-        LTC6811_CH_12,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_adcv_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_adcv_encode_broadcast(
-        &chain,
-        LTC6811_MD_26HZ_2KHZ,
-        LTC6811_DCP_ENABLED,
-        LTC6811_CH_12,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_adcv_encode_broadcast_cmd_bytes() {
     Ltc6811Command command = ADCV | (LTC6811_MD_26HZ_2KHZ << 7) | (LTC6811_DCP_ENABLED << 4) | (LTC6811_CH_12);
@@ -1008,8 +797,8 @@ void check_adcv_encode_broadcast_cmd_bytes() {
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_DCP_ENABLED,
         LTC6811_CH_12,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_adcv_encode_broadcast_cmd_pec_bytes() {
@@ -1020,12 +809,12 @@ void check_adcv_encode_broadcast_cmd_pec_bytes() {
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_DCP_ENABLED,
         LTC6811_CH_12,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 
-void check_adow_encode_broadcast_length_without_wakeup() {
+void check_adow_encode_broadcast_length() {
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_adow_encode_broadcast(
         &chain,
@@ -1033,33 +822,9 @@ void check_adow_encode_broadcast_length_without_wakeup() {
         LTC6811_PUP_ACTIVE,
         LTC6811_DCP_ENABLED,
         LTC6811_CH_12,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_adow_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_adow_encode_broadcast(
-        &chain,
-        LTC6811_MD_26HZ_2KHZ,
-        LTC6811_PUP_ACTIVE,
-        LTC6811_DCP_ENABLED,
-        LTC6811_CH_12,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_adow_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_adow_encode_broadcast(
-        &chain,
-        LTC6811_MD_26HZ_2KHZ,
-        LTC6811_PUP_ACTIVE,
-        LTC6811_DCP_ENABLED,
-        LTC6811_CH_12,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_adow_encode_broadcast_cmd_bytes() {
     Ltc6811Command command = ADOW | (LTC6811_MD_26HZ_2KHZ << 7) | (LTC6811_PUP_ACTIVE << 6) | (LTC6811_DCP_ENABLED << 4) | (LTC6811_CH_12);
@@ -1071,8 +836,8 @@ void check_adow_encode_broadcast_cmd_bytes() {
         LTC6811_PUP_ACTIVE,
         LTC6811_DCP_ENABLED,
         LTC6811_CH_12,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_adow_encode_broadcast_cmd_pec_bytes() {
@@ -1084,40 +849,20 @@ void check_adow_encode_broadcast_cmd_pec_bytes() {
         LTC6811_PUP_ACTIVE,
         LTC6811_DCP_ENABLED,
         LTC6811_CH_12,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 
-void check_cvst_encode_broadcast_length_without_wakeup() {
+void check_cvst_encode_broadcast_length() {
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_cvst_encode_broadcast(
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_ST_TWO,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_cvst_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_cvst_encode_broadcast(
-        &chain,
-        LTC6811_MD_26HZ_2KHZ,
-        LTC6811_ST_TWO,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_cvst_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_cvst_encode_broadcast(
-        &chain,
-        LTC6811_MD_26HZ_2KHZ,
-        LTC6811_ST_TWO,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_cvst_encode_broadcast_cmd_bytes() {
     Ltc6811Command command = CVST | (LTC6811_MD_26HZ_2KHZ << 7) | (LTC6811_ST_TWO << 5);
@@ -1127,8 +872,8 @@ void check_cvst_encode_broadcast_cmd_bytes() {
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_ST_TWO,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_cvst_encode_broadcast_cmd_pec_bytes() {
@@ -1138,40 +883,20 @@ void check_cvst_encode_broadcast_cmd_pec_bytes() {
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_ST_TWO,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 
-void check_adol_encode_broadcast_length_without_wakeup() {
+void check_adol_encode_broadcast_length() {
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_adol_encode_broadcast(
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_DCP_ENABLED,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_adol_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_adol_encode_broadcast(
-        &chain,
-        LTC6811_MD_26HZ_2KHZ,
-        LTC6811_DCP_ENABLED,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_adol_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_adol_encode_broadcast(
-        &chain,
-        LTC6811_MD_26HZ_2KHZ,
-        LTC6811_DCP_ENABLED,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_adol_encode_broadcast_cmd_bytes() {
     Ltc6811Command command = ADOL | (LTC6811_MD_26HZ_2KHZ << 7) | (LTC6811_DCP_ENABLED << 4);
@@ -1181,8 +906,8 @@ void check_adol_encode_broadcast_cmd_bytes() {
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_DCP_ENABLED,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_adol_encode_broadcast_cmd_pec_bytes() {
@@ -1192,40 +917,20 @@ void check_adol_encode_broadcast_cmd_pec_bytes() {
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_DCP_ENABLED,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 
-void check_adax_encode_broadcast_length_without_wakeup() {
+void check_adax_encode_broadcast_length() {
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_adax_encode_broadcast(
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_CHG_SECOND_REF,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_adax_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_adax_encode_broadcast(
-        &chain,
-        LTC6811_MD_26HZ_2KHZ,
-        LTC6811_CHG_SECOND_REF,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_adax_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_adax_encode_broadcast(
-        &chain,
-        LTC6811_MD_26HZ_2KHZ,
-        LTC6811_CHG_SECOND_REF,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_adax_encode_broadcast_cmd_bytes() {
     Ltc6811Command command = ADAX | (LTC6811_MD_26HZ_2KHZ << 7) | (LTC6811_CHG_SECOND_REF);
@@ -1235,8 +940,8 @@ void check_adax_encode_broadcast_cmd_bytes() {
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_CHG_SECOND_REF,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_adax_encode_broadcast_cmd_pec_bytes() {
@@ -1246,40 +951,20 @@ void check_adax_encode_broadcast_cmd_pec_bytes() {
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_CHG_SECOND_REF,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 
-void check_adaxd_encode_broadcast_length_without_wakeup() {
+void check_adaxd_encode_broadcast_length() {
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_adaxd_encode_broadcast(
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_CHG_SECOND_REF,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_adaxd_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_adaxd_encode_broadcast(
-        &chain,
-        LTC6811_MD_26HZ_2KHZ,
-        LTC6811_CHG_SECOND_REF,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_adaxd_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_adaxd_encode_broadcast(
-        &chain,
-        LTC6811_MD_26HZ_2KHZ,
-        LTC6811_CHG_SECOND_REF,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_adaxd_encode_broadcast_cmd_bytes() {
     Ltc6811Command command = ADAXD | (LTC6811_MD_26HZ_2KHZ << 7) | (LTC6811_CHG_SECOND_REF);
@@ -1289,8 +974,8 @@ void check_adaxd_encode_broadcast_cmd_bytes() {
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_CHG_SECOND_REF,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_adaxd_encode_broadcast_cmd_pec_bytes() {
@@ -1300,40 +985,20 @@ void check_adaxd_encode_broadcast_cmd_pec_bytes() {
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_CHG_SECOND_REF,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 
-void check_axst_encode_broadcast_length_without_wakeup() {
+void check_axst_encode_broadcast_length() {
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_axst_encode_broadcast(
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_ST_TWO,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_axst_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_axst_encode_broadcast(
-        &chain,
-        LTC6811_MD_26HZ_2KHZ,
-        LTC6811_ST_TWO,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_axst_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_axst_encode_broadcast(
-        &chain,
-        LTC6811_MD_26HZ_2KHZ,
-        LTC6811_ST_TWO,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_axst_encode_broadcast_cmd_bytes() {
     Ltc6811Command command = AXST | (LTC6811_MD_26HZ_2KHZ << 7) | (LTC6811_ST_TWO << 5);
@@ -1343,8 +1008,8 @@ void check_axst_encode_broadcast_cmd_bytes() {
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_ST_TWO,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_axst_encode_broadcast_cmd_pec_bytes() {
@@ -1354,40 +1019,20 @@ void check_axst_encode_broadcast_cmd_pec_bytes() {
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_ST_TWO,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 
-void check_adstat_encode_broadcast_length_without_wakeup() {
+void check_adstat_encode_broadcast_length() {
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_adstat_encode_broadcast(
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_CHST_VD,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_adstat_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_adstat_encode_broadcast(
-        &chain,
-        LTC6811_MD_26HZ_2KHZ,
-        LTC6811_CHST_VD,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_adstat_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_adstat_encode_broadcast(
-        &chain,
-        LTC6811_MD_26HZ_2KHZ,
-        LTC6811_CHST_VD,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_adstat_encode_broadcast_cmd_bytes() {
     Ltc6811Command command = ADSTAT | (LTC6811_MD_26HZ_2KHZ << 7) | (LTC6811_CHST_VD);
@@ -1397,8 +1042,8 @@ void check_adstat_encode_broadcast_cmd_bytes() {
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_CHST_VD,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_adstat_encode_broadcast_cmd_pec_bytes() {
@@ -1408,40 +1053,20 @@ void check_adstat_encode_broadcast_cmd_pec_bytes() {
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_CHST_VD,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 
-void check_adstatd_encode_broadcast_length_without_wakeup() {
+void check_adstatd_encode_broadcast_length() {
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_adstatd_encode_broadcast(
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_CHST_VD,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_adstatd_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_adstatd_encode_broadcast(
-        &chain,
-        LTC6811_MD_26HZ_2KHZ,
-        LTC6811_CHST_VD,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_adstatd_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_adstatd_encode_broadcast(
-        &chain,
-        LTC6811_MD_26HZ_2KHZ,
-        LTC6811_CHST_VD,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_adstatd_encode_broadcast_cmd_bytes() {
     Ltc6811Command command = ADSTATD | (LTC6811_MD_26HZ_2KHZ << 7) | (LTC6811_CHST_VD);
@@ -1451,8 +1076,8 @@ void check_adstatd_encode_broadcast_cmd_bytes() {
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_CHST_VD,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_adstatd_encode_broadcast_cmd_pec_bytes() {
@@ -1462,40 +1087,20 @@ void check_adstatd_encode_broadcast_cmd_pec_bytes() {
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_CHST_VD,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 
-void check_statst_encode_broadcast_length_without_wakeup() {
+void check_statst_encode_broadcast_length() {
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_statst_encode_broadcast(
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_ST_TWO,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_statst_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_statst_encode_broadcast(
-        &chain,
-        LTC6811_MD_26HZ_2KHZ,
-        LTC6811_ST_TWO,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_statst_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_statst_encode_broadcast(
-        &chain,
-        LTC6811_MD_26HZ_2KHZ,
-        LTC6811_ST_TWO,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_statst_encode_broadcast_cmd_bytes() {
     Ltc6811Command command = STATST | (LTC6811_MD_26HZ_2KHZ << 7) | (LTC6811_ST_TWO << 5);
@@ -1505,8 +1110,8 @@ void check_statst_encode_broadcast_cmd_bytes() {
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_ST_TWO,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_statst_encode_broadcast_cmd_pec_bytes() {
@@ -1516,40 +1121,20 @@ void check_statst_encode_broadcast_cmd_pec_bytes() {
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_ST_TWO,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 
-void check_adcvax_encode_broadcast_length_without_wakeup() {
+void check_adcvax_encode_broadcast_length() {
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_adcvax_encode_broadcast(
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_DCP_ENABLED,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_adcvax_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_adcvax_encode_broadcast(
-        &chain,
-        LTC6811_MD_26HZ_2KHZ,
-        LTC6811_DCP_ENABLED,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_adcvax_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_adcvax_encode_broadcast(
-        &chain,
-        LTC6811_MD_26HZ_2KHZ,
-        LTC6811_DCP_ENABLED,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_adcvax_encode_broadcast_cmd_bytes() {
     Ltc6811Command command = ADCVAX | (LTC6811_MD_26HZ_2KHZ << 7) | (LTC6811_DCP_ENABLED << 4);
@@ -1559,8 +1144,8 @@ void check_adcvax_encode_broadcast_cmd_bytes() {
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_DCP_ENABLED,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_adcvax_encode_broadcast_cmd_pec_bytes() {
@@ -1570,40 +1155,20 @@ void check_adcvax_encode_broadcast_cmd_pec_bytes() {
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_DCP_ENABLED,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 
-void check_adcvsc_encode_broadcast_length_without_wakeup() {
+void check_adcvsc_encode_broadcast_length() {
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_adcvsc_encode_broadcast(
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_DCP_ENABLED,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_adcvsc_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_adcvsc_encode_broadcast(
-        &chain,
-        LTC6811_MD_26HZ_2KHZ,
-        LTC6811_DCP_ENABLED,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_adcvsc_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_adcvsc_encode_broadcast(
-        &chain,
-        LTC6811_MD_26HZ_2KHZ,
-        LTC6811_DCP_ENABLED,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_adcvsc_encode_broadcast_cmd_bytes() {
     Ltc6811Command command = ADCVSC | (LTC6811_MD_26HZ_2KHZ << 7) | (LTC6811_DCP_ENABLED << 4);
@@ -1613,8 +1178,8 @@ void check_adcvsc_encode_broadcast_cmd_bytes() {
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_DCP_ENABLED,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_adcvsc_encode_broadcast_cmd_pec_bytes() {
@@ -1624,42 +1189,26 @@ void check_adcvsc_encode_broadcast_cmd_pec_bytes() {
         &chain,
         LTC6811_MD_26HZ_2KHZ,
         LTC6811_DCP_ENABLED,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 
-void check_clrcell_encode_broadcast_length_without_wakeup() {
+void check_clrcell_encode_broadcast_length() {
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_clrcell_encode_broadcast(
         &chain,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_clrcell_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_clrcell_encode_broadcast(
-        &chain,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_clrcell_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_clrcell_encode_broadcast(
-        &chain,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_clrcell_encode_broadcast_cmd_bytes() {
     uint8_t cmd[] = { CLRCELL >> 8, CLRCELL & 0xFF };
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     ltc6811_clrcell_encode_broadcast(
         &chain,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_clrcell_encode_broadcast_cmd_pec_bytes() {
@@ -1667,42 +1216,26 @@ void check_clrcell_encode_broadcast_cmd_pec_bytes() {
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     ltc6811_clrcell_encode_broadcast(
         &chain,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 
-void check_clraux_encode_broadcast_length_without_wakeup() {
+void check_clraux_encode_broadcast_length() {
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_clraux_encode_broadcast(
         &chain,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_clraux_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_clraux_encode_broadcast(
-        &chain,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_clraux_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_clraux_encode_broadcast(
-        &chain,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_clraux_encode_broadcast_cmd_bytes() {
     uint8_t cmd[] = { CLRAUX >> 8, CLRAUX & 0xFF };
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     ltc6811_clraux_encode_broadcast(
         &chain,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_clraux_encode_broadcast_cmd_pec_bytes() {
@@ -1710,42 +1243,26 @@ void check_clraux_encode_broadcast_cmd_pec_bytes() {
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     ltc6811_clraux_encode_broadcast(
         &chain,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 
-void check_clrstat_encode_broadcast_length_without_wakeup() {
+void check_clrstat_encode_broadcast_length() {
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_clrstat_encode_broadcast(
         &chain,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_clrstat_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_clrstat_encode_broadcast(
-        &chain,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_clrstat_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_clrstat_encode_broadcast(
-        &chain,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_clrstat_encode_broadcast_cmd_bytes() {
     uint8_t cmd[] = { CLRSTAT >> 8, CLRSTAT & 0xFF };
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     ltc6811_clrstat_encode_broadcast(
         &chain,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_clrstat_encode_broadcast_cmd_pec_bytes() {
@@ -1753,41 +1270,26 @@ void check_clrstat_encode_broadcast_cmd_pec_bytes() {
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     ltc6811_clrstat_encode_broadcast(
         &chain,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 
-void check_pladc_encode_broadcast_length_without_wakeup() {
+void check_pladc_encode_broadcast_length() {
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_pladc_encode_broadcast(
         &chain,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_pladc_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_pladc_encode_broadcast(
-        &chain,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_pladc_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)]; ltc6811_pladc_encode_broadcast(
-        &chain,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_pladc_encode_broadcast_cmd_bytes() {
     uint8_t cmd[] = { PLADC >> 8, PLADC & 0xFF };
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     ltc6811_pladc_encode_broadcast(
         &chain,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_pladc_encode_broadcast_cmd_pec_bytes() {
@@ -1795,42 +1297,26 @@ void check_pladc_encode_broadcast_cmd_pec_bytes() {
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     ltc6811_pladc_encode_broadcast(
         &chain,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 
-void check_diagn_encode_broadcast_length_without_wakeup() {
+void check_diagn_encode_broadcast_length() {
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_diagn_encode_broadcast(
         &chain,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_diagn_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_diagn_encode_broadcast(
-        &chain,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_POLL_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_diagn_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_diagn_encode_broadcast(
-        &chain,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_diagn_encode_broadcast_cmd_bytes() {
     uint8_t cmd[] = { DIAGN >> 8, DIAGN & 0xFF };
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     ltc6811_diagn_encode_broadcast(
         &chain,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_diagn_encode_broadcast_cmd_pec_bytes() {
@@ -1838,37 +1324,19 @@ void check_diagn_encode_broadcast_cmd_pec_bytes() {
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     ltc6811_diagn_encode_broadcast(
         &chain,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 
-void check_wrcomm_encode_broadcast_length_without_wakeup() {
+void check_wrcomm_encode_broadcast_length() {
     uint8_t out[LTC6811_WRITE_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_wrcomm_encode_broadcast(
         &chain,
         comm,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_WRITE_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_wrcomm_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_WRITE_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_wrcomm_encode_broadcast(
-        &chain,
-        comm,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_WRITE_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_wrcomm_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_WRITE_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_wrcomm_encode_broadcast(
-        &chain,
-        comm,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_wrcomm_encode_broadcast_cmd_bytes() {
     uint8_t cmd[] = { WRCOMM >> 8, WRCOMM & 0xFF };
@@ -1876,8 +1344,8 @@ void check_wrcomm_encode_broadcast_cmd_bytes() {
     ltc6811_wrcomm_encode_broadcast(
         &chain,
         comm,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_wrcomm_encode_broadcast_cmd_pec_bytes() {
@@ -1886,8 +1354,8 @@ void check_wrcomm_encode_broadcast_cmd_pec_bytes() {
     ltc6811_wrcomm_encode_broadcast(
         &chain,
         comm,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 void check_wrcomm_encode_broadcast_data_bytes() {
@@ -1895,8 +1363,8 @@ void check_wrcomm_encode_broadcast_data_bytes() {
     ltc6811_wrcomm_encode_broadcast(
         &chain,
         comm,
-        out,
-        0);
+        out
+    );
     size_t off = LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
     for (size_t i = 0; i < LTC_COUNT; ++i) {
         TEST_ASSERT_EQUAL_HEX8_ARRAY(comm_bytes[LTC_COUNT - i - 1], out + off, LTC6811_REG_BYTE_COUNT);
@@ -1908,8 +1376,8 @@ void check_wrcomm_encode_broadcast_data_pec_bytes() {
     ltc6811_wrcomm_encode_broadcast(
         &chain,
         comm,
-        out,
-        0);
+        out
+    );
     size_t off = LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT;
     for (size_t i = 0; i < LTC_COUNT; ++i) {
         off += LTC6811_REG_BYTE_COUNT;
@@ -1918,37 +1386,21 @@ void check_wrcomm_encode_broadcast_data_pec_bytes() {
     }
 }
 
-void check_rdcomm_encode_broadcast_length_without_wakeup() {
+void check_rdcomm_encode_broadcast_length() {
     uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_rdcomm_encode_broadcast(
         &chain,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_READ_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_rdcomm_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_rdcomm_encode_broadcast(
-        &chain,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_READ_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_rdcomm_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_rdcomm_encode_broadcast(
-        &chain,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_rdcomm_encode_broadcast_cmd_bytes() {
     uint8_t cmd[] = { RDCOMM >> 8, RDCOMM & 0xFF };
     uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
     ltc6811_rdcomm_encode_broadcast(
         &chain,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_rdcomm_encode_broadcast_cmd_pec_bytes() {
@@ -1956,8 +1408,8 @@ void check_rdcomm_encode_broadcast_cmd_pec_bytes() {
     uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
     ltc6811_rdcomm_encode_broadcast(
         &chain,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 
@@ -1992,37 +1444,21 @@ void check_rdcomm_decode_broadcast_data() {
     TEST_ASSERT_EQUAL_MEMORY_ARRAY(comm, decoded, sizeof(Ltc6811Comm), LTC_COUNT);
 }
 
-void check_stcomm_encode_broadcast_length_without_wakeup() {
+void check_stcomm_encode_broadcast_length() {
     uint8_t out[LTC6811_STCOMM_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_stcomm_encode_broadcast(
         &chain,
-        out,
-        0);
-    TEST_ASSERT_EQUAL_size_t(LTC6811_STCOMM_BUFFER_SIZE(LTC_COUNT) - LTC_COUNT, byte_count);
-}
-void check_stcomm_encode_broadcast_length_with_wakeup() {
-    uint8_t out[LTC6811_STCOMM_BUFFER_SIZE(LTC_COUNT)];
-    size_t byte_count = ltc6811_stcomm_encode_broadcast(
-        &chain,
-        out,
-        1000);
+        out
+    );
     TEST_ASSERT_EQUAL_size_t(LTC6811_STCOMM_BUFFER_SIZE(LTC_COUNT), byte_count);
-}
-void check_stcomm_encode_broadcast_wakeup_bytes() {
-    uint8_t out[LTC6811_STCOMM_BUFFER_SIZE(LTC_COUNT)];
-    ltc6811_stcomm_encode_broadcast(
-        &chain,
-        out,
-        1000);
-    TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out, LTC_COUNT);
 }
 void check_stcomm_encode_broadcast_cmd_bytes() {
     uint8_t cmd[] = { STCOMM >> 8, STCOMM & 0xFF };
     uint8_t out[LTC6811_STCOMM_BUFFER_SIZE(LTC_COUNT)];
     ltc6811_stcomm_encode_broadcast(
         &chain,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(cmd, out, LTC6811_CMD_BYTE_COUNT);
 }
 void check_stcomm_encode_broadcast_cmd_pec_bytes() {
@@ -2030,16 +1466,16 @@ void check_stcomm_encode_broadcast_cmd_pec_bytes() {
     uint8_t out[LTC6811_STCOMM_BUFFER_SIZE(LTC_COUNT)];
     ltc6811_stcomm_encode_broadcast(
         &chain,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 void check_stcomm_encode_broadcast_dummy_bytes() {
     uint8_t out[LTC6811_STCOMM_BUFFER_SIZE(LTC_COUNT)];
     ltc6811_stcomm_encode_broadcast(
         &chain,
-        out,
-        0);
+        out
+    );
     TEST_ASSERT_EACH_EQUAL_HEX8(0xFF, out + LTC6811_CMD_BYTE_COUNT + LTC6811_PEC_BYTE_COUNT, LTC6811_STCOMM_CYCLES);
 }
 
@@ -2050,18 +1486,14 @@ int main() {
     // TODO: Make fixtures for each command
 
     // Write configuration broadcast encode
-    RUN_TEST(check_wrcfg_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_wrcfg_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_wrcfg_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_wrcfg_encode_broadcast_length);
     RUN_TEST(check_wrcfg_encode_broadcast_cmd_bytes);
     RUN_TEST(check_wrcfg_encode_broadcast_cmd_pec_bytes);
     RUN_TEST(check_wrcfg_encode_broadcast_data_bytes);
     RUN_TEST(check_wrcfg_encode_broadcast_data_pec_bytes);
 
     // Read configuration broadcast encode
-    RUN_TEST(check_rdcfg_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_rdcfg_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_rdcfg_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_rdcfg_encode_broadcast_length);
     RUN_TEST(check_rdcfg_encode_broadcast_cmd_bytes);
     RUN_TEST(check_rdcfg_encode_broadcast_cmd_pec_bytes);
 
@@ -2070,9 +1502,7 @@ int main() {
     RUN_TEST(check_rdcfg_decode_broadcast_data);
 
     // Read cell voltages broadcast encode
-    RUN_TEST(check_rdcv_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_rdcv_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_rdcv_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_rdcv_encode_broadcast_length);
     RUN_TEST(check_rdcv_encode_broadcast_cmd_bytes);
     RUN_TEST(check_rdcv_encode_broadcast_cmd_pec_bytes);
 
@@ -2081,9 +1511,7 @@ int main() {
     RUN_TEST(check_rdcv_decode_broadcast_data);
 
     // Read auxiliary voltages broadcast encode
-    RUN_TEST(check_rdaux_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_rdaux_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_rdaux_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_rdaux_encode_broadcast_length);
     RUN_TEST(check_rdaux_encode_broadcast_cmd_bytes);
     RUN_TEST(check_rdaux_encode_broadcast_cmd_pec_bytes);
 
@@ -2092,9 +1520,7 @@ int main() {
     RUN_TEST(check_rdaux_decode_broadcast_data);
 
     // Read status broadcast encode
-    RUN_TEST(check_rdstat_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_rdstat_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_rdstat_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_rdstat_encode_broadcast_length);
     RUN_TEST(check_rdstat_encode_broadcast_cmd_bytes);
     RUN_TEST(check_rdstat_encode_broadcast_cmd_pec_bytes);
 
@@ -2103,18 +1529,14 @@ int main() {
     RUN_TEST(check_rdstat_decode_broadcast_data);
 
     // Write S pin control data broadcast encode
-    RUN_TEST(check_wrsctrl_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_wrsctrl_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_wrsctrl_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_wrsctrl_encode_broadcast_length);
     RUN_TEST(check_wrsctrl_encode_broadcast_cmd_bytes);
     RUN_TEST(check_wrsctrl_encode_broadcast_cmd_pec_bytes);
     RUN_TEST(check_wrsctrl_encode_broadcast_data_bytes);
     RUN_TEST(check_wrsctrl_encode_broadcast_data_pec_bytes);
 
     // Read S pin control broadcast encode
-    RUN_TEST(check_rdsctrl_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_rdsctrl_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_rdsctrl_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_rdsctrl_encode_broadcast_length);
     RUN_TEST(check_rdsctrl_encode_broadcast_cmd_bytes);
     RUN_TEST(check_rdsctrl_encode_broadcast_cmd_pec_bytes);
 
@@ -2123,32 +1545,24 @@ int main() {
     RUN_TEST(check_rdsctrl_decode_broadcast_data);
 
     // Start S pin control pulsing and poll status
-    RUN_TEST(check_stsctrl_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_stsctrl_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_stsctrl_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_stsctrl_encode_broadcast_length);
     RUN_TEST(check_stsctrl_encode_broadcast_cmd_bytes);
     RUN_TEST(check_stsctrl_encode_broadcast_cmd_pec_bytes);
 
     // Start S pin control pulsing and poll status
-    RUN_TEST(check_clrsctrl_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_clrsctrl_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_clrsctrl_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_clrsctrl_encode_broadcast_length);
     RUN_TEST(check_clrsctrl_encode_broadcast_cmd_bytes);
     RUN_TEST(check_clrsctrl_encode_broadcast_cmd_pec_bytes);
 
     // Write PWM data broadcast encode
-    RUN_TEST(check_wrpwm_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_wrpwm_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_wrpwm_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_wrpwm_encode_broadcast_length);
     RUN_TEST(check_wrpwm_encode_broadcast_cmd_bytes);
     RUN_TEST(check_wrpwm_encode_broadcast_cmd_pec_bytes);
     RUN_TEST(check_wrpwm_encode_broadcast_data_bytes);
     RUN_TEST(check_wrpwm_encode_broadcast_data_pec_bytes);
 
     // Read PWM data broadcast encode
-    RUN_TEST(check_rdpwm_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_rdpwm_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_rdpwm_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_rdpwm_encode_broadcast_length);
     RUN_TEST(check_rdpwm_encode_broadcast_cmd_bytes);
     RUN_TEST(check_rdpwm_encode_broadcast_cmd_pec_bytes);
 
@@ -2157,137 +1571,99 @@ int main() {
     RUN_TEST(check_rdpwm_decode_broadcast_data);
 
     // Start cells ADC conversion and poll status broadcast encode
-    RUN_TEST(check_adcv_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_adcv_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_adcv_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_adcv_encode_broadcast_length);
     RUN_TEST(check_adcv_encode_broadcast_cmd_bytes);
     RUN_TEST(check_adcv_encode_broadcast_cmd_pec_bytes);
 
     // Start open-wire ADC conversion and poll status broadcast encode
-    RUN_TEST(check_adow_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_adow_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_adow_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_adow_encode_broadcast_length);
     RUN_TEST(check_adow_encode_broadcast_cmd_bytes);
     RUN_TEST(check_adow_encode_broadcast_cmd_pec_bytes);
 
     // Start cell voltage ADC conversion self test and poll status broadcast encode
-    RUN_TEST(check_cvst_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_cvst_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_cvst_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_cvst_encode_broadcast_length);
     RUN_TEST(check_cvst_encode_broadcast_cmd_bytes);
     RUN_TEST(check_cvst_encode_broadcast_cmd_pec_bytes);
 
     // Start cell 7 voltage overlap measurement broadcast encode
-    RUN_TEST(check_adol_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_adol_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_adol_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_adol_encode_broadcast_length);
     RUN_TEST(check_adol_encode_broadcast_cmd_bytes);
     RUN_TEST(check_adol_encode_broadcast_cmd_pec_bytes);
 
     // Start GPIOs ADC conversion an poll status broadcast encode
-    RUN_TEST(check_adax_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_adax_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_adax_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_adax_encode_broadcast_length);
     RUN_TEST(check_adax_encode_broadcast_cmd_bytes);
     RUN_TEST(check_adax_encode_broadcast_cmd_pec_bytes);
 
     // Start GPIOs ADC conversion with digital redundancy an poll status broadcast encode
-    RUN_TEST(check_adaxd_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_adaxd_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_adaxd_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_adaxd_encode_broadcast_length);
     RUN_TEST(check_adaxd_encode_broadcast_cmd_bytes);
     RUN_TEST(check_adaxd_encode_broadcast_cmd_pec_bytes);
 
     // Start GPIOs ADC conversion self test and poll status broadcast encode
-    RUN_TEST(check_axst_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_axst_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_axst_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_axst_encode_broadcast_length);
     RUN_TEST(check_axst_encode_broadcast_cmd_bytes);
     RUN_TEST(check_axst_encode_broadcast_cmd_pec_bytes);
 
     // Start status group ADC conversion an poll status broadcast encode
-    RUN_TEST(check_adstat_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_adstat_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_adstat_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_adstat_encode_broadcast_length);
     RUN_TEST(check_adstat_encode_broadcast_cmd_bytes);
     RUN_TEST(check_adstat_encode_broadcast_cmd_pec_bytes);
 
     // Start status group ADC conversion an poll status broadcast encode
-    RUN_TEST(check_adstatd_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_adstatd_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_adstatd_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_adstatd_encode_broadcast_length);
     RUN_TEST(check_adstatd_encode_broadcast_cmd_bytes);
     RUN_TEST(check_adstatd_encode_broadcast_cmd_pec_bytes);
 
     // Start status group ADC conversion self test and poll status broadcast encode
-    RUN_TEST(check_statst_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_statst_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_statst_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_statst_encode_broadcast_length);
     RUN_TEST(check_statst_encode_broadcast_cmd_bytes);
     RUN_TEST(check_statst_encode_broadcast_cmd_pec_bytes);
 
     // Start cells voltage and GPIOs ADC conversion start and poll status broadcast encode
-    RUN_TEST(check_adcvax_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_adcvax_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_adcvax_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_adcvax_encode_broadcast_length);
     RUN_TEST(check_adcvax_encode_broadcast_cmd_bytes);
     RUN_TEST(check_adcvax_encode_broadcast_cmd_pec_bytes);
 
     // Start cells voltage and SC conversion start and poll status broadcast encode
-    RUN_TEST(check_adcvsc_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_adcvsc_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_adcvsc_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_adcvsc_encode_broadcast_length);
     RUN_TEST(check_adcvsc_encode_broadcast_cmd_bytes);
     RUN_TEST(check_adcvsc_encode_broadcast_cmd_pec_bytes);
 
     // Clear cells voltage registers broadcast encode
-    RUN_TEST(check_clrcell_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_clrcell_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_clrcell_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_clrcell_encode_broadcast_length);
     RUN_TEST(check_clrcell_encode_broadcast_cmd_bytes);
     RUN_TEST(check_clrcell_encode_broadcast_cmd_pec_bytes);
 
     // Clear GPIOs voltage registers broadcast encode
-    RUN_TEST(check_clraux_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_clraux_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_clraux_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_clraux_encode_broadcast_length);
     RUN_TEST(check_clraux_encode_broadcast_cmd_bytes);
     RUN_TEST(check_clraux_encode_broadcast_cmd_pec_bytes);
 
     // Clear status register broadcast encode
-    RUN_TEST(check_clrstat_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_clrstat_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_clrstat_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_clrstat_encode_broadcast_length);
     RUN_TEST(check_clrstat_encode_broadcast_cmd_bytes);
     RUN_TEST(check_clrstat_encode_broadcast_cmd_pec_bytes);
 
     // Poll for ADC conversion status broadcast encode
-    RUN_TEST(check_pladc_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_pladc_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_pladc_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_pladc_encode_broadcast_length);
     RUN_TEST(check_pladc_encode_broadcast_cmd_bytes);
     RUN_TEST(check_pladc_encode_broadcast_cmd_pec_bytes);
 
     // Diagnose MUX and poll status broadcast encode
-    RUN_TEST(check_diagn_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_diagn_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_diagn_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_diagn_encode_broadcast_length);
     RUN_TEST(check_diagn_encode_broadcast_cmd_bytes);
     RUN_TEST(check_diagn_encode_broadcast_cmd_pec_bytes);
 
     // Write communication register broadcast encode
-    RUN_TEST(check_wrcomm_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_wrcomm_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_wrcomm_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_wrcomm_encode_broadcast_length);
     RUN_TEST(check_wrcomm_encode_broadcast_cmd_bytes);
     RUN_TEST(check_wrcomm_encode_broadcast_cmd_pec_bytes);
     RUN_TEST(check_wrcomm_encode_broadcast_data_bytes);
     RUN_TEST(check_wrcomm_encode_broadcast_data_pec_bytes);
 
     // Read communication register broadcast encode
-    RUN_TEST(check_rdcomm_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_rdcomm_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_rdcomm_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_rdcomm_encode_broadcast_length);
     RUN_TEST(check_rdcomm_encode_broadcast_cmd_bytes);
     RUN_TEST(check_rdcomm_encode_broadcast_cmd_pec_bytes);
 
@@ -2296,9 +1672,7 @@ int main() {
     RUN_TEST(check_rdcomm_decode_broadcast_data);
 
     // Start external communication broadcast encode
-    RUN_TEST(check_stcomm_encode_broadcast_length_without_wakeup);
-    RUN_TEST(check_stcomm_encode_broadcast_length_with_wakeup);
-    RUN_TEST(check_stcomm_encode_broadcast_wakeup_bytes);
+    RUN_TEST(check_stcomm_encode_broadcast_length);
     RUN_TEST(check_stcomm_encode_broadcast_cmd_bytes);
     RUN_TEST(check_stcomm_encode_broadcast_cmd_pec_bytes);
     RUN_TEST(check_stcomm_encode_broadcast_dummy_bytes);

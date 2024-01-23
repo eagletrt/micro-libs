@@ -2,9 +2,6 @@
  * @file ltc6811.h
  * @brief This file contains the functions to communicate with the LTC6811-1 chip
  *
- * @details For each function the bytes needed to wake-up the isoSPI port of the LTC6811
- * are included if enough time has passed
- * 
  * @attention For SPI communication with the LTC, mode 3 is required (in CubeMX is CPOL="Low" and CPHA="2 edge")
  * and the MISO pin has to be set in Pull-Up mode (if it's not set on the hardware side)
  * Maximum SPI communication speed with the LTC is 1MHz
@@ -76,28 +73,28 @@
  * @param COUNT The total number of LTCs to write to
  * @return size_t The maximum buffer size (Bytes)
  */
-#define LTC6811_WRITE_BUFFER_SIZE(COUNT) ((COUNT) + (LTC6811_CMD_BYTE_COUNT) + (LTC6811_PEC_BYTE_COUNT) + ((LTC6811_REG_BYTE_COUNT) + (LTC6811_PEC_BYTE_COUNT)) * (COUNT))
+#define LTC6811_WRITE_BUFFER_SIZE(COUNT) ((LTC6811_CMD_BYTE_COUNT) + (LTC6811_PEC_BYTE_COUNT) + ((LTC6811_REG_BYTE_COUNT) + (LTC6811_PEC_BYTE_COUNT)) * (COUNT))
 /**
  * @brief Get the maximum buffer size of an encoded read command in bytes
  * 
  * @param COUNT The total number of LTCs to read from
  * @return size_t The maximum buffer size (Bytes)
  */
-#define LTC6811_READ_BUFFER_SIZE(COUNT) ((COUNT) + (LTC6811_CMD_BYTE_COUNT) + (LTC6811_PEC_BYTE_COUNT))
+#define LTC6811_READ_BUFFER_SIZE(COUNT) ((LTC6811_CMD_BYTE_COUNT) + (LTC6811_PEC_BYTE_COUNT))
 /**
  * @brief Get the maximum buffer size of an encoded poll command in bytes
  *
  * @param COUNT The total number of LTCs to poll from
  * @return The maximum buffer size (Bytes)
  */
-#define LTC6811_POLL_BUFFER_SIZE(COUNT) ((COUNT) + (LTC6811_CMD_BYTE_COUNT) + (LTC6811_PEC_BYTE_COUNT))
+#define LTC6811_POLL_BUFFER_SIZE(COUNT) ((LTC6811_CMD_BYTE_COUNT) + (LTC6811_PEC_BYTE_COUNT))
 /**
  * @brief Get the maximum buffer size of an encoded 'STCOMM' command in bytes
  *
  * @param COUNT The total number of LTCs to poll from
  * @return The maximum buffer size (Bytes)
  */
-#define LTC6811_STCOMM_BUFFER_SIZE(COUNT) ((COUNT) + (LTC6811_CMD_BYTE_COUNT) + (LTC6811_PEC_BYTE_COUNT) + (LTC6811_STCOMM_CYCLES))
+#define LTC6811_STCOMM_BUFFER_SIZE(COUNT) ((LTC6811_CMD_BYTE_COUNT) + (LTC6811_PEC_BYTE_COUNT) + (LTC6811_STCOMM_CYCLES))
 
 /**
  * @brief List of available commands for communication with the LTC6811
@@ -352,11 +349,9 @@ typedef struct __attribute__((__packed__)) {
 } Ltc6811Comm;
 /** @brief LTC6811 handler structure */
 typedef struct {
-    uint32_t last_comm_time;
     size_t count;
 } Ltc6811Chain;
 typedef struct {
-    uint32_t last_comm_time[16];
     size_t count;
 } Ltc6811Array;
 
@@ -383,14 +378,12 @@ void ltc6811_chain_init(Ltc6811Chain * chain, size_t ltc_count);
  * @param chain The LTC6811 broadcast handler
  * @param config The configuration data
  * @param out The array where the encoded bytes are written
- * @param t The current time
  * @return size_t The number of encoded bytes
  */
 size_t ltc6811_wrcfg_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Cfgr * config,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Encode the LTC broadcast configuration read command
@@ -404,8 +397,7 @@ size_t ltc6811_wrcfg_encode_broadcast(
  */
 size_t ltc6811_rdcfg_encode_broadcast(
     Ltc6811Chain * chain,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Decode the LTC broadcast configuration data
@@ -432,14 +424,12 @@ size_t ltc6811_rdcfg_decode_broadcast(
  * @param chain The LTC6811 broadcast handler
  * @param reg The register to read from
  * @param out The array were the encoded bytes are written
- * @param t The current time
  * @return size_t The number of encoded bytes
  */
 size_t ltc6811_rdcv_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Cvxr reg,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Decode the LTC broadcast cell voltage data
@@ -466,14 +456,12 @@ size_t ltc6811_rdcv_decode_broadcast(
  * @param chain The LTC6811 broadcast handler
  * @param reg The register to read from
  * @param out The array were the encoded bytes are written
- * @param t The current time
  * @return size_t The number of encoded bytes
  */
 size_t ltc6811_rdaux_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Avxr reg,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Decode the LTC broadcast auxiliary voltage data
@@ -505,8 +493,7 @@ size_t ltc6811_rdaux_decode_broadcast(
 size_t ltc6811_rdstat_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Stxr reg,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Decode the LTC broadcast status data
@@ -537,14 +524,12 @@ size_t ltc6811_rdstat_decode_broadcast(
  * @param chain The LTC6811 broadcast handler
  * @param data The array of data to write
  * @param out The array where the encoded bytes are written
- * @param t The current time
  * @return size_t The number of encoded bytes
  */
 size_t ltc6811_wrsctrl_encode_broadcast(
     Ltc6811Chain * chain,
     uint8_t * data,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Encode the LTC broadcast S pin control read command
@@ -554,13 +539,11 @@ size_t ltc6811_wrsctrl_encode_broadcast(
  *
  * @param chain The LTC6811 broadcast handler
  * @param out The array were the encoded bytes are written
- * @param t The current time
  * @return size_t The number of encoded bytes
  */
 size_t ltc6811_rdsctrl_encode_broadcast(
     Ltc6811Chain * chain,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Decode the LTC broadcast S pin control data
@@ -589,14 +572,12 @@ size_t ltc6811_rdsctrl_decode_broadcast(
  * @param chain The LTC6811 broadcast handler
  * @param data The array of data to write
  * @param out The array where the encoded bytes are written
- * @param t The current time
  * @return size_t The number of encoded bytes
  */
 size_t ltc6811_wrpwm_encode_broadcast(
     Ltc6811Chain * chain,
     uint8_t * data,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Encode the LTC broadcast pwm read command
@@ -606,13 +587,11 @@ size_t ltc6811_wrpwm_encode_broadcast(
  *
  * @param chain The LTC6811 broadcast handler
  * @param out The array were the encoded bytes are written
- * @param t The current time
  * @return size_t The number of encoded bytes
  */
 size_t ltc6811_rdpwm_encode_broadcast(
     Ltc6811Chain * chain,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Decode the LTC broadcast S pin control data
@@ -638,13 +617,11 @@ size_t ltc6811_rdsctrl_decode_broadcast(
  *
  * @param chain The LTC6811 broadcast handler
  * @param out The array where the encoded bytes are written
- * @param t The current time
  * @return The number of encoded bytes
  */
 size_t ltc6811_stsctrl_encode_broadcast(
     Ltc6811Chain * chain,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Encode the LTC broacast clear S pin control register command
@@ -654,13 +631,11 @@ size_t ltc6811_stsctrl_encode_broadcast(
  *
  * @param chain The LTC6811 broadcast handler
  * @param out The array where the encoded bytes are written
- * @param t The current time
  * @return The number of encoded bytes
  */
 size_t ltc6811_clrsctrl_encode_broadcast(
     Ltc6811Chain * chain,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Encode the LTC broadcast pwm read command
@@ -670,13 +645,11 @@ size_t ltc6811_clrsctrl_encode_broadcast(
  *
  * @param chain The LTC6811 broadcast handler
  * @param out The array were the encoded bytes are written
- * @param t The current time
  * @return size_t The number of encoded bytes
  */
 size_t ltc6811_rdpwm_encode_broadcast(
     Ltc6811Chain * chain,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Decode the LTC broadcast pwm data
@@ -705,7 +678,6 @@ size_t ltc6811_rdpwm_decode_broadcast(
  * @param dcp Allow (or not) measurement during discharge
  * @param cells The selected cells
  * @param out The array were the encoded bytes are written
- * @param t The current time
  * @return size_t The number of encoded bytes
  */
 size_t ltc6811_adcv_encode_broadcast(
@@ -713,8 +685,7 @@ size_t ltc6811_adcv_encode_broadcast(
     Ltc6811Md mode,
     Ltc6811Dcp dcp,
     Ltc6811Ch cells,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Encode the LTC broadcast open wire ADC conversion start and poll status command
@@ -728,7 +699,6 @@ size_t ltc6811_adcv_encode_broadcast(
  * @param dcp Allow (or not) measurement during discharge
  * @param cells The selected cells
  * @param out The array were the encoded bytes are written
- * @param t The current time
  * @return size_t The number of encoded bytes
  */
 size_t ltc6811_adow_encode_broadcast(
@@ -737,8 +707,7 @@ size_t ltc6811_adow_encode_broadcast(
     Ltc6811Pup pup,
     Ltc6811Dcp dcp,
     Ltc6811Ch cells,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Encode the LTC broadcast cell voltage conversion self test start and poll status command
@@ -750,15 +719,13 @@ size_t ltc6811_adow_encode_broadcast(
  * @param mode The ADC conversion mode
  * @param test_mode Self test mode option
  * @param out The array were the encoded bytes are written
- * @param t The current time
  * @return size_t The number of encoded bytes
  */
 size_t ltc6811_cvst_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Md mode,
     Ltc6811St test_mode,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Encode the LTC broadcast cell 7 voltage overlap measurement start command
@@ -770,15 +737,13 @@ size_t ltc6811_cvst_encode_broadcast(
  * @param mode The ADC conversion mode
  * @param dcp Allow (or not) measurement during discharge
  * @param out The array were the encoded bytes are written
- * @param t The current time
  * @return size_t The number of encoded bytes
  */
 size_t ltc6811_adol_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Md mode,
     Ltc6811Dcp dcp,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Encode the LTC broadcast GPIOs ADC conversion start and poll status command
@@ -790,15 +755,13 @@ size_t ltc6811_adol_encode_broadcast(
  * @param mode The ADC conversion mode
  * @param gpios The selected GPIOs
  * @param out The array were the encoded bytes are written
- * @param t The current time
  * @return size_t The number of encoded bytes
  */
 size_t ltc6811_adax_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Md mode,
     Ltc6811Chg gpios,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Encode the LTC broadcast GPIOs ADC conversion with digital redundancy start and poll status command
@@ -810,15 +773,13 @@ size_t ltc6811_adax_encode_broadcast(
  * @param mode The ADC conversion mode
  * @param gpios The selected GPIOs
  * @param out The array were the encoded bytes are written
- * @param t The current time
  * @return size_t The number of encoded bytes
  */
 size_t ltc6811_adaxd_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Md mode,
     Ltc6811Chg gpios,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Encode the LTC broadcast GPIOs conversion self test start and poll status command
@@ -830,15 +791,13 @@ size_t ltc6811_adaxd_encode_broadcast(
  * @param mode The ADC conversion mode
  * @param test_mode Self test mode option
  * @param out The array were the encoded bytes are written
- * @param t The current time
  * @return size_t The number of encoded bytes
  */
 size_t ltc6811_axst_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Md mode,
     Ltc6811St test_mode,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Encode the LTC broadcast status group ADC conversion start and poll status command
@@ -850,15 +809,13 @@ size_t ltc6811_axst_encode_broadcast(
  * @param mode The ADC conversion mode
  * @param groups The selected status group
  * @param out The array were the encoded bytes are written
- * @param t The current time
  * @return size_t The number of encoded bytes
  */
 size_t ltc6811_adstat_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Md mode,
     Ltc6811Chst groups,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Encode the LTC broadcast status group ADC conversion with digital redundancy start and poll status command
@@ -870,15 +827,13 @@ size_t ltc6811_adstat_encode_broadcast(
  * @param mode The ADC conversion mode
  * @param groups The selected status group
  * @param out The array were the encoded bytes are written
- * @param t The current time
  * @return size_t The number of encoded bytes
  */
 size_t ltc6811_adstatd_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Md mode,
     Ltc6811Chst groups,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Encode the LTC broadcast status group conversion self test start and poll status command
@@ -890,15 +845,13 @@ size_t ltc6811_adstatd_encode_broadcast(
  * @param mode The ADC conversion mode
  * @param test_mode Self test mode option
  * @param out The array were the encoded bytes are written
- * @param t The current time
  * @return size_t The number of encoded bytes
  */
 size_t ltc6811_statst_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Md mode,
     Ltc6811St test_mode,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Encode the LTC broadcast cell voltage and GPIOs ADC conversion start and poll status command
@@ -910,15 +863,13 @@ size_t ltc6811_statst_encode_broadcast(
  * @param mode The ADC conversion mode
  * @param dcp Allow (or not) measurement during discharge
  * @param out The array were the encoded bytes are written
- * @param t The current time
  * @return size_t The number of encoded bytes
  */
 size_t ltc6811_adcvax_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Md mode,
     Ltc6811Dcp dcp,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Encode the LTC broadcast cell voltage and SC conversion start and poll status command
@@ -930,15 +881,13 @@ size_t ltc6811_adcvax_encode_broadcast(
  * @param mode The ADC conversion mode
  * @param dcp Allow (or not) measurement during discharge
  * @param out The array were the encoded bytes are written
- * @param t The current time
  * @return size_t The number of encoded bytes
  */
 size_t ltc6811_adcvsc_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Md mode,
     Ltc6811Dcp dcp,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Encode the LTC broadcast clear cell voltage register command
@@ -948,13 +897,11 @@ size_t ltc6811_adcvsc_encode_broadcast(
  *
  * @param chain The LTC6811 broadcast handler
  * @param out The array were the encoded bytes are written
- * @param t The current time
  * @return size_t The number of encoded bytes
  */
 size_t ltc6811_clrcell_encode_broadcast(
     Ltc6811Chain * chain,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Encode the LTC broadcast clear GPIOs voltage register command
@@ -964,13 +911,11 @@ size_t ltc6811_clrcell_encode_broadcast(
  *
  * @param chain The LTC6811 broadcast handler
  * @param out The array were the encoded bytes are written
- * @param t The current time
  * @return size_t The number of encoded bytes
  */
 size_t ltc6811_clraux_encode_broadcast(
     Ltc6811Chain * chain,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Encode the LTC broadcast clear status register command
@@ -980,13 +925,11 @@ size_t ltc6811_clraux_encode_broadcast(
  *
  * @param chain The LTC6811 broadcast handler
  * @param out The array were the encoded bytes are written
- * @param t The current time
  * @return size_t The number of encoded bytes
  */
 size_t ltc6811_clrstat_encode_broadcast(
     Ltc6811Chain * chain,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Encode the LTC broadcast poll ADC conversion status command
@@ -996,13 +939,11 @@ size_t ltc6811_clrstat_encode_broadcast(
  *
  * @param chain The LTC6811 broadcast handler
  * @param out The array were the encoded bytes are written
- * @param t The current time
  * @return size_t The number of encoded bytes
  */
 size_t ltc6811_pladc_encode_broadcast(
     Ltc6811Chain * chain,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Encode the LTC broadcast diagnose MUX and poll status command
@@ -1012,13 +953,11 @@ size_t ltc6811_pladc_encode_broadcast(
  *
  * @param chain The LTC6811 broadcast handler
  * @param out The array were the encoded bytes are written
- * @param t The current time
  * @return size_t The number of encoded bytes
  */
 size_t ltc6811_diagn_encode_broadcast(
     Ltc6811Chain * chain,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Encode the external communication data of the LTC's to a broadcast write command
@@ -1030,14 +969,12 @@ size_t ltc6811_diagn_encode_broadcast(
  * @param chain The LTC6811 broadcast handler
  * @param comm The communication data
  * @param out The array where the encoded bytes are written
- * @param t The current time
  * @return size_t The number of encoded bytes
  */
 size_t ltc6811_wrcomm_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Comm * comm,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Encode the external communication data of the LTC's broadcast read command
@@ -1051,8 +988,7 @@ size_t ltc6811_wrcomm_encode_broadcast(
  */
 size_t ltc6811_rdcomm_encode_broadcast(
     Ltc6811Chain * chain,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 /**
  * @brief Decode the LTC broadcast external communication data
@@ -1082,8 +1018,7 @@ size_t ltc6811_rdcomm_decode_broadcast(
  */
 size_t ltc6811_stcomm_encode_broadcast(
     Ltc6811Chain * chain,
-    uint8_t * out,
-    uint32_t t
+    uint8_t * out
 );
 
 
