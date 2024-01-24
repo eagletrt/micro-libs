@@ -53,7 +53,7 @@
  * ++++++++++++++++++++++++
  * 
  * int primary_can_id = -1;
- * int secondary_can_id = -2;
+ * int secondary_can_id = -1;
  * 
  * void f() {
  *  can_manager_message_t msg = {
@@ -159,7 +159,7 @@ void _fdcan_wait(FDCAN_HandleTypeDef *hcan) {
 }
 #endif
 
-int _fdcan_send(int can_id, can_manager_message_t *msg) {
+int fdcan_send(int can_id, can_manager_message_t *msg) {
     CAN_MGR_ID_CHECK(can_id);
     FDCAN_HandleTypeDef *hcan = fdcan_buses[can_id];
 
@@ -271,7 +271,7 @@ void _can_wait(CAN_HandleTypeDef *hcan) {
 }
 #endif
 
-int _can_send(int can_id, can_manager_message_t *msg) {
+int can_send(int can_id, can_manager_message_t *msg) {
     CAN_MGR_ID_CHECK(can_id);
     CAN_HandleTypeDef *hcan = can_buses[can_id];
 #ifndef TEST
@@ -320,11 +320,11 @@ int flush_tx_queue(int can_id) {
     int sent_messages = 0;
     while (GENQ_pop(&_tx_queues[can_id], (uint8_t *)&msg)) {
 #ifdef FDCAN_MGR
-        if (!_fdcan_send(can_id, &msg)) {
+        if (!fdcan_send(can_id, &msg)) {
             return -1;
         }
 #else
-        if (!_can_send(can_id, &msg)) {
+        if (!can_send(can_id, &msg)) {
             return -1;
         }
 #endif
