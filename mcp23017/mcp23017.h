@@ -166,4 +166,4 @@ HAL_StatusTypeDef mcp23017_write_register_bit(MCP23017_t* hdev, uint8_t register
 HAL_StatusTypeDef mcp23017_get_output_latch_value_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t* value);
 HAL_StatusTypeDef mcp23017_set_output_latch_value_on_pin(MCP23017_t* hdev, uint8_t port, uint8_t pin_number, uint8_t value);
 
-#endif // MCP23017_H
+#endif
