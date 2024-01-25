@@ -3,20 +3,8 @@
 
 #include "can_types.h"
 #include "generic_queue.h"
-#include "stdbool.h"
-
-#ifndef TEST
 #include "main.h"
-#else
-#include "stdio.h"
-#include "string.h"
-typedef struct {
-    char *name;
-} CAN_HandleTypeDef;
-typedef struct {
-} CAN_FilterTypeDef;
-void print_message(can_manager_message_t *msg);
-#endif
+#include "stdbool.h"
 
 #define CAN_MGR_MAX_CAN_BUSES          2
 #define CAN_MGR_MAX_QUEUE_ELEMENTS     10
