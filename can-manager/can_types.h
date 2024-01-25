@@ -9,6 +9,11 @@ typedef struct {
     uint8_t data[8];
 } can_manager_message_t;
 
+#ifdef FDCAN_MGR
+int fdcan_send(int can_id, can_manager_message_t *msg);
+#else
+int can_send(int can_id, can_manager_message_t *msg);
+#endif
 int consume_rx_queue(int can_id);
 int flush_tx_queue(int can_id);
 int add_to_rx_queue(int can_id, can_manager_message_t *msg);
