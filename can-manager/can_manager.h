@@ -5,18 +5,7 @@
 #include "generic_queue.h"
 #include "stdbool.h"
 
-#ifndef TEST
 #include "main.h"
-#else
-#include "stdio.h"
-#include "string.h"
-typedef struct {
-    char *name;
-} CAN_HandleTypeDef;
-typedef struct {
-} CAN_FilterTypeDef;
-void print_message(can_manager_message_t *msg);
-#endif
 
 #define CAN_MGR_ID_CHECK(can_id)                       \
     if (can_id < 0 || can_id >= CAN_MGR_MAX_CAN_BUSES) \

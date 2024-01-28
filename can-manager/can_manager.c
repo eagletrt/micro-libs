@@ -66,6 +66,16 @@
  *  // your handler
  * }
  * 
+ * // Example for message handler callback
+ * void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
+ *  CAN_RxHeaderTypeDef header = {};
+ *  can_manager_message_t msg = {};
+ *  HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &header, msg.data);
+ *  msg.id = header.StdId;
+ *  msg.size = header.DLC;
+ *  add_to_rx_queue(primary_can_id, &msg)
+ * }
+ * 
  * int main() {
  * // hcan, handler, configs
  *  int primary_can_id = can_init(&hcan1, handle_primary, config, ...);
@@ -84,27 +94,13 @@
 
 int _n_active_can          = 0;
 int can_manager_error_code = 0;
-#ifndef TEST
 HAL_StatusTypeDef can_manager_hal_status_retval = HAL_OK;
-#endif
 generic_queue_t _rx_queues[CAN_MGR_MAX_CAN_BUSES];
 generic_queue_t _tx_queues[CAN_MGR_MAX_CAN_BUSES];
 uint8_t _rx_queues_data[CAN_MGR_MAX_QUEUE_ELEMENTS * sizeof(can_manager_message_t) * CAN_MGR_MAX_CAN_BUSES];
 uint8_t _tx_queues_data[CAN_MGR_MAX_QUEUE_ELEMENTS * sizeof(can_manager_message_t) * CAN_MGR_MAX_CAN_BUSES];
 void (*can_rx_msg_handlers[CAN_MGR_MAX_CAN_BUSES])(can_manager_message_t *);
 
-#ifdef TEST
-void print_message(can_manager_message_t *msg) {
-    printf("id: %d, size: %d, data: [", msg->id, msg->size);
-    if (msg->size > 0) {
-        printf("%d", msg->data[0]);
-        for (int i = 1; i < msg->size && i < 8; ++i) {
-            printf(", %d", msg->data[i]);
-        }
-    }
-    printf("]\n");
-}
-#endif
 
 #if FDCAN_MGR_ENABLED == 1
 
@@ -131,7 +127,6 @@ int fdcan_init(
 
     _n_active_can++;
 
-#ifndef TEST
     if ((can_manager_hal_status_retval = HAL_FDCAN_ConfigFilter(hcan, filter)) != HAL_OK) {
         can_manager_hal_status_retval = CAN_MGR_FILTER_ERROR_CODE;
         return -1;
@@ -140,15 +135,17 @@ int fdcan_init(
         can_manager_hal_status_retval = CAN_MGR_CAN_INIT_IT_ERROR_CODE;
         return -1;
     }
-    if ((can_manager_hal_status_retval = HAL_FDCAN_Start(hcan)) != HAL_OK) {
-        can_manager_hal_status_retval = CAN_MGR_CAN_START_ERROR_CODE;
-        return -1;
-    }
-#endif
     return assigned_id;
 }
 
-#ifndef TEST
+int fdcan_start(int can_id) {
+    if ((can_manager_hal_status_retval = HAL_FDCAN_Start(fdcan_buses[can_id])) != HAL_OK) {
+        can_manager_hal_status_retval = CAN_MGR_CAN_START_ERROR_CODE;
+        return 0;
+    }
+    return 1;
+}
+
 void _fdcan_wait(FDCAN_HandleTypeDef *hcan) {
     uint32_t start_timestamp = HAL_GetTick();
     while (HAL_FDCAN_GetTxFifoFreeLevel(hcan) == 0) {
@@ -157,13 +154,11 @@ void _fdcan_wait(FDCAN_HandleTypeDef *hcan) {
         }
     }
 }
-#endif
 
 int fdcan_send(int can_id, can_manager_message_t *msg) {
     CAN_MGR_ID_CHECK(can_id);
     FDCAN_HandleTypeDef *hcan = fdcan_buses[can_id];
 
-#ifndef TEST
     uint32_t dlc_len = 0;
     switch (msg->size) {
         case 0:
@@ -214,10 +209,6 @@ int fdcan_send(int can_id, can_manager_message_t *msg) {
     if ((can_manager_hal_status_retval = HAL_FDCAN_AddMessageToTxFifoQ(hcan, &header, msg->data)) != HAL_OK) {
         return 0;
     }
-#else
-    printf("SENDING fdcan: %s, ", hcan->name);
-    print_message(msg);
-#endif
     return 1;
 }
 
@@ -245,7 +236,6 @@ int can_init(
     can_buses[assigned_id] = hcan;
     _n_active_can++;
 
-#ifndef TEST
     if ((can_manager_hal_status_retval = HAL_CAN_ConfigFilter(hcan, filter)) != HAL_OK) {
         can_manager_error_code = CAN_MGR_FILTER_ERROR_CODE;
         return -1;
@@ -254,42 +244,37 @@ int can_init(
         can_manager_error_code = CAN_MGR_CAN_INIT_IT_ERROR_CODE;
         return -1;
     }
-    if ((can_manager_hal_status_retval = HAL_CAN_Start(hcan)) != HAL_OK) {
-        can_manager_error_code = CAN_MGR_CAN_START_ERROR_CODE;
-        return -1;
-    }
-#endif
     return assigned_id;
 }
 
-#ifndef TEST
+int can_start(int can_id) {
+    if ((can_manager_hal_status_retval = HAL_CAN_Start(can_buses[can_id])) != HAL_OK) {
+        can_manager_error_code = CAN_MGR_CAN_START_ERROR_CODE;
+        return 0;
+    }
+    return 1;
+}
+
 void _can_wait(CAN_HandleTypeDef *hcan) {
     uint32_t start_timestamp = HAL_GetTick();
     while (HAL_CAN_GetTxMailboxesFreeLevel(hcan) == 0)
         if (HAL_GetTick() > start_timestamp + 5)
             return;
 }
-#endif
 
 int can_send(int can_id, can_manager_message_t *msg) {
     CAN_MGR_ID_CHECK(can_id);
     CAN_HandleTypeDef *hcan = can_buses[can_id];
-#ifndef TEST
     CAN_TxHeaderTypeDef header = {
         .StdId = msg->id, .IDE = CAN_ID_STD, .RTR = CAN_RTR_DATA, .DLC = msg->size, .TransmitGlobalTime = DISABLE};
 
 #if CAN_WAIT_ENABLED == 1
     _can_wait(hcan);
 #endif
-
     uint32_t mlb = CAN_TX_MAILBOX0;
     if (HAL_CAN_AddTxMessage(hcan, &header, msg->data, &mlb) != HAL_OK) {
         return 0;
     }
-#else
-    printf("SENDING can: %s, ", hcan->name);
-    print_message(msg);
-#endif
     return 1;
 }
 #endif

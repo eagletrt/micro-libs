@@ -18,8 +18,10 @@ typedef struct {
 
 #ifdef FDCAN_MGR
 int fdcan_send(int can_id, can_manager_message_t *msg);
+int fdcan_start(int can_id);
 #else
 int can_send(int can_id, can_manager_message_t *msg);
+int can_start(int can_id);
 #endif
 int consume_rx_queue(int can_id);
 int flush_tx_queue(int can_id);
