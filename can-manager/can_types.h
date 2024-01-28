@@ -3,6 +3,13 @@
 
 #include <stdint.h>
 
+#define CAN_MGR_MAX_CAN_BUSES          2
+#define CAN_MGR_MAX_QUEUE_ELEMENTS     10
+#define CAN_MGR_CAN_WAIT_ENABLED       1
+#define CAN_MGR_FILTER_ERROR_CODE      2
+#define CAN_MGR_CAN_INIT_IT_ERROR_CODE 3
+#define CAN_MGR_CAN_START_ERROR_CODE   4
+
 typedef struct {
     uint16_t id;
     uint8_t size;

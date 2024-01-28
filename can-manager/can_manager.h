@@ -18,13 +18,6 @@ typedef struct {
 void print_message(can_manager_message_t *msg);
 #endif
 
-#define CAN_MGR_MAX_CAN_BUSES          2
-#define CAN_MGR_MAX_QUEUE_ELEMENTS     10
-#define CAN_MGR_CAN_WAIT_ENABLED       1
-#define CAN_MGR_FILTER_ERROR_CODE      2
-#define CAN_MGR_CAN_INIT_IT_ERROR_CODE 3
-#define CAN_MGR_CAN_START_ERROR_CODE   4
-
 #define CAN_MGR_ID_CHECK(can_id)                       \
     if (can_id < 0 || can_id >= CAN_MGR_MAX_CAN_BUSES) \
     return 0
