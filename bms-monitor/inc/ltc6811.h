@@ -82,6 +82,13 @@
  */
 #define LTC6811_READ_BUFFER_SIZE(COUNT) ((LTC6811_CMD_BYTE_COUNT) + (LTC6811_PEC_BYTE_COUNT))
 /**
+ * @brief Get the maximum buffer size of the received data from the LTC in bytes
+ *
+ * @param COUNT The total number of LTCs to read from
+ * @return size_t The maximum buffer size (Bytes)
+ */
+#define LTC6811_DATA_BUFFER_SIZE(COUNT) (((LTC6811_REG_BYTE_COUNT) + (LTC6811_PEC_BYTE_COUNT)) * COUNT)
+/**
  * @brief Get the maximum buffer size of an encoded poll command in bytes
  *
  * @param COUNT The total number of LTCs to poll from
