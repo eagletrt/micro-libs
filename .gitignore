@@ -51,5 +51,12 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-.vscode/
+# Compilation folders
+build/
+.cache/
 
+# Miscellaneous
+.clang-format
+.vscode/
+.SD_Store
+compile_commands.json
