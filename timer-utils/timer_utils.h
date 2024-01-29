@@ -39,6 +39,14 @@
 #define TIM_TICKS_TO_MS(TIM, TICKS)   (((float)(TICKS) * 1000) / TIM_GET_FREQ((TIM)))
 
 /**
+ * @brief     Get timer max autoreload value
+ * 
+ * @param     htim TIM Handle
+ * @return    Autoreload
+ */
+#define TIM_GET_MAX_AUTORELOAD(TIM) (IS_TIM_32B_COUNTER_INSTANCE((TIM)->Instance) ? UINT32_MAX : UINT16_MAX)
+
+/**
  * @brief     Get timer clock
  * 
  * @param     htim TIM Handle
