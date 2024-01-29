@@ -3,15 +3,16 @@
 This repository contains a collection of libraries targeted for microcontrollers.
 
 Each library has the following folder structure:
-    - `src/`
-        - `*.c`
-    - `inc/`
-        - `*.h`
-    - `test/`
-        - `test-*.c`
-        - `Makefile`
-    - `README.md`
+- `src/`
+  - `*.c`
+- `inc/`
+  - `*.h`
+- `test/`
+  - `test-*.c`
+  - `Makefile`
+- `README.md`
 
+\
 The `src` folder contains the source of the library and `inc` the headers. \
 In the `README.md` information about usage and development of the library can be found.
 
