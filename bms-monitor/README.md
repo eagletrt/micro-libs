@@ -17,12 +17,18 @@ For each command there are 1 to 2 possible function:
 1. **Encode** function
 2. **Decode** function
 
+
+## Usage
+
 > [!IMPORTANT]
 > If SPI is used to send and receive commands the Chip Select(CS) line should always be
 > set to low for the entire duration of the trasmission (reception included) and at the
 > end it have to be reset to high
 
-## Encode function
+Based on the configuration of the LTC6811 a different handler between the `Ltc6811Chain` and `Ltc6811Array`
+can be used, in any case remember to initialize it using the appropriate init function and parameters.
+
+### Encode function
 
 To send a command to the LTC it is first needed to call its related encode function
 with the appropriate parameters and, eventually, the payload data to get the bytes to send to the chip. \
@@ -44,7 +50,7 @@ HAL_SPI_Transmit(&hspi, out, byte_count, spi_timeout); // Remember to use 'byte_
 HAL_GPIO_WritePin(CS_GPIO_Port, CS_Pin, PIN_SET);
 ```
 
-## Decode function
+### Decode function
 
 If a read command is sent the payload data bytes can be received via the prefered peripheral (probably SPI) \
 and can be decoded using the decode version of the command function used to read the data.
