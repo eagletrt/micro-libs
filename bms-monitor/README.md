@@ -41,7 +41,7 @@ Ltc6811Cfgr config[LTC_COUNT];
 /* Set configuration data... */
 
 // Encode command data
-uint8_t out[LTC6811_READ_BUFFER_SIZE(LTC_COUNT)];
+uint8_t out[LTC6811_WRITE_BUFFER_SIZE(LTC_COUNT)];
 size_t byte_count = ltc6811_wrcfg_encode_broadcast(&chain, config, out);
 
 // Send bytes
