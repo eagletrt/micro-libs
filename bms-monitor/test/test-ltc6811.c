@@ -1302,6 +1302,13 @@ void check_pladc_encode_broadcast_cmd_pec_bytes() {
     TEST_ASSERT_EQUAL_HEX8_ARRAY(pec, out + LTC6811_CMD_BYTE_COUNT, LTC6811_PEC_BYTE_COUNT);
 }
 
+void check_pladc_check_conversion_running() {
+    TEST_ASSERT_FALSE(ltc6811_pladc_check(0x07));
+}
+void check_pladc_check_conversion_ended() {
+    TEST_ASSERT_TRUE(ltc6811_pladc_check(0xFF));
+}
+
 void check_diagn_encode_broadcast_length() {
     uint8_t out[LTC6811_POLL_BUFFER_SIZE(LTC_COUNT)];
     size_t byte_count = ltc6811_diagn_encode_broadcast(
@@ -1649,6 +1656,10 @@ int main() {
     RUN_TEST(check_pladc_encode_broadcast_length);
     RUN_TEST(check_pladc_encode_broadcast_cmd_bytes);
     RUN_TEST(check_pladc_encode_broadcast_cmd_pec_bytes);
+    
+    // Check ADC conversion status byte
+    RUN_TEST(check_pladc_check_conversion_running);
+    RUN_TEST(check_pladc_check_conversion_ended);
 
     // Diagnose MUX and poll status broadcast encode
     RUN_TEST(check_diagn_encode_broadcast_length);

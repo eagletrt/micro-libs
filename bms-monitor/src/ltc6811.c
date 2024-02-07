@@ -201,6 +201,10 @@ void ltc6811_chain_init(Ltc6811Chain * chain, size_t ltc_count) {
     chain->count = ltc_count;
 }
 
+bool ltc6811_pladc_check(uint8_t byte) {
+    return byte == 0xFF;
+}
+
 size_t ltc6811_wrcfg_encode_broadcast(
     Ltc6811Chain * chain,
     Ltc6811Cfgr * config,

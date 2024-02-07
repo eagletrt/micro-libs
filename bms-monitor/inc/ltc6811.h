@@ -251,6 +251,25 @@ typedef enum {
     LTC6811_CHST_VA,
     LTC6811_CHST_VD
 } Ltc6811Chst;
+/** @brief Discharge timeout values in minutes */
+typedef enum {
+    LTC6811_DCTO_OFF = 0, // Discharge is disabled
+    LTC6811_DCTO_30S,
+    LTC6811_DCTO_1MIN,
+    LTC6811_DCTO_2MIN,
+    LTC6811_DCTO_3MIN,
+    LTC6811_DCTO_4MIN,
+    LTC6811_DCTO_5MIN,
+    LTC6811_DCTO_10MIN,
+    LTC6811_DCTO_15MIN,
+    LTC6811_DCTO_20MIN,
+    LTC6811_DCTO_30MIN,
+    LTC6811_DCTO_40MIN,
+    LTC6811_DCTO_60MIN,
+    LTC6811_DCTO_75MIN,
+    LTC6811_DCTO_90MIN,
+    LTC6811_DCTO_120MIN
+} Ltc6811Dcto;
 
 /** @brief I2C inital communication control bits on write */
 typedef enum {
@@ -370,6 +389,17 @@ typedef struct {
  * @param ltc_count The total number of LTC6811 in the chain
  */
 void ltc6811_chain_init(Ltc6811Chain * chain, size_t ltc_count);
+
+/**
+ * @brief Check if the ADC conversion has ended or not
+ *
+ * @attention Do not pull the Chip Select(CS) high before the conversion has ended
+ * otherwise this command will not work
+ *
+ * @param byte The single byte read after the pladc command
+ * @return bool True if the conversion has ended, false otherwise
+ */
+bool ltc6811_pladc_check(uint8_t byte);
 
 /******************************************/
 /*           BROADCAST COMMANDS           */
@@ -943,6 +973,13 @@ size_t ltc6811_clrstat_encode_broadcast(
  *
  * @attention The 'out' array should be large enough to contain all the encoded bytes
  * Use the LTC6811_POLL_BUFFER_SIZE macro to get the right size for the buffer
+ *
+ * @details To check for the ADC conversion status send the encoded command and
+ * then read a single byte and check the status using the 'ltc6811_pladc_check' function
+ * until it has ended conversion
+ *
+ * @attention Do not pull the Chip Select(CS) high before the conversion has ended
+ * otherwise this command will not work
  *
  * @param chain The LTC6811 broadcast handler
  * @param out The array were the encoded bytes are written
