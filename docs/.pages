@@ -3,3 +3,4 @@ nav:
     - micro-libs.md
     - blinky
     - bms-monitor
+    - can-manager
