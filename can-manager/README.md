@@ -1,0 +1,4 @@
+# CAN-MANAGER
+
+[comment]: <> (EXPLANATION OF THE LIBRARY HERE)
+
