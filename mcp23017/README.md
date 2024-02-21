@@ -4,7 +4,12 @@
 
 - [Datasheet](https://ww1.microchip.com/downloads/aemDocuments/documents/APID/ProductDocuments/DataSheets/MCP23017-Data-Sheet-DS20001952.pdf)
 
-Documentation can be found in file mcp23017.h as comments. See also the examples below.
+This driver provides functions to:
+- [x] Read registers
+- [x] Write registers
+- [x] Configure interrupts on pins
+
+Documentation can be found in the file `mcp23017.h` as comments. See also the examples below.
 
 ### Interrupt
 
@@ -24,7 +29,7 @@ GPIO   -> read_value_on_pin()
 #### Interrupt Logic
 
 There are two interrupt pins: INTA and INTB.
-Bydefault,INTA is associated with GPAn pins (PORTA)
+Bydefault, INTA is associated with GPAn pins (PORTA)
 and INTB is associated with GPBn pins (PORTB).
 Each port has an independent signal which is cleared if
 its associated GPIO or INTCAP register is read.
@@ -35,7 +40,10 @@ the interrupt will only be cleared if both associated registers are read.
 
 > Look at section 3.6.1 of the datasheet for details
 
-## Example
+## Usage
+
+> [!NOTE]
+> The Driver leaves hardware-specific tasks to the end user.
 
 ### Prelude
 
@@ -47,13 +55,13 @@ the interrupt will only be cleared if both associated registers are read.
  * @brief rapresents the MCP23017 device
  */
 typedef struct {
-    I2C_HandleTypeDef *hi2c; ///I2C handle used for communication.
-    uint8_t device_address; ///I2C address of the MCP23017 device.
-    uint8_t i2c_timeout; ///Timeout value for I2C communication in milliseconds
+    I2C_HandleTypeDef *hi2c; /// I2C handle used for communication.
+    uint8_t device_address; /// I2C address of the MCP23017 device.
+    uint8_t i2c_timeout; /// Timeout value for I2C communication in milliseconds
 } MCP23017_t;
 
 MCP23017_t mcp23017 = {
-    .hi2c = //address
+    .hi2c = /// handle
     .device_address = 0x00,
     .i2c_timeout = 1
 }

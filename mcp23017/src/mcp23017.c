@@ -27,21 +27,21 @@ void set_interrupt_on_pin(
     uint8_t* intcon_register_value,
     uint8_t* defval_register_value,
     uint8_t* iocon_register_value,
-    uint8_t pin,
+    uint8_t pin_number,
     INTERRUPT_SETTING_t interrupt_setting,
     INTERRUPT_MODE_t interrupt_mode,
     uint8_t compare_value,
     MIRROR_SETTING_t mirros_setting
 ) {
     // enable/disable interrupt on pin
-    set_register_bit(gpinten_register_value, pin, interrupt_setting);
+    set_register_bit(gpinten_register_value, pin_number, interrupt_setting);
     // set interrupt mode on pin
-    set_register_bit(intcon_register_value, pin, interrupt_mode);
+    set_register_bit(intcon_register_value, pin_number, interrupt_mode);
     // if interrupt mode is compare
     if (interrupt_mode == interrupt_mode_compare)
     {
         // set compare value
-        set_register_bit(defval_register_value, pin, compare_value);
+        set_register_bit(defval_register_value, pin_number, compare_value);
     }
     // set mirror setting
     set_register_bit(iocon_register_value, 7, mirros_setting);
