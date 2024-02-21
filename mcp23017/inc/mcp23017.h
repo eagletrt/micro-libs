@@ -12,6 +12,7 @@
 #include <stdint.h>
 
 // MCP23017 Registers Address
+
 #define REGISTER_IODIRA   0x00
 #define REGISTER_IODIRB   0x01
 #define REGISTER_IPOLA    0x02
