@@ -4,3 +4,4 @@ nav:
     - blinky
     - bms-monitor
     - can-manager
+    - mcp23017
