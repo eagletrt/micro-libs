@@ -1,93 +1,154 @@
-# MCP23017 I/O Expander - Driver 
-
-- **Author - Enrico Dalla Croce (Kalsifer-742)**
-- **Date - 30/11/2023**
+# MCP23017 I/O Expander - Driver
 
 ## Documentation
 
 - [Datasheet](https://ww1.microchip.com/downloads/aemDocuments/documents/APID/ProductDocuments/DataSheets/MCP23017-Data-Sheet-DS20001952.pdf)
 
+Documentation can be found in file mcp23017.h as comments. See also the examples below.
 
-### API
+### Interrupt
 
-The number indicates the section of the Datasheet.
+#### Get interrupt info
 
-- [x] 3.5.1 I/O DIRECTION REGISTER (IODIR)
-- [x] 3.5.2 INPUT POLARITY REGISTER (IPOL)
-- [x] 3.5.3 INTERRUPT-ON-CHANGE CONTROL REGISTER (GPINTEN)
-- [x] 3.5.4 DEFAULT COMPARE REGISTER FOR INTERRUPT-ON-CHANGE (DEFVAL)
-- [x] 3.5.5 INTERRUPT CONTROL REGISTER (INTCON)
-- [x] 3.5.6 CONFIGURATION REGISTER (IOCON)
-- [x] 3.5.7 PULL-UP RESISTOR CONFIGURATION REGISTER (GPPU)
-- [x] 3.5.8 INTERRUPT FLAG REGISTER (INTF)
-- [x] 3.5.9 INTERRUPT CAPTURED REGISTER (INTCAP)
-- [x] 3.5.10 PORT REGISTER (GPIO)
-- [x] 3.5.11 OUTPUT LATCH REGISTER (OLAT)
+The INTCAP register captures the GPIO port value at
+the time the interrupt occurred. The register is
+read-only and is updated only when an interrupt
+occurs. The register remains unchanged until the
+interrupt is cleared via a read of INTCAP or GPIO.
 
-### Notes
+INTCAP -> get_interrupt_value_on_pin()
+GPIO   -> read_value_on_pin()
 
-#### Usage
+> Look at section 3.5.9 of the datasheet for details
 
-Documentation can be found in file `mcp23017.h` as comments.
+#### Interrupt Logic
 
-#### Implementation
+There are two interrupt pins: INTA and INTB.
+Bydefault,INTA is associated with GPAn pins (PORTA)
+and INTB is associated with GPBn pins (PORTB).
+Each port has an independent signal which is cleared if
+its associated GPIO or INTCAP register is read.
 
-An idea at the beginning was to use [bit-fields](https://en.cppreference.com/w/c/language/bit_field). Unfortunately it's not a viable solution because the [layout in memory is compiler dependant](https://stackoverflow.com/questions/15136426/memory-layout-of-struct-having-bitfields).
-There are ways around this but in the end I decided to scrap the idea entirely.
-I leave this information here for future developers.
+IMPORTANT:
+If INTn pin pins are configured to mirror each other
+the interrupt will only be cleared if both associated registers are read.
 
-##### In depth explanation:
+> Look at section 3.6.1 of the datasheet for details
 
-The idea is to represent a register as a bit-field struct where each member contains the value of the corresponding bit. In this way, it becomes straightforward to modify or read individual bits:
+## Example
 
-- To edit: `struct_name.bit_3 = 1;`
-- To read: `type variable_name = struct_name.bit_3;`
-
-To write the modifications to the device, you could convert the struct to a uint8_t through a cast, as each of its fields occupies 1 bit. At this point, you can proceed normally by writing to the device's register through I2C.
-Unfortunately, the memory layout of the struct and its members depends on the compiler.
-
-Example:
+### Prelude
 
 ```C
-BYTE_t register = {
-    .bit_0 = 1,
-    .bit_1 = 0,
-    .bit_2 = 1,
-    .bit_3 = 0,
-    .bit_4 = 0,
-    .bit_5 = 0,
-    .bit_6 = 1,
-    .bit_7 = 1
+#include <stdint.h>
+
+/**
+ * @struct MCP23017_t
+ * @brief rapresents the MCP23017 device
+ */
+typedef struct {
+    I2C_HandleTypeDef *hi2c; ///I2C handle used for communication.
+    uint8_t device_address; ///I2C address of the MCP23017 device.
+    uint8_t i2c_timeout; ///Timeout value for I2C communication in milliseconds
+} MCP23017_t;
+
+MCP23017_t mcp23017 = {
+    .hi2c = //address
+    .device_address = 0x00,
+    .i2c_timeout = 1
 }
 ```
 
-I expect to find 10100011 in memory, and cast it to 163.
-However, it's not guaranteed that the values in memory are arranged as in the struct.
-
----
-
-Some other code as an example
-
+### Read
 
 ```C
-typedef struct {
-    unsigned int bit_0 : 1,
-    bit_1 : 1,
-    bit_2 : 1,
-    bit_3 : 1,
-    bit_4 : 1,
-    bit_5 : 1,
-    bit_6 : 1,
-    bit_7 : 1;
-} BYTE_t;
+uint8_t register_value;
 
-typedef struct {
-    BYTE_t value;
-    uint8_t address;
-} REGISTER_t;
+HAL_StatusTypeDef HAL_Status = HAL_I2C_Mem_Read(
+    mcp23017.hi2c, 
+    mcp23017.device_address, 
+    REGISTER_GPIOA,
+    MCP23017_I2C_SIZE, 
+    &register_value, 
+    MCP23017_I2C_SIZE, 
+    mcp23017.i2c_timeout
+);
 
-struct REGISTERS {
-    REGISTER_t IODIRA,
-    ...
-};
+uint8_t bit_value = get_register_bit(register_value, 3);
+```
+
+### Write
+
+```C
+uint8_t register_value; //previously read value
+
+set_register_bit(&register_value, 3, 1);
+
+HAL_StatusTypeDef HAL_Status = HAL_I2C_Mem_Write(
+    mcp23017.hi2c, 
+    mcp23017.device_address, 
+    REGISTER_GPIOA,
+    MCP23017_I2C_SIZE,
+    &register_value, 
+    MCP23017_I2C_SIZE, 
+    mcp23017.i2c_timeout
+);
+```
+
+### Interrupt
+
+```C
+uint8_t gpinten_register_value;
+uint8_t intcon_register_value;
+uint8_t defval_register_value;
+uint8_t iocon_register_value;
+
+set_interrupt_on_pin(
+    &gpinten_register_value,
+    &intcon_register_value,
+    &defval_register_value,
+    &iocon_register_value,
+    1,
+    interrupt_setting_enabled,
+    interrupt_mode_compare,
+    1,
+    interrupt_mirror_enabled
+);
+
+HAL_StatusTypeDef HAL_Status = HAL_I2C_Mem_Write(
+    mcp23017.hi2c, 
+    mcp23017.device_address, 
+    REGISTER_GPIOA,
+    MCP23017_I2C_SIZE,
+    &gpinten_register_value, 
+    MCP23017_I2C_SIZE, 
+    mcp23017.i2c_timeout
+);
+HAL_StatusTypeDef HAL_Status = HAL_I2C_Mem_Write(
+    mcp23017.hi2c, 
+    mcp23017.device_address, 
+    REGISTER_GPIOA,
+    MCP23017_I2C_SIZE,
+    &defval_register_value, 
+    MCP23017_I2C_SIZE, 
+    mcp23017.i2c_timeout
+);
+HAL_StatusTypeDef HAL_Status = HAL_I2C_Mem_Write(
+    mcp23017.hi2c, 
+    mcp23017.device_address, 
+    REGISTER_GPIOA,
+    MCP23017_I2C_SIZE,
+    &iocon_register_value, 
+    MCP23017_I2C_SIZE, 
+    mcp23017.i2c_timeout
+);
+HAL_StatusTypeDef HAL_Status = HAL_I2C_Mem_Write(
+    mcp23017.hi2c, 
+    mcp23017.device_address, 
+    REGISTER_GPIOA,
+    MCP23017_I2C_SIZE,
+    &register_value, 
+    MCP23017_I2C_SIZE, 
+    mcp23017.i2c_timeout
+);
 ```
