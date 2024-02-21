@@ -50,7 +50,7 @@ void blinky_reset(Blinky * b) {
 
 BlinkyState blinky_routine(Blinky * b, uint32_t t) {
     if (b == NULL || b->pattern == NULL) return BLINKY_LOW;
-    if (!b->enable) return BLINKY_LOW;
+    if (!b->enable) return b->state;
 
     // Check if state has to be changed
     if (t - b->t >= b->pattern[b->index]) {
