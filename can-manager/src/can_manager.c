@@ -23,7 +23,8 @@ enum can_mgr_errors {
 
 CAN_HandleTypeDef *_can_mgr_peripherals[CAN_MGR_N_CAN];
 int _can_mgr_fifo_assignment[CAN_MGR_TOTAL_CAN_RX_FIFOS];
-can_mgr_msg_t *can_mgr_msg_states[CAN_MGR_N_CAN];
+can_mgr_msg_t *_can_mgr_msg_states[CAN_MGR_N_CAN];
+uint8_t *_can_mgr_is_new_message[CAN_MGR_N_CAN];
 int _can_mgr_msg_states_sizes[CAN_MGR_N_CAN];
 
 int _can_mgr_current_can_counter = 0;
@@ -53,10 +54,11 @@ int can_mgr_init(CAN_HandleTypeDef *hcan) {
  * farlo anche a livello hardware con i filtri)
  * Con NULL ci si aspetta state_size == 0
  */
-int can_mgr_config(int can_id, CAN_FilterTypeDef *hfilter, uint32_t its, uint32_t rx_fifo_assignment, can_mgr_msg_t *message_states, size_t message_states_size) {
+int can_mgr_config(int can_id, CAN_FilterTypeDef *hfilter, uint32_t its, uint32_t rx_fifo_assignment, can_mgr_msg_t *message_states, uint8_t *message_is_new, size_t message_states_size) {
   CAN_MGR_ID_CHECK(can_id);
   _can_mgr_fifo_assignment[rx_fifo_assignment] = can_id;
-  can_mgr_msg_states[can_id] = message_states;
+  _can_mgr_msg_states[can_id] = message_states;
+  _can_mgr_is_new_message[can_id] = message_is_new;
   _can_mgr_msg_states_sizes[can_id] = message_states_size;
 #ifdef CAN_MGR_STM32_APPLICATION
   if (hfilter != NULL) {
@@ -121,12 +123,19 @@ int can_mgr_send(int can_id, can_mgr_msg_t *msg) {
   return 0;
 }
 
+can_mgr_msg_t **get_can_mgr_states(void) {
+  return _can_mgr_msg_states;
+}
+
 // User-defined function
 int can_mgr_from_id_to_index(int can_id, int msg_id);
 
 void _can_mgr_it_callback(CAN_HandleTypeDef *hcan, uint32_t rx_fifo_assignment, can_mgr_msg_t *mock_msg) {
+  /**
+   * TODO: integrate a priority queue to avoid O(n) search of incoming messages
+  */ 
   int can_id = _can_mgr_fifo_assignment[rx_fifo_assignment];
-  if (can_mgr_msg_states[can_id] == NULL) {
+  if (_can_mgr_msg_states[can_id] == NULL) {
     return;
   }
   int msg_id, msg_dlc;
@@ -147,9 +156,9 @@ void _can_mgr_it_callback(CAN_HandleTypeDef *hcan, uint32_t rx_fifo_assignment, 
   } else if (index >= _can_mgr_msg_states_sizes[can_id]) {
     can_mgr_error_code = can_mgr_index_out_of_bound_error;
   } else {
-    can_mgr_msg_states[index]->id = msg_id;
-    can_mgr_msg_states[index]->size = msg_dlc;
-    memcpy(can_mgr_msg_states[index]->data, msg_data, msg_dlc);
+    _can_mgr_msg_states[index]->id = msg_id;
+    _can_mgr_msg_states[index]->size = msg_dlc;
+    memcpy(_can_mgr_msg_states[index]->data, msg_data, msg_dlc);
   }
 }
 

@@ -19,12 +19,11 @@
 #include "main.h"
 #endif
 
-extern can_mgr_msg_t *can_mgr_msg_states[CAN_MGR_N_CAN];
+extern can_mgr_msg_t *_can_mgr_msg_states[CAN_MGR_N_CAN];
 extern int can_mgr_error_code;
 extern HAL_StatusTypeDef can_mgr_hal_code;
 
 int can_mgr_init(CAN_HandleTypeDef *hcan);
-int can_mgr_config(int can_id, CAN_FilterTypeDef *hfilter, uint32_t its, uint32_t rx_fifo_assignment, can_mgr_msg_t *message_states, size_t message_states_size);
-int can_mgr_start(int can_id);
+int can_mgr_config(int can_id, CAN_FilterTypeDef *hfilter, uint32_t its, uint32_t rx_fifo_assignment, can_mgr_msg_t *message_states, uint8_t *message_is_new, size_t message_states_size);
 
 #endif // CAN_MANAGER_H
