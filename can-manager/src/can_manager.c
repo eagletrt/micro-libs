@@ -156,6 +156,7 @@ void _can_mgr_it_callback(CAN_HandleTypeDef *hcan, uint32_t rx_fifo_assignment, 
   } else if (index >= _can_mgr_msg_states_sizes[can_id]) {
     can_mgr_error_code = can_mgr_index_out_of_bound_error;
   } else {
+    _can_mgr_is_new_message[index] = 1;
     _can_mgr_msg_states[index]->id = msg_id;
     _can_mgr_msg_states[index]->size = msg_dlc;
     memcpy(_can_mgr_msg_states[index]->data, msg_data, msg_dlc);
