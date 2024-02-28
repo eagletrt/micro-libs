@@ -25,5 +25,6 @@ extern HAL_StatusTypeDef can_mgr_hal_code;
 
 int can_mgr_init(CAN_HandleTypeDef *hcan);
 int can_mgr_config(int can_id, CAN_FilterTypeDef *hfilter, uint32_t its, uint32_t rx_fifo_assignment, can_mgr_msg_t *message_states, uint8_t *message_is_new, size_t message_states_size);
+void can_mgr_it_callback(CAN_HandleTypeDef *hcan, uint32_t rx_fifo_assignment, can_mgr_msg_t *mock_msg);
 
 #endif // CAN_MANAGER_H

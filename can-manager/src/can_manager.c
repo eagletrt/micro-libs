@@ -123,14 +123,10 @@ int can_mgr_send(int can_id, can_mgr_msg_t *msg) {
   return 0;
 }
 
-can_mgr_msg_t **get_can_mgr_states(void) {
-  return _can_mgr_msg_states;
-}
-
 // User-defined function
 int can_mgr_from_id_to_index(int can_id, int msg_id);
 
-void _can_mgr_it_callback(CAN_HandleTypeDef *hcan, uint32_t rx_fifo_assignment, can_mgr_msg_t *mock_msg) {
+void can_mgr_it_callback(CAN_HandleTypeDef *hcan, uint32_t rx_fifo_assignment, can_mgr_msg_t *mock_msg) {
   /**
    * TODO: integrate a priority queue to avoid O(n) search of incoming messages
   */ 
@@ -152,31 +148,14 @@ void _can_mgr_it_callback(CAN_HandleTypeDef *hcan, uint32_t rx_fifo_assignment, 
 #endif
   int index = can_mgr_from_id_to_index(can_id, msg_id);
   if (index < 0) {
-    // can_mgr_error_code = can_mgr_invalid_msg_index_error;
+    // ignore the message
   } else if (index >= _can_mgr_msg_states_sizes[can_id]) {
     can_mgr_error_code = can_mgr_index_out_of_bound_error;
   } else {
-    _can_mgr_is_new_message[index] = 1;
-    _can_mgr_msg_states[index]->id = msg_id;
-    _can_mgr_msg_states[index]->size = msg_dlc;
-    memcpy(_can_mgr_msg_states[index]->data, msg_data, msg_dlc);
+    _can_mgr_is_new_message[can_id][index] = 1;
+    _can_mgr_msg_states[can_id][index].id = msg_id;
+    _can_mgr_msg_states[can_id][index].size = msg_dlc;
+    memcpy(_can_mgr_msg_states[can_id][index].data, msg_data, msg_dlc);
   }
 }
 
-#if CAN_MGR_TOTAL_CAN_RX_FIFOS > 0
-void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
-  _can_mgr_it_callback(hcan, CAN_RX_FIFO0, NULL);
-}
-#endif
-
-#if CAN_MGR_TOTAL_CAN_RX_FIFOS > 1
-void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan) {
-  _can_mgr_it_callback(hcan, CAN_RX_FIFO1, NULL);
-}
-#endif
-
-#if CAN_MGR_TOTAL_CAN_RX_FIFOS > 2
-void HAL_CAN_RxFifo2MsgPendingCallback(CAN_HandleTypeDef *hcan) {
-  _can_mgr_it_callback(hcan, CAN_RX_FIFO2, NULL);
-}
-#endif
