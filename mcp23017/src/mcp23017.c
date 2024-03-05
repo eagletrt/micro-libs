@@ -26,12 +26,10 @@ void mcp23017_set_it_on_pin(
     uint8_t* gpinten_register_value,
     uint8_t* intcon_register_value,
     uint8_t* defval_register_value,
-    uint8_t* iocon_register_value,
     uint8_t pin_number,
     uint8_t interrupt_setting,
     uint8_t interrupt_mode,
-    uint8_t compare_value,
-    uint8_t mirror_setting
+    uint8_t compare_value
 ) {
     // enable/disable interrupt on pin
     mcp23017_set_register_bit(gpinten_register_value, pin_number, interrupt_setting);
@@ -43,6 +41,26 @@ void mcp23017_set_it_on_pin(
         // set compare value
         mcp23017_set_register_bit(defval_register_value, pin_number, compare_value);
     }
-    // set mirror setting
-    mcp23017_set_register_bit(iocon_register_value, 7, mirror_setting);
+}
+
+void mcp23017_set_it_on_all_pins(
+    uint8_t* gpinten_register_value,
+    uint8_t* intcon_register_value,
+    uint8_t* defval_register_value,
+    uint8_t interrupt_setting,
+    uint8_t interrupt_mode,
+    uint8_t compare_value
+) {
+    for (uint8_t pin_n = 0; pin_n <= MCP23017_PINS_N; pin_n++)
+    {
+        mcp23017_set_it_on_pin(
+            gpinten_register_value,
+            intcon_register_value,
+            defval_register_value,
+            pin_n,
+            interrupt_setting,
+            interrupt_mode,
+            compare_value
+        );
+    }
 }

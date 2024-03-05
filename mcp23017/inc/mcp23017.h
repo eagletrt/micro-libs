@@ -14,7 +14,7 @@
 /**
  * @paragraph MCP23017 Registers Address
  * 
- * Rember that each port have its addresses.
+ * Remember that each port have its addresses.
  */
 
 #define MCP23017_REGISTER_IODIRA   0x00
@@ -44,6 +44,11 @@
 #define MCP23017_REGISTER_OLATB    0x15
 
 #define MCP23017_I2C_SIZE 0x01
+#define MCP23017_PORTA 0x00
+#define MCP23017_PORTB 0x01
+#define MCP23017_PINS_N 0x07
+#define MCP23017_MIRROR_BIT 0x06
+
 #define MCP23017_INT_DISABLED 0x00
 #define MCP23017_INT_ENABLED 0x01
 #define MCP23017_INT_MODE_ON_CHANGE 0x00
@@ -84,23 +89,30 @@ void mcp23017_set_register_bit(uint8_t* register_value, uint8_t index, uint8_t b
  *  - 0: On change. Interrupt triggered on any change on the pin state.
  *  - 1: Compare. Interrupt triggered when the value on the pin differs from the reference value of the pin stored in the DEFVAL register.
  * @param compare_value Reference value for the pin. 0 or 1.
- * @param mirror_setting Mirror setting for the interrupt.
- * Mirror bit setting
- * There is one interrupt pin for each port: INTA and INTB.
- * The mirror bit controls how the pins INTA and INTB behave relative to each other.
- *  - 0: Disabled. Interrups pin are separated. An interrupt on one port activates only the relative pin.
- *  - 1: Enabled. The interrupt pins are mirrored. An interrupt on one port activate both interrupt pins.
  */
 void mcp23017_set_it_on_pin(
     uint8_t* gpinten_register_value,
     uint8_t* intcon_register_value,
     uint8_t* defval_register_value,
-    uint8_t* iocon_register_value,
     uint8_t pin_number,
     uint8_t interrupt_setting,
     uint8_t interrupt_mode,
-    uint8_t compare_value,
-    uint8_t mirror_setting
+    uint8_t compare_value
+);
+
+/**
+ * @brief Sets interrupt settings for all pins of a port
+ * 
+ * The parameters are the same of the mcp23017_set_it_on_pin() function.
+ * The difference is that the setting is applied to every pin.
+*/
+void mcp23017_set_it_on_all_pins(
+    uint8_t* gpinten_register_value,
+    uint8_t* intcon_register_value,
+    uint8_t* defval_register_value,
+    uint8_t interrupt_setting,
+    uint8_t interrupt_mode,
+    uint8_t compare_value
 );
 
 #endif  // MCP23017_H
