@@ -85,6 +85,8 @@ typedef struct {
     void * data;
 } MinHeapInterface;
 
+typedef long ssize_t;
+
 /**
  * @brief Get the number of elements inside the heap
  *
@@ -161,6 +163,16 @@ typedef struct {
  */
 #define min_heap_remove(heap, index, out) _min_heap_remove((MinHeapInterface *)(heap), index, (void *)(out))
 
+/**
+ * @brief Find the index of an item in the heap array
+ * @details This function has linear time complexity, use it wisely
+ *
+ * @param heap The heap handler structure
+ * @param item The item to find
+ * @return ssize_t The index in the heap of the item if found, -1 otherwise
+ */
+#define min_heap_find(heap, item) _min_heap_find((MinHeapInterface *)(heap), (void *)(item))
+
 
 /******************************************/
 /*   DO NOT USE THE FOLLOWING FUNCTIONS   */
@@ -175,6 +187,7 @@ void * _min_heap_peek(MinHeapInterface * heap);
 void _min_heap_clear(MinHeapInterface * heap);
 bool _min_heap_insert(MinHeapInterface * heap, void * item);
 bool _min_heap_remove(MinHeapInterface * heap, size_t index, void * out);
+ssize_t _min_heap_find(MinHeapInterface * heap, void * item);
 
 #endif  // MIN_HEAP_H
 

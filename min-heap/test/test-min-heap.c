@@ -268,6 +268,34 @@ void check_min_heap_remove_down_heapify_data(void) {
     TEST_ASSERT_EQUAL_MEMORY_ARRAY(expected, point_heap.data, point_heap.data_size, 6);
 }
 
+void check_min_heap_find_with_null_heap(void) {
+    int a = 0;
+    TEST_ASSERT_LESS_THAN_INT(0, min_heap_find(NULL, &a));
+}
+void check_min_heap_find_with_null_item(void) {
+    TEST_ASSERT_LESS_THAN_INT(0, min_heap_find(&int_heap, NULL));
+}
+void check_min_heap_find_when_empty(void) {
+    int a = 0;
+    TEST_ASSERT_LESS_THAN_INT(0, min_heap_find(&int_heap, &a));
+}
+void check_min_heap_find_fail(void) {
+    int_heap.size = 3;
+    int_heap.data[0] = 7;
+    int_heap.data[1] = 3;
+    int_heap.data[2] = 6;
+    int a = 2;
+    TEST_ASSERT_LESS_THAN_INT(0, min_heap_find(&int_heap, &a));
+}
+void check_min_heap_find_success(void) {
+    int_heap.size = 3;
+    int_heap.data[0] = 7;
+    int_heap.data[1] = 3;
+    int_heap.data[2] = 6;
+    int a = 3;
+    TEST_ASSERT_EQUAL_size_t(1, min_heap_find(&int_heap, &a));
+}
+
 
 int main() {
     UNITY_BEGIN();
@@ -309,6 +337,12 @@ int main() {
     RUN_TEST(check_min_heap_remove_equal_data);
     RUN_TEST(check_min_heap_remove_up_heapify_data);
     RUN_TEST(check_min_heap_remove_down_heapify_data);
+
+    RUN_TEST(check_min_heap_find_with_null_heap);
+    RUN_TEST(check_min_heap_find_with_null_item);
+    RUN_TEST(check_min_heap_find_when_empty);
+    RUN_TEST(check_min_heap_find_fail);
+    RUN_TEST(check_min_heap_find_success);
 
     UNITY_END();
 }

@@ -23,7 +23,7 @@
 #define MIN_HEAP_CHILD_R(I) ((I) * 2 + 2)
 
 static inline void _min_heap_swap(MinHeapInterface * heap, void * a, void * b) {
-    void * aux = &heap->data + heap->capacity;
+    void * aux = (void *)&heap->data + heap->capacity * heap->data_size;
     memcpy(aux, a, heap->data_size);
     memcpy(a, b, heap->data_size);
     memcpy(b, aux, heap->data_size);
@@ -150,5 +150,16 @@ bool _min_heap_remove(MinHeapInterface * heap, size_t index, void * out) {
             _min_heap_swap(heap, base + index * data_size, base + child * data_size);
     }
     return true;
+}
+
+ssize_t _min_heap_find(MinHeapInterface * heap, void * item) {
+    if (heap == NULL || item == NULL || heap->size == 0)
+        return -1;
+
+    for (size_t i = 0; i < heap->size; ++i) {
+        if (heap->compare(item, (void *)&heap->data + i * heap->data_size) == 0)
+            return i;
+    }
+    return -1;
 }
 
