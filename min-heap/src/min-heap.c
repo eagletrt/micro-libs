@@ -41,7 +41,14 @@ bool _min_heap_is_full(MinHeapInterface * heap) {
     return heap == NULL ? true : heap->size >= heap->capacity;
 }
 
-void * _min_heap_top(MinHeapInterface * heap) {
+bool _min_heap_top(MinHeapInterface * heap, void * out) {
+    if (heap == NULL || out == NULL || heap->size == 0)
+        return false;
+    memcpy(out, &heap->data, heap->data_size);
+    return true;
+}
+
+void * _min_heap_peek(MinHeapInterface * heap) {
     if (heap == NULL || heap->size == 0)
         return NULL;
     return &heap->data;

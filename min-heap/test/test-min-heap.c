@@ -75,17 +75,44 @@ void check_min_heap_full_when_not_full(void) {
     TEST_ASSERT_FALSE(min_heap_is_full(&int_heap));
 }
 
-void check_min_heap_top_with_null(void) {
-    TEST_ASSERT_NULL(min_heap_top(NULL));
+void check_min_heap_top_with_null_heap(void) {
+    int a;
+    TEST_ASSERT_FALSE(min_heap_top(NULL, &a));
+}
+void check_min_heap_top_with_null_item(void) {
+    TEST_ASSERT_FALSE(min_heap_top(&int_heap, NULL));
 }
 void check_min_heap_top_when_empty(void) {
-    TEST_ASSERT_NULL(min_heap_top(&int_heap));
+    int a;
+    TEST_ASSERT_FALSE(min_heap_top(&int_heap, &a));
 }
-void check_min_heap_top_when_not_empty(void) {
+void check_min_heap_top_when_not_empty_return_value(void) {
+    const int val = 7;
+    int_heap.size = 1;
+    int_heap.data[0] = val;
+    int a;
+    TEST_ASSERT_TRUE(min_heap_top(&int_heap, &a));
+}
+void check_min_heap_top_when_not_empty_data(void) {
+    const int val = 7;
+    int_heap.size = 1;
+    int_heap.data[0] = val;
+    int a = 0;
+    min_heap_top(&int_heap, &a);
+    TEST_ASSERT_EQUAL_INT(val, a);
+}
+
+void check_min_heap_peek_with_null(void) {
+    TEST_ASSERT_NULL(min_heap_peek(NULL));
+}
+void check_min_heap_peek_when_empty(void) {
+    TEST_ASSERT_NULL(min_heap_peek(&int_heap));
+}
+void check_min_heap_peek_when_not_empty(void) {
     const int val = 5;
     int_heap.size = 1;
     int_heap.data[0] = val;
-    int * item = (int *)min_heap_top(&int_heap);
+    int * item = (int *)min_heap_peek(&int_heap);
     TEST_ASSERT_NOT_NULL_MESSAGE(item, "The pointer to the first item is NULL");
     TEST_ASSERT_NOT_EQUAL_HEX64_MESSAGE(item, &val, "The address of the item is the same as the input variable");
     TEST_ASSERT_EQUAL_INT_MESSAGE(*item, val, "Value in the int_heap is differen from the input value");
@@ -256,9 +283,15 @@ int main() {
     RUN_TEST(check_min_heap_full_when_full);
     RUN_TEST(check_min_heap_full_when_not_full);
 
-    RUN_TEST(check_min_heap_top_with_null);
+    RUN_TEST(check_min_heap_top_with_null_heap);
+    RUN_TEST(check_min_heap_top_with_null_item);
     RUN_TEST(check_min_heap_top_when_empty);
-    RUN_TEST(check_min_heap_top_when_not_empty);
+    RUN_TEST(check_min_heap_top_when_not_empty_return_value);
+    RUN_TEST(check_min_heap_top_when_not_empty_data);
+
+    RUN_TEST(check_min_heap_peek_with_null);
+    RUN_TEST(check_min_heap_peek_when_empty);
+    RUN_TEST(check_min_heap_peek_when_not_empty);
 
     RUN_TEST(check_min_heap_clear);
 

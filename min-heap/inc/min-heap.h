@@ -34,7 +34,7 @@
  * @param size The number of elements currently inside the heap
  * @param capacity The maximum number of elements that heap can contain
  * @param data The heap data
- * @param compare A pointer to a function that compares two items an returns:
+ * @param compare A pointer to a function that compares two items and returns:
  *     - -1: if the first item is less than the second
  *     -  0: if the items are equal
  *     -  1: if the first item is greater than the second
@@ -112,14 +112,26 @@ typedef struct {
 #define min_heap_is_full(heap) _min_heap_is_full((MinHeapInterface *)(heap))
 
 /**
- * @brief Get the first element in the heap (the minimum)
+ * @brief Get a copy of the first element in the heap (the minimum)
+ * @attention The out variable has to be an address of a variable compatible
+ * with the items in the heap (e.g. int if the heap contains integers)
+ * 
+ * @param heap The heap handler structure
+ * @param out The address of the variable where the copy is stored
+ * @return true If the item was copied correctly, false otherwise
+ */
+#define min_heap_top(heap, out) _min_heap_top((MinHeapInterface *)(heap), (void *)(out))
+
+/**
+ * @brief Get a reference to the first element in the heap (the minimum)
  * @attention The return value can be NULL
- * @attention The returned item is treated as an array of bytes and has to be converted
+ * @attention Keep in mind that the content of the first item in the heap
+ * can change even if the pointer don't
  *
  * @param heap The heap handler structure
- * @return uint8_t ** A pointer to the minimum element
+ * @return void * A pointer to the minimum element
  */
-#define min_heap_top(heap) _min_heap_top((MinHeapInterface *)(heap))
+#define min_heap_peek(heap) _min_heap_peek((MinHeapInterface *)(heap))
 
 /**
  * @brief Clear the heap removing all elements
@@ -143,7 +155,7 @@ typedef struct {
  * @details If 'out' is not NULL the item data is copied into it
  *
  * @param heap The heap handler structure
- * @param index The index of the item to remove in the heap
+ * @param index The index of the item to remove from the heap
  * @param out The removed item (has to be an address)
  * @return bool True if the item is removed correctly, false otherwise
  */
@@ -158,7 +170,8 @@ typedef struct {
 size_t _min_heap_size(MinHeapInterface * heap);
 bool _min_heap_is_empty(MinHeapInterface * heap);
 bool _min_heap_is_full(MinHeapInterface * heap);
-void * _min_heap_top(MinHeapInterface * heap);
+bool _min_heap_top(MinHeapInterface * heap, void * out);
+void * _min_heap_peek(MinHeapInterface * heap);
 void _min_heap_clear(MinHeapInterface * heap);
 bool _min_heap_insert(MinHeapInterface * heap, void * item);
 bool _min_heap_remove(MinHeapInterface * heap, size_t index, void * out);
