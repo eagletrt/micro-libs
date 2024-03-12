@@ -105,6 +105,11 @@ void mcp23017_set_it_on_pin(
  * 
  * The parameters are the same of the mcp23017_set_it_on_pin() function.
  * The difference is that the setting is applied to every pin.
+ * 
+ * If you want to use MCP23017_INT_MODE_ON_CHANGE you need to explicit a compare value for all pins
+ * 
+ * Ex: uint8_t compare_value = 0b11110000
+ * This means that the default value for pin 7-4 is set to 1 and 0 for the rest
 */
 void mcp23017_set_it_on_all_pins(
     uint8_t* gpinten_register_value,

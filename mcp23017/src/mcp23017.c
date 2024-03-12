@@ -60,7 +60,7 @@ void mcp23017_set_it_on_all_pins(
             pin_n,
             interrupt_setting,
             interrupt_mode,
-            compare_value
+            mcp23017_get_register_bit(compare_value, pin_n)
         );
     }
 }

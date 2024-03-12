@@ -129,7 +129,7 @@ void check_mcp23017_set_it_on_all_pins(void) {
         &defval_register_value,
         MCP23017_INT_ENABLED,
         MCP23017_INT_MODE_ON_CHANGE,
-        0
+        0b11111111
     );
     TEST_ASSERT_EQUAL_UINT8(0b11111111, gpinten_register_value);
     TEST_ASSERT_EQUAL_UINT8(0b00000000, intcon_register_value);
@@ -141,11 +141,11 @@ void check_mcp23017_set_it_on_all_pins(void) {
         &defval_register_value,
         MCP23017_INT_ENABLED,
         MCP23017_INT_MODE_COMPARE,
-        1
+        0b00111111
     );
     TEST_ASSERT_EQUAL_UINT8(0b11111111, gpinten_register_value);
     TEST_ASSERT_EQUAL_UINT8(0b11111111, intcon_register_value);
-    TEST_ASSERT_EQUAL_UINT8(0b11111111, defval_register_value);
+    TEST_ASSERT_EQUAL_UINT8(0b00111111, defval_register_value);
 }
 
 void check_set_mirror_bit(void) {
