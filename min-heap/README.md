@@ -38,14 +38,14 @@ MinHeap(struct Point, 2000) point_heap = ...;
 
 Then initialize the heap using the `min_heap_init` macro that requires the same item type
 and capacity given in the declaration as well as a pointer to a function that should compare
-two items of the heap. \
+two items of the heap.
 ```c
 ... = min_heap_init(int, 10, int_compare);
 ... = min_heap_init(double, 7, double_compare);
 ... = min_heap_init(struct Point, 2000, point_compare);
 ```
 
-The compare function signature is as follows: \
+The compare function signature is as follows:
 ```c
 int8_t compare(void * a, void * b);
 ```
