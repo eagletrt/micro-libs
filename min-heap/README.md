@@ -60,8 +60,8 @@ The return value should be:
 For example:
 ```c
 int8_t int_compare(void * a, void * b) {
-    int f = (int)a;
-    int s = (int)b;
+    int f = *(int *)a;
+    int s = *(int *)b;
     if (f < s) return -1;
     return f == s ? 0 : 1;
 }
@@ -77,8 +77,8 @@ Here is a complete example of a minimum heap of integers:
 #include "min-heap.h"
 
 int8_t min_heap_compare_int(void * a, void * b) {
-    int f = (int)a;
-    int s = (int)b;
+    int f = *(int *)a;
+    int s = *(int *)b;
     if (f < s) return -1;
     return f == s ? 0 : 1;
 }
