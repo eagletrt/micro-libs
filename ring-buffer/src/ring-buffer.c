@@ -52,7 +52,7 @@ bool _ring_buffer_push_front(RingBufferInterface * buffer, void * item) {
 
     // Push item in the heap 
     const size_t data_size = buffer->data_size;
-    void * base = (void *)&buffer->data;
+    uint8_t * base = (uint8_t *)&buffer->data;
     memcpy(base + buffer->start * data_size, item, data_size);
 
     ring_buffer_cs_exit();
@@ -77,7 +77,7 @@ bool _ring_buffer_push_back(RingBufferInterface * buffer, void * item) {
 
     // Push item in the heap
     const size_t data_size = buffer->data_size;
-    void * base = (void *)&buffer->data;
+    uint8_t * base = (uint8_t *)&buffer->data;
     memcpy(base + cur * data_size, item, data_size);
     ++buffer->size;
 
@@ -99,7 +99,7 @@ bool _ring_buffer_pop_front(RingBufferInterface * buffer, void * out) {
     // Pop the item from the heap 
     if (out != NULL) {
         const size_t data_size = buffer->data_size;
-        void * base = (void *)&buffer->data;
+        uint8_t * base = (uint8_t *)&buffer->data;
         memcpy(out, base + buffer->start * data_size, data_size);
     }
 
@@ -126,11 +126,11 @@ bool _ring_buffer_pop_back(RingBufferInterface * buffer, void * out) {
 
     // Pop the item from the heap 
     if (out != NULL) {
-        size_t cur = buffer->start + buffer->size;
+        size_t cur = buffer->start + buffer->size - 1;
         if (cur >= buffer->capacity)
             cur -= buffer->capacity;
         const size_t data_size = buffer->data_size;
-        void * base = (void *)&buffer->data;
+        uint8_t * base = (uint8_t *)&buffer->data;
         memcpy(out, base + cur * data_size, data_size);
     }
     --buffer->size;
@@ -153,7 +153,7 @@ bool _ring_buffer_front(RingBufferInterface * buffer, void * out) {
 
     // Copy data
     const size_t data_size = buffer->data_size;
-    void * base = (void *)&buffer->data;
+    uint8_t * base = (uint8_t *)&buffer->data;
     memcpy(out, base + buffer->start * data_size, data_size);
     
     ring_buffer_cs_exit();
@@ -172,11 +172,11 @@ bool _ring_buffer_back(RingBufferInterface * buffer, void * out) {
     }
 
     // Copy data
-    size_t cur = buffer->start + buffer->size;
+    size_t cur = buffer->start + buffer->size - 1;
     if (cur >= buffer->capacity)
         cur -= buffer->capacity;
     const size_t data_size = buffer->data_size;
-    void * base = (void *)&buffer->data;
+    uint8_t * base = (uint8_t *)&buffer->data;
     memcpy(out, base + cur * data_size, data_size);
     
     ring_buffer_cs_exit();
@@ -193,7 +193,7 @@ void * _ring_buffer_peek_front(RingBufferInterface * buffer) {
         ring_buffer_cs_exit();
         return NULL;
     }
-    void * front = (void *)&buffer->data + buffer->start * buffer->data_size;
+    uint8_t * front = (uint8_t *)&buffer->data + buffer->start * buffer->data_size;
 
     ring_buffer_cs_exit();
     return front;
@@ -214,7 +214,7 @@ void * _ring_buffer_peek_back(RingBufferInterface * buffer) {
     size_t cur = buffer->start + buffer->size - 1;
     if (cur >= buffer->capacity)
         cur -= buffer->capacity;
-    void * back = (void *)&buffer->data + cur * buffer->data_size;
+    uint8_t * back = (uint8_t *)&buffer->data + cur * buffer->data_size;
 
     ring_buffer_cs_exit();
     return back;
