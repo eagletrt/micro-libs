@@ -11,6 +11,9 @@
 
 #include <string.h>
 
+__attribute__((weak)) void ring_buffer_cs_enter(void) { }
+__attribute__((weak)) void ring_buffer_cs_exit(void) { }
+
 
 bool _ring_buffer_is_empty(RingBufferInterface * buffer) {
     if (buffer == NULL)
@@ -97,7 +100,7 @@ bool _ring_buffer_pop_front(RingBufferInterface * buffer, void * out) {
     if (out != NULL) {
         const size_t data_size = buffer->data_size;
         void * base = (void *)&buffer->data;
-        memcpy(base + buffer->start * data_size, out, data_size);
+        memcpy(out, base + buffer->start * data_size, data_size);
     }
 
     // Update start and size
@@ -128,7 +131,7 @@ bool _ring_buffer_pop_back(RingBufferInterface * buffer, void * out) {
             cur -= buffer->capacity;
         const size_t data_size = buffer->data_size;
         void * base = (void *)&buffer->data;
-        memcpy(base + cur * data_size, out, data_size);
+        memcpy(out, base + cur * data_size, data_size);
     }
     --buffer->size;
     
@@ -151,7 +154,7 @@ bool _ring_buffer_front(RingBufferInterface * buffer, void * out) {
     // Copy data
     const size_t data_size = buffer->data_size;
     void * base = (void *)&buffer->data;
-    memcpy(base + buffer->start * data_size, out, data_size);
+    memcpy(out, base + buffer->start * data_size, data_size);
     
     ring_buffer_cs_exit();
     return true;
@@ -174,7 +177,7 @@ bool _ring_buffer_back(RingBufferInterface * buffer, void * out) {
         cur -= buffer->capacity;
     const size_t data_size = buffer->data_size;
     void * base = (void *)&buffer->data;
-    memcpy(base + cur * data_size, out, data_size);
+    memcpy(out, base + cur * data_size, data_size);
     
     ring_buffer_cs_exit();
     return true;
@@ -208,7 +211,7 @@ void * _ring_buffer_peek_back(RingBufferInterface * buffer) {
     }
     
     // Calculate index of the element in the buffer
-    size_t cur = buffer->start + buffer->size;
+    size_t cur = buffer->start + buffer->size - 1;
     if (cur >= buffer->capacity)
         cur -= buffer->capacity;
     void * back = (void *)&buffer->data + cur * buffer->data_size;
@@ -221,6 +224,7 @@ void _ring_buffer_clear(RingBufferInterface * buffer) {
     if (buffer == NULL)
         return;
     ring_buffer_cs_enter();
+    buffer->start = 0;
     buffer->size = 0;
     ring_buffer_cs_exit();
 }
