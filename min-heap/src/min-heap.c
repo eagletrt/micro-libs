@@ -23,7 +23,7 @@
 #define MIN_HEAP_CHILD_R(I) ((I) * 2 + 2)
 
 static inline void _min_heap_swap(MinHeapInterface * heap, void * a, void * b) {
-    void * aux = (void *)&heap->data + heap->capacity * heap->data_size;
+    uint8_t * aux = (uint8_t *)&heap->data + heap->capacity * heap->data_size;
     memcpy(aux, a, heap->data_size);
     memcpy(a, b, heap->data_size);
     memcpy(b, aux, heap->data_size);
@@ -66,7 +66,7 @@ bool _min_heap_insert(MinHeapInterface * heap, void * item) {
     // Insert item at the end of the heap
     const size_t data_size = heap->data_size;
     size_t cur = heap->size;
-    void * base = (void *)&heap->data;
+    uint8_t * base = (uint8_t *)&heap->data;
     memcpy(base + cur * data_size, item, data_size);
     ++heap->size;
 
@@ -88,7 +88,7 @@ bool _min_heap_remove(MinHeapInterface * heap, size_t index, void * out) {
         return false;
 
     // Swap the error with the last one in the heap (if not the same)
-    void * base = (void *)&heap->data;
+    uint8_t * base = (uint8_t *)&heap->data;
     const size_t data_size = heap->data_size;
     if (heap->size > 1)
         _min_heap_swap(heap, base + index * data_size, base + (heap->size - 1) * data_size);
@@ -157,7 +157,7 @@ ssize_t _min_heap_find(MinHeapInterface * heap, void * item) {
         return -1;
 
     for (size_t i = 0; i < heap->size; ++i) {
-        if (heap->compare(item, (void *)&heap->data + i * heap->data_size) == 0)
+        if (heap->compare(item, (uint8_t *)&heap->data + i * heap->data_size) == 0)
             return i;
     }
     return -1;

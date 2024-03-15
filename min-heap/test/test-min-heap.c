@@ -1,9 +1,9 @@
 /**
  * @file test-min-int_heap.c
- * @brief 
+ * @brief Unit test functions for the min heap library
  *
  * @date 29 Feb 2024
- * @author Name Surname [your@email.here]
+ * @author Antonio Gelain [antonio.gelain@studenti.unitn.it]
  */
 
 #include "unity.h"
