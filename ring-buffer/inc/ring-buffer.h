@@ -183,7 +183,7 @@ typedef struct {
  * @attention This function is only declared here and should be define within the
  * project using this library
  */
-__attribute__((weak)) void ring_buffer_cs_enter(void);
+void ring_buffer_cs_enter(void);
 
 /**
  * @brief Exit a critical section where multiple threads or interrupts
@@ -191,7 +191,7 @@ __attribute__((weak)) void ring_buffer_cs_enter(void);
  * @attention This function is only declared here and should be define within the
  * project using this library
  */
-__attribute__((weak)) void ring_buffer_cs_exit(void);
+void ring_buffer_cs_exit(void);
 
 /******************************************/
 /*   DO NOT USE THE FOLLOWING FUNCTIONS   */
