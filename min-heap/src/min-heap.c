@@ -146,7 +146,7 @@ bool _min_heap_remove(MinHeapInterface * heap, size_t index, void * out) {
         }
 
         // Check left child
-        if (l < heap->size && heap->compare(base + l * data_size, base + index * data_size))
+        if (l < heap->size && heap->compare(base + l * data_size, base + index * data_size) < 0)
             _min_heap_swap(heap, base + index * data_size, base + child * data_size);
     }
     return true;
