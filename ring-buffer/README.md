@@ -1,0 +1,114 @@
+# RING-BUFFER
+
+A [ring buffer](https://en.wikipedia.org/wiki/Circular_buffer) (also called a *circular buffer*, or *cyclic buffer*) 
+is a [FIFO](https://en.wikipedia.org/wiki/FIFO_(computing_and_electronics)) based data structure
+(like a [queue](https://en.wikipedia.org/wiki/Queue_(abstract_data_type)) for example),
+where the data can be pushed and pulled as if it is a data stream.
+
+This library provide a simple enough implementation of a ring buffer whithout dynamic allocation
+which is also thread and/or interrupt safe
+
+> [!NOTE]
+> The buffer can be thought as an array starting from the left and ending to the right
+> where the items can be pushed or popped from the *front* or the *back*, if pushed from the
+> front the buffer grows to the left, otherwise if pushed to the back it grows to the right
+
+## Usage
+
+To create a ring buffer first declare a variable using the `RingBuffer` macro
+by providing the item type and the maximum number of element of the buffer. \
+For example:
+```c
+RingBuffer(int, 10) int_buf = ...;
+RingBuffer(double, 7) double_buf = ...;
+RingBuffer(struct Point, 2000) point_buf = ...;
+```
+
+Then initialize the buffer using the `ring_buffer_init` macro that requires
+the same item type and capacity given in the declaration.
+```c
+... = ring_buffer_init(int, 10);
+... = ring_buffer_init(double, 7);
+... = ring_buffer_init(struct Point, 2000);
+```
+
+If the functions of the ring buffer are used in a non thread/interrupt safe
+environment the `ring_buffer_cs_enter` and `ring_buffer_cs_exit` must be defined
+by the user.
+
+The `ring_buffer_cs_enter` should work as a lock that need to prevent another thread
+or interrupt to access the same block of code before it has finished execution.
+
+The `ring_buffer_cs_exit` mark the end of the critical section and should resume the other
+thread or interrupts execution.
+
+Here is an example of an implementation to disable, enable and recover interrupts on a
+STM32 microcontroller:
+```c
+uint32_t primask = 0;
+void ring_buffer_cs_enter(void) {
+    primask = __get_PRIMASK();
+    __disable_irq();
+}
+void ring_buffer_cs_exit(void) {
+    if (!primask)
+        __enable_irq();
+}
+```
+
+> [!WARNING]
+> The example above works by disabling **ALL** the interrupts and by recovering
+> the previous state afterwards, this should be used carefully
+
+## Examples
+
+Here is a complete example of a circular buffer of integers:
+```c
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#include "ring-buffer.h"
+
+uint32_t primask = 0;
+void ring_buffer_cs_enter(void) {
+    primask = __get_PRIMASK();
+    __disable_irq();
+}
+void ring_buffer_cs_exit(void) {
+    if (!primask)
+        __enable_irq();
+}
+
+int main(void) {
+    srand(time(NULL));
+    RingBuffer(int, 10) int_buf = ring_buffer_init(int, 10);
+
+    // Push items in the buffer
+    for (int i = 0; i < 5; ++i) {
+        int num = rand() % 100 + 1;
+        ring_buffer_push_back(&int_buf, &num);
+    }
+
+    // Get items and info about the buffer
+    printf("Buffer size: %lu\n", ring_buffer_size(&int_buf));
+    int val = 0;
+    if (ring_buffer_front(&int_buf, &val))
+        printf("Front element: %d\n", val);
+    int * p_val = ring_buffer_peek_back(&int_buf);
+    if (p_val != NULL)
+        printf("Back element: %d\n", *p_val);
+
+    // Remove items from the buffer
+    printf("Values: ");
+    while(!ring_buffer_is_empty(&int_buf)) {
+        if (ring_buffer_pop_back(&int_buf, &val))
+            printf("%d ", val);
+    }
+    printf("\n");
+
+    return 0;
+}
+```
+

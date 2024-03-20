@@ -6,3 +6,5 @@ nav:
     - can-manager
     - mcp23017
     - min-heap
+    - ring-buffer
+
