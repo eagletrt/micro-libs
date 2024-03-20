@@ -5,3 +5,4 @@ nav:
     - bms-monitor
     - can-manager
     - mcp23017
+    - min-heap
