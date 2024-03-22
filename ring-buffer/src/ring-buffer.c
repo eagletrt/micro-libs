@@ -11,9 +11,25 @@
 
 #include <string.h>
 
-__attribute__((weak)) void ring_buffer_cs_enter(void) { }
-__attribute__((weak)) void ring_buffer_cs_exit(void) { }
+void _ring_buffer_cs_dummy(void) { }
 
+void _ring_buffer_init(
+    RingBufferInterface * buffer,
+    size_t data_size,
+    size_t capacity,
+    void (* cs_enter)(void),
+    void (* cs_exit)(void))
+{
+    if (buffer == NULL)
+        return;
+    buffer->start = 0;
+    buffer->size = 0;
+    buffer->data_size = data_size;
+    buffer->capacity = capacity;
+    buffer->cs_enter = cs_enter != NULL ? cs_enter : _ring_buffer_cs_dummy;
+    buffer->cs_exit = cs_exit != NULL ? cs_exit : _ring_buffer_cs_dummy;
+    memset(&buffer->data, 0, capacity);
+}
 
 bool _ring_buffer_is_empty(RingBufferInterface * buffer) {
     if (buffer == NULL)
@@ -37,10 +53,10 @@ bool _ring_buffer_push_front(RingBufferInterface * buffer, void * item) {
     if (buffer == NULL || item == NULL)
         return false;
 
-    ring_buffer_cs_enter();
+    buffer->cs_enter();
 
     if (buffer->size >= buffer->capacity) {
-        ring_buffer_cs_exit();
+        buffer->cs_exit();
         return false;
     }
     
@@ -55,7 +71,7 @@ bool _ring_buffer_push_front(RingBufferInterface * buffer, void * item) {
     uint8_t * base = (uint8_t *)&buffer->data;
     memcpy(base + buffer->start * data_size, item, data_size);
 
-    ring_buffer_cs_exit();
+    buffer->cs_exit();
     return true;
 }
 
@@ -63,10 +79,10 @@ bool _ring_buffer_push_back(RingBufferInterface * buffer, void * item) {
     if (buffer == NULL || item == NULL)
         return false;
 
-    ring_buffer_cs_enter();
+    buffer->cs_enter();
 
     if (buffer->size >= buffer->capacity) {
-        ring_buffer_cs_exit();
+        buffer->cs_exit();
         return false;
     }
 
@@ -81,7 +97,7 @@ bool _ring_buffer_push_back(RingBufferInterface * buffer, void * item) {
     memcpy(base + cur * data_size, item, data_size);
     ++buffer->size;
 
-    ring_buffer_cs_exit();
+    buffer->cs_exit();
     return true;
 }
 
@@ -89,10 +105,10 @@ bool _ring_buffer_pop_front(RingBufferInterface * buffer, void * out) {
     if (buffer == NULL)
         return false;
 
-    ring_buffer_cs_enter();
+    buffer->cs_enter();
 
     if (buffer->size == 0) {
-        ring_buffer_cs_exit();
+        buffer->cs_exit();
         return false;
     }
 
@@ -109,7 +125,7 @@ bool _ring_buffer_pop_front(RingBufferInterface * buffer, void * out) {
         buffer->start = 0;
     --buffer->size;
     
-    ring_buffer_cs_exit();
+    buffer->cs_exit();
     return true;
 }
 
@@ -117,10 +133,10 @@ bool _ring_buffer_pop_back(RingBufferInterface * buffer, void * out) {
     if (buffer == NULL)
         return false;
 
-    ring_buffer_cs_enter();
+    buffer->cs_enter();
 
     if (buffer->size == 0) {
-        ring_buffer_cs_exit();
+        buffer->cs_exit();
         return false;
     }
 
@@ -135,7 +151,7 @@ bool _ring_buffer_pop_back(RingBufferInterface * buffer, void * out) {
     }
     --buffer->size;
     
-    ring_buffer_cs_exit();
+    buffer->cs_exit();
     return true;
 
 }
@@ -144,10 +160,10 @@ bool _ring_buffer_front(RingBufferInterface * buffer, void * out) {
     if (buffer == NULL || out == NULL)
         return false;
 
-    ring_buffer_cs_enter();
+    buffer->cs_enter();
 
     if (buffer->size == 0) {
-        ring_buffer_cs_exit();
+        buffer->cs_exit();
         return false;
     }
 
@@ -156,7 +172,7 @@ bool _ring_buffer_front(RingBufferInterface * buffer, void * out) {
     uint8_t * base = (uint8_t *)&buffer->data;
     memcpy(out, base + buffer->start * data_size, data_size);
     
-    ring_buffer_cs_exit();
+    buffer->cs_exit();
     return true;
 }
 
@@ -164,10 +180,10 @@ bool _ring_buffer_back(RingBufferInterface * buffer, void * out) {
     if (buffer == NULL || out == NULL)
         return false;
 
-    ring_buffer_cs_enter();
+    buffer->cs_enter();
 
     if (buffer->size == 0) {
-        ring_buffer_cs_exit();
+        buffer->cs_exit();
         return false;
     }
 
@@ -179,7 +195,7 @@ bool _ring_buffer_back(RingBufferInterface * buffer, void * out) {
     uint8_t * base = (uint8_t *)&buffer->data;
     memcpy(out, base + cur * data_size, data_size);
     
-    ring_buffer_cs_exit();
+    buffer->cs_exit();
     return true;
 }
 
@@ -187,15 +203,15 @@ void * _ring_buffer_peek_front(RingBufferInterface * buffer) {
     if (buffer == NULL)
         return NULL;
     
-    ring_buffer_cs_enter();
+    buffer->cs_enter();
 
     if (buffer->size == 0) {
-        ring_buffer_cs_exit();
+        buffer->cs_exit();
         return NULL;
     }
     uint8_t * front = (uint8_t *)&buffer->data + buffer->start * buffer->data_size;
 
-    ring_buffer_cs_exit();
+    buffer->cs_exit();
     return front;
 }
 
@@ -203,10 +219,10 @@ void * _ring_buffer_peek_back(RingBufferInterface * buffer) {
     if (buffer == NULL)
         return NULL;
 
-    ring_buffer_cs_enter();
+    buffer->cs_enter();
 
     if (buffer->size == 0) {
-        ring_buffer_cs_exit();
+        buffer->cs_exit();
         return NULL;
     }
     
@@ -216,16 +232,16 @@ void * _ring_buffer_peek_back(RingBufferInterface * buffer) {
         cur -= buffer->capacity;
     uint8_t * back = (uint8_t *)&buffer->data + cur * buffer->data_size;
 
-    ring_buffer_cs_exit();
+    buffer->cs_exit();
     return back;
 }
 
 void _ring_buffer_clear(RingBufferInterface * buffer) {
     if (buffer == NULL)
         return;
-    ring_buffer_cs_enter();
+    buffer->cs_enter();
     buffer->start = 0;
     buffer->size = 0;
-    ring_buffer_cs_exit();
+    buffer->cs_exit();
 }
 

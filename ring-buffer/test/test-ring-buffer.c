@@ -15,8 +15,8 @@ typedef struct {
     float x, y;
 } Point;
 
-RingBuffer(int, 10) int_buf = ring_buffer_init(int, 10);
-RingBuffer(Point, 10) point_buf = ring_buffer_init(Point, 10);
+RingBuffer(int, 10) int_buf = ring_buffer_new(int, 10, NULL, NULL);
+RingBuffer(Point, 10) point_buf = ring_buffer_new(Point, 10, NULL, NULL);
 
 void setUp(void) {
 

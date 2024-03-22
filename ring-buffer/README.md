@@ -6,7 +6,7 @@ is a [FIFO](https://en.wikipedia.org/wiki/FIFO_(computing_and_electronics)) base
 where the data can be pushed and pulled as if it is a data stream.
 
 This library provide a simple enough implementation of a ring buffer whithout dynamic allocation
-which is also thread and/or interrupt safe
+which is also interrupt safe
 
 > [!NOTE]
 > The buffer can be thought as an array starting from the left and ending to the right
@@ -24,33 +24,39 @@ RingBuffer(double, 7) double_buf = ...;
 RingBuffer(struct Point, 2000) point_buf = ...;
 ```
 
-Then initialize the buffer using the `ring_buffer_init` macro that requires
+Then initialize the buffer using the `ring_buffer_new` macro that requires
 the same item type and capacity given in the declaration.
 ```c
-... = ring_buffer_init(int, 10);
-... = ring_buffer_init(double, 7);
-... = ring_buffer_init(struct Point, 2000);
+... = ring_buffer_new(int, 10, cs_enter, cs_exit);
+... = ring_buffer_new(double, 7, cs_enter, cs_exit);
+... = ring_buffer_new(struct Point, 2000, cs_enter, cs_exit);
 ```
 
-If the functions of the ring buffer are used in a non thread/interrupt safe
-environment the `ring_buffer_cs_enter` and `ring_buffer_cs_exit` must be defined
-by the user.
+The following function can also be used to initialize the buffer:
+```c
+ring_buffer_init(&int_buf, int, 10, cs_enter, cs_exit);
+ring_buffer_init(&double_buf, double, 7, cs_enter, cs_exit);
+ring_buffer_init(&point_buf, struct Point, 2000, cs_enter, cs_exit);
+```
 
-The `ring_buffer_cs_enter` should work as a lock that need to prevent another thread
-or interrupt to access the same block of code before it has finished execution.
+The `cs_enter` and `cs_exit` function have to be implemented by the user
+and should define the start and the end of a critical section respectively. \
+With critical section it is intended a block of code in which an interrupt can happen
+causing undefined behaviour with the data modified inside the block.
 
-The `ring_buffer_cs_exit` mark the end of the critical section and should resume the other
-thread or interrupts execution.
+> [!NOTE]
+> `NULL` can be passed in place of the `cs_enter` and `cs_exit` functions, in that case
+> the ring buffer is not guaranteed to always work in case of interrupts
 
 Here is an example of an implementation to disable, enable and recover interrupts on a
 STM32 microcontroller:
 ```c
 uint32_t primask = 0;
-void ring_buffer_cs_enter(void) {
+void cs_enter(void) {
     primask = __get_PRIMASK();
     __disable_irq();
 }
-void ring_buffer_cs_exit(void) {
+void cs_exit(void) {
     if (!primask)
         __enable_irq();
 }
@@ -72,18 +78,18 @@ Here is a complete example of a circular buffer of integers:
 #include "ring-buffer.h"
 
 uint32_t primask = 0;
-void ring_buffer_cs_enter(void) {
+void cs_enter(void) {
     primask = __get_PRIMASK();
     __disable_irq();
 }
-void ring_buffer_cs_exit(void) {
+void cs_exit(void) {
     if (!primask)
         __enable_irq();
 }
 
 int main(void) {
     srand(time(NULL));
-    RingBuffer(int, 10) int_buf = ring_buffer_init(int, 10);
+    RingBuffer(int, 10) int_buf = ring_buffer_new(int, 10, cs_enter, cs_exit);
 
     // Push items in the buffer
     for (int i = 0; i < 5; ++i) {

@@ -27,6 +27,10 @@
  * @param size The current number of elements in the buffer
  * @param data_size The size of a single element in bytes
  * @param capacity The maximum number of elements that the buffer can contain
+ * @param cs_enter A pointer to a function that should avoid interrupts
+ * to happen inside the critical section
+ * @param cs_exit A pointer to a function that should restore the normal functionalities
+ * of the interrupts and mark the end of a critical section
  */
 #define RingBuffer(TYPE, CAPACITY) \
 struct { \
@@ -34,6 +38,8 @@ struct { \
     size_t size; \
     uint16_t data_size; \
     size_t capacity; \
+    void (* cs_enter)(void); \
+    void (* cs_exit)(void); \
     TYPE data[CAPACITY]; \
 }
 
@@ -43,17 +49,21 @@ struct { \
  * used in the structure declaration above
  * @details As an example you can declare and initialize a new ring buffer structure
  * that contains 10 integers as follows:
- *      RingBuffer(int, 10) buf = ring_buffer_init(int, 10);
+ *      RingBuffer(int, 10) buf = ring_buffer_new(int, 10);
  *
  * @param TYPE The data type of the items
  * @param CAPACITY The maximum number of elements of the buffer
+ * @param CS_ENTER A pointer to a function that should manage a critical section (can be NULL)
+ * @param CS_EXIT A pointer to a function that should exit a critical section (can be NULL)
  */
-#define ring_buffer_init(TYPE, CAPACITY) \
+#define ring_buffer_new(TYPE, CAPACITY, CS_ENTER, CS_EXIT) \
 { \
     .start = 0, \
     .size = 0, \
     .data_size = sizeof(TYPE), \
     .capacity = CAPACITY, \
+    .cs_enter = CS_ENTER != NULL ? CS_ENTER : _ring_buffer_cs_dummy, \
+    .cs_exit = CS_EXIT != NULL ? CS_EXIT : _ring_buffer_cs_dummy, \
     .data = { 0 } \
 }
 
@@ -66,8 +76,24 @@ typedef struct {
     size_t size;
     uint16_t data_size;
     size_t capacity;
+    void (* cs_enter)(void);
+    void (* cs_exit)(void);
     void * data;
 } RingBufferInterface;
+
+
+/**
+ * @brief Initialize the buffer
+ * @attention The type and capacity parameters must be the same as the ones
+ * used in the structure declaration above
+ *
+ * @param buffer The buffer hanler structure
+ * @param type The type of the items
+ * @param capacity The maximum number of elements of the buffer
+ * @param cs_enter A pointer to a function that should manage a critical section (can be NULL)
+ * @param cs_exit A pointer to a function that should exit a critical section (can be NULL)
+ */
+#define ring_buffer_init(buffer, type, capacity, cs_enter, cs_exit) _ring_buffer_init((RingBufferInterface *)(buffer), sizeof(type), capacity, cs_enter, cs_exit)
 
 /**
  * @brief Check if the buffer is empty
@@ -177,27 +203,18 @@ typedef struct {
  */
 #define ring_buffer_clear(buffer) _ring_buffer_clear((RingBufferInterface *)(buffer))
 
-/**
- * @brief Enter a critical section where multiple threads or interrupts
- * can cause race condition or similar problems
- * @attention This function is only declared here and should be define within the
- * project using this library
- */
-void ring_buffer_cs_enter(void);
-
-/**
- * @brief Exit a critical section where multiple threads or interrupts
- * can cause race condition or similar problems
- * @attention This function is only declared here and should be define within the
- * project using this library
- */
-void ring_buffer_cs_exit(void);
-
 /******************************************/
 /*   DO NOT USE THE FOLLOWING FUNCTIONS   */
 /*         USE THE MACRO INSTEAD          */
 /******************************************/
 
+void _ring_buffer_init(
+    RingBufferInterface * buffer,
+    size_t data_size,
+    size_t capacity,
+    void (* cs_enter)(void),
+    void (* cs_exit)(void)
+);
 bool _ring_buffer_is_empty(RingBufferInterface * buffer);
 bool _ring_buffer_is_full(RingBufferInterface * buffer);
 size_t _ring_buffer_size(RingBufferInterface * buffer);
@@ -210,6 +227,9 @@ bool _ring_buffer_back(RingBufferInterface * buffer, void * out);
 void * _ring_buffer_peek_front(RingBufferInterface * buffer);
 void * _ring_buffer_peek_back(RingBufferInterface * buffer);
 void _ring_buffer_clear(RingBufferInterface * buffer);
+
+// Function that substitute cs_enter and cs_exit if they are NULL
+void _ring_buffer_cs_dummy(void);
 
 #endif  // RING_BUFFER_H
 
