@@ -36,13 +36,20 @@ MinHeap(double, 7) double_heap = ...;
 MinHeap(struct Point, 2000) point_heap = ...;
 ```
 
-Then initialize the heap using the `min_heap_init` macro that requires the same item type
+Then initialize the heap using the `min_heap_new` macro that requires the same item type
 and capacity given in the declaration as well as a pointer to a function that should compare
 two items of the heap.
 ```c
-... = min_heap_init(int, 10, int_compare);
-... = min_heap_init(double, 7, double_compare);
-... = min_heap_init(struct Point, 2000, point_compare);
+... = min_heap_new(int, 10, int_compare);
+... = min_heap_new(double, 7, double_compare);
+... = min_heap_new(struct Point, 2000, point_compare);
+```
+
+The `min_heap_init` function can also be used to initialize the heap structure as follows:
+```c
+min_heap_init(&int_heap, int, 10, int_compare);
+min_heap_init(&double_heap, double, 7, double_compare);
+min_heap_init(&point_heap, struct Point, 2000, point_compare);
 ```
 
 The compare function signature is as follows:
@@ -85,7 +92,7 @@ int8_t min_heap_compare_int(void * a, void * b) {
 
 int main(void) {
     srand(time(NULL));
-    MinHeap(int, 10) int_heap = min_heap_init(int, 10, min_heap_compare_int);
+    MinHeap(int, 10) int_heap = min_heap_new(int, 10, min_heap_compare_int);
     
     for (int i = 0; i < 5; ++i) {
         int num = rand() % 100 + 1;

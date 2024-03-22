@@ -22,7 +22,7 @@
  *          if (a < b) return -1;
  *          return a == b ? 0 : 1;
  *      }
- *      MinHeap(int, 10) heap = min_heap_init(int, 10, min_heap_compare);
+ *      MinHeap(int, 10) heap = min_heap_new(int, 10, min_heap_compare);
  *
  * @details The last item in the data array is used as swap storage when two items
  * in the array needs to be swapped
@@ -58,13 +58,13 @@ struct { \
  *          if (a < b) return -1;
  *          return a == b ? 0 : 1;
  *      }
- *      MinHeap(int, 10) heap = min_heap_init(int, 10, min_heap_compare);
+ *      MinHeap(int, 10) heap = min_heap_new(int, 10, min_heap_compare);
  *
  * @param TYPE The data type
  * @param CAPACITY The maximum number of elements of the heap
  * @param CMP_CALLBACK The callback function used to compare items in the heap
  */
-#define min_heap_init(TYPE, CAPACITY, CMP_CALLBACK) \
+#define min_heap_new(TYPE, CAPACITY, CMP_CALLBACK) \
 { \
     .data_size = sizeof(TYPE), \
     .size = 0, \
@@ -86,6 +86,22 @@ typedef struct {
 } MinHeapInterface;
 
 typedef long ssize_t;
+
+/**
+ * @brief Initialize the minimum heap structure
+ *
+ * @param heap The min heap structur handler
+ * @param type The type of the items
+ * @param capacity The maximum number of the items in the heap
+ * @param cmp_callback A pointer to a function that should compare two items of the heap
+ */
+#define min_heap_init(heap, type, capacity, cmp_callback) \
+    _min_heap_init( \
+        (MinHeapInterface *)(heap), \
+        sizeof(type), \
+        capacity, \
+        cmp_callback \
+    )
 
 /**
  * @brief Get the number of elements inside the heap
@@ -179,6 +195,12 @@ typedef long ssize_t;
 /*         USE THE MACRO INSTEAD          */
 /******************************************/
 
+void _min_heap_init(
+    MinHeapInterface * heap,
+    size_t data_size,
+    size_t capacity,
+    int8_t (* compare)(void *, void *)
+);
 size_t _min_heap_size(MinHeapInterface * heap);
 bool _min_heap_is_empty(MinHeapInterface * heap);
 bool _min_heap_is_full(MinHeapInterface * heap);

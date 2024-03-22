@@ -29,6 +29,21 @@ static inline void _min_heap_swap(MinHeapInterface * heap, void * a, void * b) {
     memcpy(b, aux, heap->data_size);
 }
 
+void _min_heap_init(
+    MinHeapInterface * heap,
+    size_t data_size,
+    size_t capacity,
+    int8_t (* compare)(void *, void *))
+{
+    if (heap == NULL)
+        return;
+    heap->data_size = data_size;
+    heap->size = 0;
+    heap->capacity = capacity;
+    heap->compare = compare;
+    memset(&heap->data, 0, capacity);
+}
+
 size_t _min_heap_size(MinHeapInterface * heap) {
     return heap == NULL ? 0U : heap->size;
 }

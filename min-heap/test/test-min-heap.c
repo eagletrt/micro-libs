@@ -30,8 +30,8 @@ int8_t min_heap_compare_point(void * f, void * s) {
     return dist_a == dist_b ? 0 : 1;
 }
 
-MinHeap(int, 10) int_heap = min_heap_init(int, 10, min_heap_compare_int);
-MinHeap(Point, 10) point_heap = min_heap_init(Point, 10, min_heap_compare_point);
+MinHeap(int, 10) int_heap = min_heap_new(int, 10, min_heap_compare_int);
+MinHeap(Point, 10) point_heap = min_heap_new(Point, 10, min_heap_compare_point);
 
 void setUp(void) {
 
