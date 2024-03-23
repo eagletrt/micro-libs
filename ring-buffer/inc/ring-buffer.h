@@ -18,7 +18,7 @@
  * @brief Type definiton for the ring buffer handler structure
  * @details As an example you can declare and initialize a new ring buffer structure
  * that contains 10 integers as follows:
- *      RingBuffer(int, 10) buf = ring_buffer_init(int, 10);
+ *      RingBuffer(int, 10) buf = ring_buffer_new(int, 10);
  *
  * @param TYPE The data type of the items
  * @param CAPACITY The maximum number of elements of the buffer

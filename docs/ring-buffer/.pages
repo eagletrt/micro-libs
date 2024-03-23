@@ -1,3 +1,6 @@
 title: Ring buffer
 nav:
     - ring-buffer.md
+    - critical-section.md
+    - buffer-handler.md
+    - operations.md
