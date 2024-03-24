@@ -4,7 +4,7 @@
  * without using timers or blocking code
  *
  * @date 14 Dec 2023
- * @author Antonio Gelain [antonio.gelain2@gmail.com]
+ * @author Antonio Gelain [antonio.gelain@studenti.unitn.it]
  */
 
 #include "blinky.h"
@@ -13,14 +13,16 @@ void blinky_init(
     Blinky * b,
     uint16_t * pattern,
     uint8_t size,
-    bool repeat)
+    bool repeat,
+    BlinkyState state)
 {
     if (b == NULL) return;
     b->pattern = pattern;
     b->t = 0;
     b->index = 0;
     b->size = size;
-    b->state = BLINKY_HIGH;
+    b->initial_state = state;
+    b->state = state;
     b->enable = true;
     b->repeat = repeat;
 }
@@ -35,16 +37,18 @@ void blinky_repeat(Blinky * b, bool repeat) {
     b->repeat = repeat;
 }
 
-void blinky_set_pattern(Blinky * b, uint16_t * pattern) {
+void blinky_set_pattern(Blinky * b, uint16_t * pattern, uint8_t size) {
     if (b == NULL) return;
     b->pattern = pattern;
+    b->size = size;
 }
 
-void blinky_reset(Blinky * b) {
+void blinky_reset(Blinky * b, BlinkyState state) {
     if (b == NULL) return;
     b->t = 0;
     b->index = 0;
-    b->state = BLINKY_HIGH;
+    b->initial_state = state;
+    b->state = state;
     b->enable = true;
 }
 
@@ -65,7 +69,7 @@ BlinkyState blinky_routine(Blinky * b, uint32_t t) {
                 b->enable = false;
 
             b->index = 0;
-            b->state = BLINKY_HIGH;
+            b->state = b->initial_state;
         }
     }
 

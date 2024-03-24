@@ -9,107 +9,146 @@
 #include "unity.h"
 #include "blinky.h"
 
-uint16_t pattern[] = {
+#define PATTERN_SIZE 3
+#define OTHER_PATTERN_SIZE 2
+
+uint16_t pattern[PATTERN_SIZE] = {
     1000,   // HIGH
     1000,   // LOW
     1000    // HIGH
 };
-uint16_t otherPattern[] = { 500, 2500 };
+uint16_t otherPattern[OTHER_PATTERN_SIZE] = { 500, 2500 };
 
 Blinky bOnce;
 Blinky bRepeat;
 
-char * msg_blink_disabled = "Blinker not enabled";
-char * msg_index_reset = "Pattern index not reset correctly";
-
 void setUp(void) {
-    blinky_init(&bOnce, pattern, 3, false);
-    blinky_init(&bRepeat, pattern, 3, true);
+    blinky_init(&bOnce, pattern, PATTERN_SIZE, false, BLINKY_HIGH);
+    blinky_init(&bRepeat, pattern, PATTERN_SIZE, true, BLINKY_HIGH);
 }
 
 void tearDown(void) {
 
 }
 
-void is_blink_enabled(void) {
+void check_blink_initial_state(void) {
+    TEST_ASSERT_EQUAL_INT(BLINKY_HIGH, bOnce.initial_state);
+}
+
+void check_blink_enabled(void) {
     blinky_enable(&bOnce, true);
     TEST_ASSERT_TRUE(bOnce.enable);
 }
-void is_blink_disabled(void) {
+void check_blink_disabled(void) {
     blinky_enable(&bOnce, false);
     TEST_ASSERT_FALSE(bOnce.enable);
 }
 
-void is_blink_repeated(void) {
+void check_blink_repeated(void) {
     blinky_repeat(&bOnce, true);
     TEST_ASSERT_TRUE(bOnce.repeat);
 }
-void is_blink_once(void) {
+void check_blink_once(void) {
     blinky_repeat(&bOnce, false);
     TEST_ASSERT_FALSE(bOnce.repeat);
 }
 
-void is_pattern_set(void) {
-    blinky_set_pattern(&bOnce, otherPattern);
-    TEST_ASSERT_EQUAL_UINT16_ARRAY(otherPattern, bOnce.pattern, 2);
+void check_blink_set_pattern_size(void) {
+    blinky_set_pattern(&bOnce, otherPattern, OTHER_PATTERN_SIZE);
+    TEST_ASSERT_EQUAL_UINT8(OTHER_PATTERN_SIZE, bOnce.size);
+}
+void check_blink_set_pattern_data(void) {
+    blinky_set_pattern(&bOnce, otherPattern, OTHER_PATTERN_SIZE);
+    TEST_ASSERT_EQUAL_UINT16_ARRAY(otherPattern, bOnce.pattern, OTHER_PATTERN_SIZE);
 }
 
-void is_blink_reset(void) {
-    blinky_reset(&bOnce);
-    TEST_ASSERT_EQUAL_INT(BLINKY_HIGH, bOnce.state);
-    TEST_ASSERT_TRUE_MESSAGE(bOnce.enable, msg_blink_disabled);
+void check_blink_reset_time(void) {
+    blinky_reset(&bOnce, BLINKY_LOW);
+    TEST_ASSERT_EQUAL_UINT32(bOnce.t, 0U);
+}
+void check_blink_reset_index(void) {
+    blinky_reset(&bOnce, BLINKY_LOW);
+    TEST_ASSERT_EQUAL_UINT8(bOnce.index, 0U);
+}
+void check_blink_reset_state(void) {
+    blinky_reset(&bOnce, BLINKY_LOW);
+    TEST_ASSERT_EQUAL_INT(bOnce.state, BLINKY_LOW);
+}
+void check_blink_reset_enable(void) {
+    blinky_reset(&bOnce, BLINKY_LOW);
+    TEST_ASSERT_TRUE(bOnce.enable);
 }
 
-void routine_with_null_pattern(void) {
+void check_blink_routine_with_null_handler(void) {
+    TEST_ASSERT_EQUAL_INT(BLINKY_LOW, blinky_routine(NULL, 0));
+}
+void check_blink_routine_with_null_pattern(void) {
     bOnce.pattern = NULL;
     TEST_ASSERT_EQUAL_INT(BLINKY_LOW, blinky_routine(&bOnce, 0));
 }
-void routine_when_disabled(void) {
+void check_blink_routine_when_disabled(void) {
     bOnce.enable = false;
+    bOnce.state = BLINKY_LOW;
     TEST_ASSERT_EQUAL_INT(BLINKY_LOW, blinky_routine(&bOnce, 0));
 }
-void routine_start_high(void) {
+void check_blink_routine_start_high(void) {
     TEST_ASSERT_EQUAL_INT(BLINKY_HIGH, blinky_routine(&bOnce, 0));
 }
-void routine_change_state(void) {
+void check_blink_routine_change_state(void) {
     TEST_ASSERT_EQUAL_INT(BLINKY_HIGH, blinky_routine(&bOnce, 500));
     TEST_ASSERT_EQUAL_INT(BLINKY_LOW, blinky_routine(&bOnce, 1500));
 }
-void routine_is_runned_once(void) {
+void check_blink_routine_runned_once(void) {
     bOnce.index = 2;
     blinky_routine(&bOnce, 999);
     TEST_ASSERT_TRUE(bOnce.enable);
     blinky_routine(&bOnce, 1001);
     TEST_ASSERT_FALSE(bOnce.enable);
 }
-void routine_is_repeated(void) {
+void check_blink_routine_repeated_state(void) {
     bRepeat.index = 2;
     TEST_ASSERT_EQUAL_INT(BLINKY_HIGH, blinky_routine(&bRepeat, 999));
-    TEST_ASSERT_EQUAL_INT(BLINKY_HIGH, blinky_routine(&bRepeat, 1001));
-
-    TEST_ASSERT_TRUE_MESSAGE(bRepeat.enable, msg_blink_disabled);
-    TEST_ASSERT_EQUAL_UINT8_MESSAGE(0, bRepeat.index, msg_index_reset);
+    TEST_ASSERT_EQUAL_INT(bRepeat.initial_state, blinky_routine(&bRepeat, 1001));
+}
+void check_blink_routine_repeated_enable(void) {
+    bRepeat.index = 2;
+    blinky_routine(&bRepeat, 1001);
+    TEST_ASSERT_TRUE(bRepeat.enable);
+}
+void check_blink_routine_repeated_index(void) {
+    bRepeat.index = 2;
+    blinky_routine(&bRepeat, 1001);
+    TEST_ASSERT_EQUAL_UINT8(0, bRepeat.index);
 }
 
 int main() {
     UNITY_BEGIN();
 
-    RUN_TEST(is_blink_enabled);
-    RUN_TEST(is_blink_disabled);
+    RUN_TEST(check_blink_initial_state);
 
-    RUN_TEST(is_blink_repeated);
-    RUN_TEST(is_blink_once);
+    RUN_TEST(check_blink_enabled);
+    RUN_TEST(check_blink_disabled);
 
-    RUN_TEST(is_pattern_set);
+    RUN_TEST(check_blink_repeated);
+    RUN_TEST(check_blink_once);
 
-    RUN_TEST(is_blink_reset);
+    RUN_TEST(check_blink_set_pattern_size);
+    RUN_TEST(check_blink_set_pattern_data);
 
-    RUN_TEST(routine_with_null_pattern);
-    RUN_TEST(routine_when_disabled);
-    RUN_TEST(routine_start_high);
-    RUN_TEST(routine_change_state);
-    RUN_TEST(routine_is_runned_once);
-    RUN_TEST(routine_is_repeated);
+    RUN_TEST(check_blink_reset_time);
+    RUN_TEST(check_blink_reset_index);
+    RUN_TEST(check_blink_reset_state);
+    RUN_TEST(check_blink_reset_enable);
+
+    RUN_TEST(check_blink_routine_with_null_handler);
+    RUN_TEST(check_blink_routine_with_null_pattern);
+    RUN_TEST(check_blink_routine_when_disabled);
+    RUN_TEST(check_blink_routine_start_high);
+    RUN_TEST(check_blink_routine_change_state);
+    RUN_TEST(check_blink_routine_runned_once);
+    RUN_TEST(check_blink_routine_repeated_state);
+    RUN_TEST(check_blink_routine_repeated_enable);
+    RUN_TEST(check_blink_routine_repeated_index);
 
     UNITY_END();
 }

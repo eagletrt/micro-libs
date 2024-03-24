@@ -4,7 +4,7 @@
  * without using timers or blocking code
  *
  * @date 14 Dec 2023
- * @author Antonio Gelain [antonio.gelain2@gmail.com]
+ * @author Antonio Gelain [antonio.gelain@studenti.unitn.it]
  */
 
 #ifndef BLINKY_H
@@ -26,7 +26,7 @@ typedef enum {
  * the size occupied by the struct is the smallest possible.
  * This is due to allignment of the struct bytes
  * 
- * @detail The time unit of measurement is dictated by the time passed to the functions (usually seconds)
+ * @detail The time unit of measurement is dictated by the time passed to the functions (usually milliseconds)
  *
  * @param pattern An array of numbers representing the amount of time the led
  *        should remain in the current state.
@@ -43,6 +43,7 @@ typedef struct {
     uint32_t t;
     uint8_t index;
     uint8_t size;
+    BlinkyState initial_state : 1;
     BlinkyState state : 1;
     bool enable : 1;
     bool repeat : 1;
@@ -56,12 +57,14 @@ typedef struct {
  * @param pattern A pointer to the pattern to execute
  * @param size The length of the pattern
  * @param repeat Wheter to repeat the patter or run only once
+ * @param state The initial state of the led
  */
 void blinky_init(
     Blinky * b,
     uint16_t * pattern,
     uint8_t size,
-    bool repeat
+    bool repeat,
+    BlinkyState state
 );
 
 /**
@@ -85,16 +88,18 @@ void blinky_repeat(Blinky * b, bool repeat);
  *
  * @param b The blinky handler
  * @param pattern The new pattern to set
+ * @param size The length of the pattern
  */
-void blinky_set_pattern(Blinky * b, uint16_t * pattern);
+void blinky_set_pattern(Blinky * b, uint16_t * pattern, uint8_t size);
 
 /**
  * @brief Re-enable and reset blinker
  * @details The repeat option does not change
  *
  * @param b The blinky handler
+ * @param state The inital state of the led
  */
-void blinky_reset(Blinky * b);
+void blinky_reset(Blinky * b, BlinkyState state);
 
 /**
  * @brief Routine to check the state of the led
