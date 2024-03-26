@@ -1,7 +1,4 @@
 # CLI
 
-## Command Line Interface for serial interface.
+[comment]: <> (EXPLANATION OF THE LIBRARY HERE)
 
-### Usage
-
-WIP
