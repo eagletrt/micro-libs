@@ -43,12 +43,18 @@
 #define MCP23017_REGISTER_OLATA    0x14
 #define MCP23017_REGISTER_OLATB    0x15
 
+/**
+ * @paragraph MCP23017 settings
+ */
 #define MCP23017_I2C_SIZE 0x01
-#define MCP23017_PORTA 0x00
-#define MCP23017_PORTB 0x01
+// #define MCP23017_PORTA 0x00
+// #define MCP23017_PORTB 0x01
 #define MCP23017_PINS_N 0x07
 #define MCP23017_MIRROR_BIT 0x06
 
+/**
+ * @paragraph MCP23017 function parameters
+ */
 #define MCP23017_INT_DISABLED 0x00
 #define MCP23017_INT_ENABLED 0x01
 #define MCP23017_INT_MODE_ON_CHANGE 0x00
@@ -60,7 +66,7 @@
  * @brief Get the value of a specific bit of a register
  *
  * @param register_value Value of the register you want to read the bit from.
- * @param index Bit index counted from right to left. range 0-7.
+ * @param index Bit index counted from right to left. range `0-7`.
  * @return Value of the specified bit.
  */
 uint8_t mcp23017_get_register_bit(uint8_t register_value, uint8_t index);
@@ -69,7 +75,7 @@ uint8_t mcp23017_get_register_bit(uint8_t register_value, uint8_t index);
  * @brief Set the value of a specific bit of a register
  *
  * @param register_value Pointer to the value of the register you want to write to.
- * @param index Bit index counted from right to left. range 0-7.
+ * @param index Bit index counted from right to left. range `0-7`.
  * @param bit_value Value to assign to the specified bit.
  */
 void mcp23017_set_register_bit(uint8_t* register_value, uint8_t index, uint8_t bit_value);
@@ -77,18 +83,14 @@ void mcp23017_set_register_bit(uint8_t* register_value, uint8_t index, uint8_t b
 /**
  * @brief Sets interrupt settings for a specific pin.
  *
- * @param gpinten_register_value Pointer to the GPINTEN register value.
- * @param intcon_register_value Pointer to the INTCON register value.
- * @param defval_register_value Pointer to the DEFVAL register value.
- * @param iocon_register_value Pointer to the IOCON register value.
- * @param pin_number Pin number counted from right to left. range 0-7.
- * @param interrupt_setting Interrupt setting for the pin.
- *  - 0: Disabled
- *  - 1: Enabled
- * @param interrupt_mode Interrupt mode for the pin.
- *  - 0: On change. Interrupt triggered on any change on the pin state.
- *  - 1: Compare. Interrupt triggered when the value on the pin differs from the reference value of the pin stored in the DEFVAL register.
- * @param compare_value Reference value for the pin. 0 or 1.
+ * @param gpinten_register_value Pointer to the `GPINTEN` register value.
+ * @param intcon_register_value Pointer to the `INTCON` register value.
+ * @param defval_register_value Pointer to the `DEFVAL` register value.
+ * @param iocon_register_value Pointer to the `IOCON` register value.
+ * @param pin_number Pin number counted from right to left. range `0-7`.
+ * @param interrupt_setting Interrupt setting for the pin. `MCP23017_INT_DISABLED` `MCP23017_INT_ENABLED`.
+ * @param interrupt_mode Interrupt mode for the pin. `MCP23017_INT_MODE_ON_CHANGE`: Interrupt triggered on any change on the pin state. `MCP23017_INT_MODE_COMPARE`: Interrupt triggered when the value on the pin differs from the reference value of the pin stored in the DEFVAL register.
+ * @param compare_value Reference value for the pin. `0` or `1`.
  */
 void mcp23017_set_it_on_pin(
     uint8_t* gpinten_register_value,
@@ -101,15 +103,11 @@ void mcp23017_set_it_on_pin(
 );
 
 /**
- * @brief Sets interrupt settings for all pins of a port
- * 
- * The parameters are the same of the mcp23017_set_it_on_pin() function.
+ * @brief Sets interrupt settings for all pins of a port.
+ * The parameters are the same of the `mcp23017_set_it_on_pin()` function.
  * The difference is that the setting is applied to every pin.
- * 
- * If you want to use MCP23017_INT_MODE_ON_CHANGE you need to explicit a compare value for all pins
- * 
- * Ex: uint8_t compare_value = 0b11110000
- * This means that the default value for pin 7-4 is set to 1 and 0 for the rest
+ * If you want to use `MCP23017_INT_MODE_COMPARE` you need to explicit a compare value for all pins.
+ * Ex: `uint8_t compare_value = 0b11110000` (this means that the default value for pin `7-4` is set to `1` and `0` for the rest)
 */
 void mcp23017_set_it_on_all_pins(
     uint8_t* gpinten_register_value,
