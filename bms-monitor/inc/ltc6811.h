@@ -2,7 +2,7 @@
  * @file ltc6811.h
  * @brief This file contains the functions to communicate with the LTC6811-1 chip
  *
- * @attention For SPI communication with the LTC, mode 3 is required (in CubeMX is CPOL="High" and CPHA="2 edge")
+ * @attention For SPI communication with the LTC, mode 3 is required (in CubeMX is CPOL="Low" and CPHA="2 edge")
  * and the MISO pin has to be set in Pull-Up mode (if it's not set on the hardware side)
  * Maximum SPI communication speed with the LTC is 1MHz
  * 
