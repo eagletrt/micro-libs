@@ -9,6 +9,12 @@ The MCP23017 is an IO expander. Unlike a multiplexer, it aims to emulate the fun
 
 Through access to its registers by the I2C protocol, you can read from and write to the pins, as well as configure the microchip to your requirements.
 
+## Index
+
+- [Documentation](#documentation)
+- [Usage](#usage)
+- [Common Registers](#common-registers)
+
 ## Documentation
 
 - [Datasheet](https://ww1.microchip.com/downloads/aemDocuments/documents/APID/ProductDocuments/DataSheets/MCP23017-Data-Sheet-DS20001952.pdf)
@@ -19,18 +25,6 @@ This driver provides functions to:
 - [x] Write register bits
 - [x] Configure interrupt on a single pin
 - [x] Configure interrupt on multiple pins
-
-> [!IMPORTANT]
-> This drivers makes some assumptions on the device configuration. Please read carefully.
-
-### IOCON Register
-
-#### BANK setting
-
-This drivers assumes that the device is used in the default bank configuration which si BANK = 0
-
-> [!WARNING]
-> Changing che BANK setting brakes compatibility whit this driver
 
 ### Device Address
 
@@ -47,6 +41,28 @@ When calculating the address you have to consider the `R/W` bit set to `0`.
 
 All considered the general address is `0100XXX0`.
 You just need to replace the `X` with `A2`, `A1` and `A0`.
+
+### Registers
+
+The MCP23017 uses 8bit registers. They are replicated for each port.
+So there is the GPIO register for port A called GPIOA and the respective register GPIOB for port B.
+Each bit of the register reflects the status or configuration of a pin.
+
+| bit 7 | 6 | 5 | 4 | 3 | 2 | 1 | bit 0 |
+|---|---|---|---|---|---|---|---|
+| pin 7 | 6 | 5 | 4 | 3 | 2 | 1 | pin 0 |
+
+> [!IMPORTANT]
+> This drivers makes some assumptions on the device configuration. Please read carefully.
+
+#### IOCON
+
+##### BANK setting
+
+This drivers assumes that the device is used in the default bank configuration which si BANK = 0
+
+> [!WARNING]
+> Changing che BANK setting brakes compatibility whit this driver
 
 ### Interrupts
 
@@ -102,7 +118,7 @@ The mirror bit of IOCON register controls how the pins INTA and INTB behave rela
 - [x] Find the device address.
 - [x] Choose a timeout value for the I²C transmissions.
 - [x] Understand what register you need to read from or write to.
-  - the header file contains useful defines for each register.
+  - the header file contains a define for each register address
 - [x] Read a register
   - Using the I²C library from STM, read the register from the peripheral and store the value in a local variable.
   - If you need to know the value of a register for a single pin you can use the dedicated function `mcp23017_get_register_bit()` on the local copy
@@ -260,6 +276,43 @@ void mcp23017_set_it_on_all_pins(
 
 // ... Write to MCP registers by I2C ...
 ```
+
+## Common Registers
+
+### IODIR
+
+Controls the direction of the data I/O.
+
+### GPIO
+
+The GPIO register reflects the value on the port.
+
+### GPINTEN
+
+> [!TIP]
+> This register values can be configured with the dedicated `mcp23017_set_it_on_pin` function.
+
+The GPINTEN register controls the
+interrupt-on-change feature for each pin.
+
+### INTCON
+
+> [!TIP]
+> This register values can be configured with the dedicated `mcp23017_set_it_on_pin` function.
+
+The INTCON register controls how the associated pin
+value is compared for the interrupt-on-change feature.
+
+### DEFVAL
+
+> [!TIP]
+> This register values can be configured with the dedicated `mcp23017_set_it_on_pin` function.
+
+Default value register.
+
+### IOCON
+
+Configuration Register
 
 ### Interrupt Mirror Setting
 
