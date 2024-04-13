@@ -74,6 +74,9 @@ int8_t int_compare(void * a, void * b) {
 }
 ```
 
+The `MinHeapReturnCode` enum is return by most of the functions of this library
+and **should always be checked** before attempting other operations with the data structure.
+
 ## Examples
 
 Here is a complete example of a minimum heap of integers:
@@ -96,20 +99,25 @@ int main(void) {
     
     for (int i = 0; i < 5; ++i) {
         int num = rand() % 100 + 1;
-        min_heap_insert(&int_heap, &num);
+        if (min_heap_insert(&int_heap, &num) != MIN_HEAP_OK)
+            printf("[ERROR]: Cannot insert element in the heap\n");
     }
     printf("Heap size: %lu\n", min_heap_size(&int_heap));
     int min = 0;
-    if (min_heap_top(&int_heap, &min))
+    if (min_heap_top(&int_heap, &min) == MIN_HEAP_OK)
         printf("Minimum element: %d\n", min);
 
     printf("Values: ");
     while(!min_heap_is_empty(&int_heap)) {
         int num;
-        if (min_heap_remove(&int_heap, 0, &num))
+        if (min_heap_remove(&int_heap, 0, &num) == MIN_HEAP_OK)
             printf("%d ", num);
     }
     printf("\n");
+
+    // Clear the heap
+    if (min_heap_clear(&int_heap) != MIN_HEAP_OK)
+        printf("[ERROR]: Cannot clear the heap\n");
     
     return 0;
 }
