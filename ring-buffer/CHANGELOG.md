@@ -1,5 +1,23 @@
 # Change Log
 
+## 13-04-2024
+
+### Added
+
+- Enum with the return codes for the ring buffer functions
+
+### Changed
+
+- Changed the following functions return values to the `RingBufferReturnCode` enum:
+  - `ring_buffer_init`
+  - `ring_buffer_push_front`
+  - `ring_buffer_push_back`
+  - `ring_buffer_pop_front`
+  - `ring_buffer_pop_back`
+  - `ring_buffer_front`
+  - `ring_buffer_back`
+  - `ring_buffer_clear`
+
 ## 22-03-2024
 
 ### Added
