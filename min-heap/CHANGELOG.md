@@ -1,5 +1,11 @@
 # Change Log
 
+## 14-04-2024
+
+### Added
+
+- Makefile utility file
+
 ## 13-04-2024
 
 ### Added
