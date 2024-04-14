@@ -52,6 +52,7 @@ struct { \
  * @brief Min heap structure initialization
  * @attention The TYPE and CAPACITY variables must be the same as the ones
  * in the structure declaration above
+ *
  * @details As an example you can declare and initialize a new heap structure
  * that can contain 10 integers as follows:
  *      int8_t min_heap_compare(int a, int b) {
@@ -59,6 +60,8 @@ struct { \
  *          return a == b ? 0 : 1;
  *      }
  *      MinHeap(int, 10) heap = min_heap_new(int, 10, min_heap_compare);
+ *
+ * @details If the min_heap_init function is used this macro is not needed
  *
  * @param TYPE The data type
  * @param CAPACITY The maximum number of elements of the heap
@@ -100,6 +103,8 @@ typedef long ssize_t;
 
 /**
  * @brief Initialize the minimum heap structure
+ *
+ * @details If the min_heap_new macro is used this function is not needed
  *
  * @param heap The min heap structur handler
  * @param type The type of the items

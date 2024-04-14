@@ -17,8 +17,9 @@ The fields of the handler structure are:
 - `compare`: A pointer to a function that should compare two items of the heap
 - `data`: The actual array of data
 
-The array of data is actually one item bigger than the specified capacity because
-the last element is used as swap space during the heap operations.
+!!! NOTE
+    The array of data is actually one item bigger than the specified capacity because
+    the last element is used as swap space during the heap operations.
 
 The compare function should return `-1` if the value of first item has to be considered
 less than the the value of the second, `0` if they are equal and `1` otherwise.
@@ -34,6 +35,39 @@ via another convenient macro (that have to be used inline) or via the appropriat
 The initialization require the same type and capacity parameters used in the handler
 declaration because they are used to initialize the `data_size` and `capacity` fields,
 as well as the pointer to the compare function.
+
+### Handler definition macros
+
+The `MinHeap` macro is just a shorthand for an **anonymous struct** declaration which
+contains all the data used by the heap as well as a static array of the given type and capacity.
+
+The `min_heap_new` macro works the same as the previous but it expands to a struct
+initialization instead.
+
+To summarize, the following line of code
+```c
+MinHeap(int, 10) heap = min_heap_new(int, 10, int_compare_callback);
+```
+
+can be expanded as follows:
+
+```c
+struct {
+    // Other fields...
+    uint16_t data_size,
+    int8_t (* compare)(void *, void *);
+    int data[10 + 1];
+} heap = {
+    // Other fields...
+    .data_size = sizeof(int),
+    .compare = int_compare_callback,
+    .data = { 0 }
+};
+```
+
+!!! INFO
+    This trick works because **every information can be obtained at compile time**, like
+    the size of the items and the capacity of the array
 
 ## Handler interface
 

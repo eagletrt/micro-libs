@@ -47,9 +47,12 @@ struct { \
  * @brief Ring buffer handler structure initialization
  * @attention The TYPE and CAPACITY parameters must be the same as the ones
  * used in the structure declaration above
+ *
  * @details As an example you can declare and initialize a new ring buffer structure
  * that contains 10 integers as follows:
  *      RingBuffer(int, 10) buf = ring_buffer_new(int, 10);
+ *
+ * @details If the ring_buffer_init function is used this macro is not needed
  *
  * @param TYPE The data type of the items
  * @param CAPACITY The maximum number of elements of the buffer
@@ -96,6 +99,8 @@ typedef enum {
  * @brief Initialize the buffer
  * @attention The type and capacity parameters must be the same as the ones
  * used in the structure declaration above
+ *
+ * @details If the ring_buffer_new macro is used this function is not needed
  *
  * @param buffer The buffer hanler structure
  * @param type The type of the items
