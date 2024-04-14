@@ -16,6 +16,10 @@ Functions and types have been generated with prefix "ucli_"
 #include "ucli_fsm.h"
 
 /*** USER CODE BEGIN GLOBALS ***/
+#include "ucli.h"
+
+RingBuffer(uint8_t, BUFFER_LEN) input_stream_buffer;
+uint8_t command_buffer[BUFFER_LEN];
 
 /*** USER CODE END GLOBALS ***/
 
@@ -80,6 +84,8 @@ ucli_state_t ucli_do_init(ucli_state_data_t *data) {
   
   /*** USER CODE BEGIN DO_INIT ***/
   
+  input_stream_buffer = ring_buffer_new(uint8_t, BUFFER_LEN, NULL, NULL);
+
   /*** USER CODE END DO_INIT ***/
   
   switch (next_state) {
@@ -101,6 +107,14 @@ ucli_state_t ucli_do_idle(ucli_state_data_t *data) {
   
   /*** USER CODE BEGIN DO_IDLE ***/
   
+  if (ucli_is_event_triggered())
+  {
+    ring_buffer_push_back(&input_stream_buffer, ucli_fired_event->byte);
+  }
+
+  //if byte is good put into the buffer
+  //if byte is not good go in drop
+
   /*** USER CODE END DO_IDLE ***/
   
   switch (next_state) {

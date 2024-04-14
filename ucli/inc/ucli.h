@@ -9,7 +9,17 @@
 #ifndef UCLI_H
 #define UCLI_H
 
-// CODE HERE
+#include "ucli_fsm.h"
+#include <stdint.h>
+
+// Features
+#define ENABLE_ECHO 0
+
+// Parameters
+#define BUFFER_LEN 10
+
+void ucli_init(void);
+void ucli_routine(uint8_t* byte);
 
 #endif  // UCLI_H
 
