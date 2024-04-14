@@ -19,8 +19,7 @@ Functions and types have been generated with prefix "ucli_"
 #include "ucli.h"
 #include "ring-buffer.h"
 
-RingBuffer(uint8_t, BUFFER_LEN) input_stream_buffer = ring_buffer_new(uint8_t, BUFFER_LEN, NULL, NULL);
-uint8_t command_buffer[BUFFER_LEN];
+RingBuffer(uint8_t, BUFFER_LEN) command_buffer;
 
 /*** USER CODE END GLOBALS ***/
 
@@ -85,6 +84,8 @@ ucli_state_t ucli_do_init(ucli_state_data_t *data) {
   
   /*** USER CODE BEGIN DO_INIT ***/
 
+  ring_buffer_init(&command_buffer, uint8_t, BUFFER_LEN, NULL, NULL);
+
   /*** USER CODE END DO_INIT ***/
   
   switch (next_state) {
@@ -106,13 +107,35 @@ ucli_state_t ucli_do_idle(ucli_state_data_t *data) {
   
   /*** USER CODE BEGIN DO_IDLE ***/
   
-  if (ucli_is_event_triggered())
-  {
-    ring_buffer_push_back(&input_stream_buffer, ucli_fired_event->byte);
-  }
+    if (ucli_is_event_triggered()) {
+        uint8_t new_byte = ucli_fired_event->byte;
 
-  //if byte is good put into the buffer
-  //if byte is not good go in drop
+        if (ucli_is_valid_char(new_byte))
+        {
+            if (!ring_buffer_is_full(&command_buffer))
+            {
+                ring_buffer_push_back(&command_buffer, &new_byte);
+            } else {
+                next_state = UCLI_STATE_DROP;
+            }
+            
+        } else if (ucli_is_valid_special_char(new_byte)){
+            switch (new_byte) {
+                case SPECIAL_CHAR_BACKSPACE:
+                    ucli_handle_backspace();
+                    break;
+                case SPECIAL_CHAR_LINE_FEED:
+                    ucli_handle_enter();
+                    break;
+                
+                default:
+                    next_state = UCLI_STATE_DROP;
+                    break;
+                }
+        } else {
+            next_state = UCLI_STATE_DROP;
+        }
+    }
 
   /*** USER CODE END DO_IDLE ***/
   
