@@ -17,8 +17,9 @@ Functions and types have been generated with prefix "ucli_"
 
 /*** USER CODE BEGIN GLOBALS ***/
 #include "ucli.h"
+#include "ring-buffer.h"
 
-RingBuffer(uint8_t, BUFFER_LEN) input_stream_buffer;
+RingBuffer(uint8_t, BUFFER_LEN) input_stream_buffer = ring_buffer_new(uint8_t, BUFFER_LEN, NULL, NULL);
 uint8_t command_buffer[BUFFER_LEN];
 
 /*** USER CODE END GLOBALS ***/
@@ -83,8 +84,6 @@ ucli_state_t ucli_do_init(ucli_state_data_t *data) {
   
   
   /*** USER CODE BEGIN DO_INIT ***/
-  
-  input_stream_buffer = ring_buffer_new(uint8_t, BUFFER_LEN, NULL, NULL);
 
   /*** USER CODE END DO_INIT ***/
   
