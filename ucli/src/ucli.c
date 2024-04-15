@@ -67,3 +67,44 @@ void ucli_handle_backspace(void) {
 void ucli_handle_enter(void) {
 
 }
+
+void ucli_command_buffer_init(ucli_command_buffer_t* command_buffer){
+    for (uint8_t i = 0; i < COMMAND_BUFFER_LEN; i++)
+    {
+        command_buffer->data[i] = 0;
+    }
+    command_buffer->head = -1;
+}
+
+bool ucli_command_buffer_is_empty(ucli_command_buffer_t* command_buffer) {
+    return (command_buffer->head == -1);
+}
+
+bool ucli_command_buffer_is_full(ucli_command_buffer_t* command_buffer) {
+    return (command_buffer->head == (COMMAND_BUFFER_LEN - 1));
+}
+
+bool ucli_command_buffer_push(ucli_command_buffer_t* command_buffer, uint8_t new_char) {
+    bool return_value = false;
+    
+    if (!ucli_command_buffer_is_full(command_buffer))
+    {
+        command_buffer->head++;
+        command_buffer->data[command_buffer->head] = new_char;
+        return_value = true;
+    }
+
+    return return_value;
+}
+
+uint8_t ucli_command_buffer_pop(ucli_command_buffer_t* command_buffer) {
+    uint8_t return_value = -1;
+    
+    if (!ucli_command_buffer_is_empty(command_buffer))
+    {
+        return_value = command_buffer->data[command_buffer->head];
+        command_buffer->head--;
+    }
+
+    return return_value;
+}

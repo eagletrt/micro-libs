@@ -16,7 +16,8 @@
 #define ENABLE_ECHO 0
 
 // Parameters
-#define BUFFER_LEN 10
+#define INPUT_UFFER_LEN 10
+#define COMMAND_BUFFER_LEN 10
 
 typedef enum {
     SPECIAL_CHAR_CTRL_C = 3,
@@ -25,6 +26,11 @@ typedef enum {
     SPECIAL_CHAR_CARRIAGE_RETURN = 13,
     SPECIAL_CHAR_N = 4
 } SPECIAL_CHAR;
+
+typedef struct {
+    uint8_t data[COMMAND_BUFFER_LEN];
+    uint8_t head
+} ucli_command_buffer_t;
 
 void ucli_init(void);
 void ucli_routine(uint8_t* byte);

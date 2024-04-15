@@ -19,7 +19,8 @@ Functions and types have been generated with prefix "ucli_"
 #include "ucli.h"
 #include "ring-buffer.h"
 
-RingBuffer(uint8_t, BUFFER_LEN) command_buffer;
+RingBuffer(uint8_t, INPUT_BUFFER_LEN) input_buffer;
+ucli_command_buffer_t command_buffer;
 
 /*** USER CODE END GLOBALS ***/
 
@@ -84,7 +85,8 @@ ucli_state_t ucli_do_init(ucli_state_data_t *data) {
   
   /*** USER CODE BEGIN DO_INIT ***/
 
-  ring_buffer_init(&command_buffer, uint8_t, BUFFER_LEN, NULL, NULL);
+    ring_buffer_init(&input_buffer, uint8_t, INPUT_BUFFER_LEN, NULL, NULL);
+    ucli_command_buffer_init(&command_buffer);
 
   /*** USER CODE END DO_INIT ***/
   
@@ -109,12 +111,15 @@ ucli_state_t ucli_do_idle(ucli_state_data_t *data) {
   
     if (ucli_is_event_triggered()) {
         uint8_t new_byte = ucli_fired_event->byte;
+        ring_buffer_push_back(&input_buffer, &new_byte);
 
         if (ucli_is_valid_char(new_byte))
         {
-            if (!ring_buffer_is_full(&command_buffer))
+            if (!ucli_command_buffer_is_full(&command_buffer))
             {
-                ring_buffer_push_back(&command_buffer, &new_byte);
+                uint8_t new_char;
+                ring_buffer_pop_back(&input_buffer, &new_char);
+                ucli_command_buffer_push(&command_buffer, new_char); // the result is ignored
             } else {
                 next_state = UCLI_STATE_DROP;
             }
