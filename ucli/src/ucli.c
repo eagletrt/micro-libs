@@ -108,3 +108,7 @@ uint8_t ucli_command_buffer_pop(ucli_command_buffer_t* command_buffer) {
 
     return return_value;
 }
+
+void ucli_command_buffer_flush(ucli_command_buffer_t* command_buffer) {
+    while (ucli_command_buffer_pop(command_buffer) != -1);
+}
