@@ -21,9 +21,13 @@
 #define VALID_CHAR_START 32
 #define VALID_CHAR_END 126
 
+UART_HandleTypeDef* ucli_huart;
 ucli_state_t ucli_state = UCLI_STATE_INIT;
 
-void ucli_init(void) {
+void ucli_init(UART_HandleTypeDef* huart) {
+    //send welcome message
+    ucli_huart = huart;
+
     ucli_state = ucli_run_state(ucli_state, NULL);
 }
 
@@ -60,15 +64,13 @@ bool ucli_is_valid_special_char(uint8_t byte) {
     }
 }
 
-void ucli_handle_backspace(void) {
-
+void ucli_send_backspace() {  
+    HAL_UART_Transmit(ucli_huart, (uint8_t*)SPECIAL_CHAR_BACKSPACE, 1, 10);
+    HAL_UART_Transmit(ucli_huart, (uint8_t*)' ', 1, 10);
+    HAL_UART_Transmit(ucli_huart, (uint8_t*)SPECIAL_CHAR_BACKSPACE, 1, 10);
 }
 
-void ucli_handle_enter(void) {
-
-}
-
-void ucli_command_buffer_init(ucli_command_buffer_t* command_buffer){
+void ucli_command_buffer_init(ucli_command_buffer_t* command_buffer) {
     for (uint8_t i = 0; i < COMMAND_BUFFER_LEN; i++)
     {
         command_buffer->data[i] = 0;
@@ -109,6 +111,6 @@ uint8_t ucli_command_buffer_pop(ucli_command_buffer_t* command_buffer) {
     return return_value;
 }
 
-void ucli_command_buffer_flush(ucli_command_buffer_t* command_buffer) {
-    while (ucli_command_buffer_pop(command_buffer) != -1);
+void ucli_command_buffer_clean(ucli_command_buffer_t* command_buffer) {
+    while (ucli_command_buffer_pop(command_buffer) != -1){}
 }

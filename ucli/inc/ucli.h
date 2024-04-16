@@ -11,12 +11,13 @@
 
 #include "ucli_fsm.h"
 #include <stdint.h>
+#include "main.h"
 
 // Features
 #define ENABLE_ECHO 0
 
 // Parameters
-#define INPUT_UFFER_LEN 10
+#define INPUT_BUFFER_LEN 10
 #define COMMAND_BUFFER_LEN 10
 
 typedef enum {
@@ -29,15 +30,20 @@ typedef enum {
 
 typedef struct {
     uint8_t data[COMMAND_BUFFER_LEN];
-    uint8_t head
+    uint8_t head;
 } ucli_command_buffer_t;
 
-void ucli_init(void);
+void ucli_init(UART_HandleTypeDef* huart);
 void ucli_routine(uint8_t* byte);
 bool ucli_is_valid_char(uint8_t byte);
 bool ucli_is_valid_special_char(uint8_t byte);
-void ucli_handle_backspace(void);
-void ucli_handle_enter(void);
+void ucli_send_backspace(void);
+
+void ucli_command_buffer_init(ucli_command_buffer_t* command_buffer);
+bool ucli_command_buffer_is_empty(ucli_command_buffer_t* command_buffer);
+bool ucli_command_buffer_is_full(ucli_command_buffer_t* command_buffer);
+bool ucli_command_buffer_push(ucli_command_buffer_t* command_buffer, uint8_t new_char);
+uint8_t ucli_command_buffer_pop(ucli_command_buffer_t* command_buffer);
+void ucli_command_buffer_clean(ucli_command_buffer_t* command_buffer);
 
 #endif  // UCLI_H
-

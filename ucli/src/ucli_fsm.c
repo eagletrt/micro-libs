@@ -110,7 +110,7 @@ ucli_state_t ucli_do_idle(ucli_state_data_t *data) {
   /*** USER CODE BEGIN DO_IDLE ***/
   
     if (ucli_is_event_triggered()) {
-        uint8_t new_byte = ucli_fired_event->byte;
+        uint8_t new_byte = *(ucli_fired_event->byte);
         ring_buffer_push_back(&input_buffer, &new_byte);
 
         if (ucli_is_valid_char(new_byte))
@@ -127,10 +127,11 @@ ucli_state_t ucli_do_idle(ucli_state_data_t *data) {
         } else if (ucli_is_valid_special_char(new_byte)){
             switch (new_byte) {
                 case SPECIAL_CHAR_BACKSPACE:
-                    ucli_handle_backspace();
+                    ucli_command_buffer_pop(&command_buffer);
+                    ucli_send_backspace();
                     break;
                 case SPECIAL_CHAR_LINE_FEED:
-                    ucli_handle_enter();
+                    next_state = UCLI_STATE_PARSE;
                     break;
                 
                 default:
@@ -167,7 +168,7 @@ ucli_state_t ucli_do_drop(ucli_state_data_t *data) {
   /*** USER CODE BEGIN DO_DROP ***/
 
     if (ucli_is_event_triggered()) {
-        uint8_t new_byte = ucli_fired_event->byte;
+        uint8_t new_byte = *(ucli_fired_event->byte);
         ring_buffer_push_back(&input_buffer, &new_byte);
 
         if (ucli_is_valid_special_char(new_byte))
@@ -273,7 +274,7 @@ void ucli_drop(ucli_state_data_t *data) {
   
   /*** USER CODE BEGIN DROP ***/
   
-    ucli_command_buffer_flush(&command_buffer);
+    ucli_command_buffer_clean(&command_buffer);
 
   /*** USER CODE END DROP ***/
 }
