@@ -14,27 +14,28 @@
 #include "main.h"
 
 // Features
-#define ENABLE_ECHO 0
+#define ENABLE_ECHO 1
 
 // Parameters
 #define INPUT_BUFFER_LEN 10
 #define COMMAND_BUFFER_LEN 10
 
 typedef enum {
+    SPECIAL_CHAR_NULL = 0,
     SPECIAL_CHAR_CTRL_C = 3,
     SPECIAL_CHAR_BACKSPACE = 8,
     SPECIAL_CHAR_LINE_FEED = 10,
     SPECIAL_CHAR_CARRIAGE_RETURN = 13,
-    SPECIAL_CHAR_N = 4
+    SPECIAL_CHAR_N = 5
 } SPECIAL_CHAR;
 
 typedef struct {
     uint8_t data[COMMAND_BUFFER_LEN];
-    uint8_t head;
+    int8_t head;
 } ucli_command_buffer_t;
 
 void ucli_init(UART_HandleTypeDef* huart);
-void ucli_routine(uint8_t* byte);
+void ucli_routine(uint8_t byte);
 bool ucli_is_valid_char(uint8_t byte);
 bool ucli_is_valid_special_char(uint8_t byte);
 void ucli_send_backspace(void);

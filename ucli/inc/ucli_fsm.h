@@ -34,7 +34,7 @@ typedef void ucli_state_data_t;
 typedef struct {
   
   /*** USER CODE BEGIN EVENT_DATA ***/
-  uint8_t* byte;
+  uint8_t byte;
   /*** USER CODE END EVENT_DATA ***/
 
 } ucli_event_data_t;

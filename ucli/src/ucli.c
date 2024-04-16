@@ -31,14 +31,19 @@ void ucli_init(UART_HandleTypeDef* huart) {
     ucli_state = ucli_run_state(ucli_state, NULL);
 }
 
-void ucli_routine(uint8_t* byte) {
-    if (byte != NULL)
+void ucli_routine(uint8_t byte) {
+    if (byte != SPECIAL_CHAR_NULL)
     {
         ucli_event_data_t event = { byte };
         ucli_event_trigger(&event);
-    }
 
-    ucli_state = ucli_run_state(ucli_state, NULL);
+        ucli_state = ucli_run_state(ucli_state, NULL);
+    }
+    //idea: reset byte status to 0 inside the function
+}
+
+void ucli_send_echo(uint8_t byte) {
+    HAL_UART_Transmit(ucli_huart, &byte, 1, 500);
 }
 
 bool ucli_is_valid_char(uint8_t byte) {
@@ -51,6 +56,7 @@ bool ucli_is_valid_char(uint8_t byte) {
 
 bool ucli_is_valid_special_char(uint8_t byte) {
     switch (byte) {
+        case SPECIAL_CHAR_NULL:
         case SPECIAL_CHAR_CTRL_C:
         case SPECIAL_CHAR_BACKSPACE:
         case SPECIAL_CHAR_LINE_FEED:
@@ -64,10 +70,11 @@ bool ucli_is_valid_special_char(uint8_t byte) {
     }
 }
 
-void ucli_send_backspace() {  
-    HAL_UART_Transmit(ucli_huart, (uint8_t*)SPECIAL_CHAR_BACKSPACE, 1, 10);
-    HAL_UART_Transmit(ucli_huart, (uint8_t*)' ', 1, 10);
-    HAL_UART_Transmit(ucli_huart, (uint8_t*)SPECIAL_CHAR_BACKSPACE, 1, 10);
+void ucli_send_backspace() {
+    uint8_t backspace = SPECIAL_CHAR_BACKSPACE;
+    uint8_t space = 32;
+    HAL_UART_Transmit(ucli_huart, &space, 1, 100);
+    HAL_UART_Transmit(ucli_huart, &backspace, 1, 100);
 }
 
 void ucli_command_buffer_init(ucli_command_buffer_t* command_buffer) {
