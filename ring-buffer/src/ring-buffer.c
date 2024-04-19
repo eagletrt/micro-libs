@@ -67,7 +67,7 @@ RingBufferReturnCode _ring_buffer_push_front(RingBufferInterface * buffer, void 
     --buffer->start;
     ++buffer->size;
 
-    // Push item in the heap 
+    // Push item in the buffer 
     const size_t data_size = buffer->data_size;
     uint8_t * base = (uint8_t *)&buffer->data;
     memcpy(base + buffer->start * data_size, item, data_size);
@@ -92,7 +92,7 @@ RingBufferReturnCode _ring_buffer_push_back(RingBufferInterface * buffer, void *
     if (cur >= buffer->capacity)
         cur -= buffer->capacity;
 
-    // Push item in the heap
+    // Push item in the buffer
     const size_t data_size = buffer->data_size;
     uint8_t * base = (uint8_t *)&buffer->data;
     memcpy(base + cur * data_size, item, data_size);
@@ -113,7 +113,7 @@ RingBufferReturnCode _ring_buffer_pop_front(RingBufferInterface * buffer, void *
         return RING_BUFFER_EMPTY;
     }
 
-    // Pop the item from the heap 
+    // Pop the item from the buffer 
     if (out != NULL) {
         const size_t data_size = buffer->data_size;
         uint8_t * base = (uint8_t *)&buffer->data;
@@ -141,7 +141,7 @@ RingBufferReturnCode _ring_buffer_pop_back(RingBufferInterface * buffer, void * 
         return RING_BUFFER_EMPTY;
     }
 
-    // Pop the item from the heap 
+    // Pop the item from the buffer 
     if (out != NULL) {
         size_t cur = buffer->start + buffer->size - 1;
         if (cur >= buffer->capacity)
