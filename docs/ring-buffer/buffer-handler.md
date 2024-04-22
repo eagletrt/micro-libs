@@ -31,6 +31,41 @@ to the critical section handler functions.
 If the critical section handler functions are `NULL` an empty *dummy* function
 defined inside the library is used instead to avoid null checks.
 
+### Handler definition macros
+
+The `RingBuffer` macro is just a shorthand for an **anonymous struct** declaration which
+contains all the data used by the buffer as well as a static array of the given type and capacity.
+
+The `ring_buffer_new` macro works the same as the previous but it expands to a struct
+initialization instead.
+
+To summarize, the following line of code
+```c
+RingBuffer(int, 10) buf = rin_buffer_new(int, 10, NULL, NULL);
+```
+
+can be expanded as follows:
+
+```c
+struct {
+    // Other fields...
+    uint16_t data_size;
+    void (*cs_enter)(void);
+    void (*cs_exit)(void);
+    int data[10];
+} buf = {
+    // Other fields...
+    .data_size = sizeof(int),
+    .cs_enter = NULL != NULL ? NULL : _ring_buffer_cs_dummy,
+    .cs_exit = NULL != NULL ? NULL : _ring_buffer_cs_dummy,
+    .data = { 0 }
+};
+```
+
+!!! INFO
+    This trick works because **every information can be obtained at compile time**, like
+    the size of the items and the capacity of the array
+
 ## Handler interface
 
 Since the handler structure is anonymous and it is different each time it is defined

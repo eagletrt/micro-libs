@@ -111,7 +111,7 @@ int can_mgr_send(int can_id, can_mgr_msg_t *msg) {
                                 .DLC = msg->size,
                                 .TransmitGlobalTime = DISABLE};
 #if CAN_MGR_CAN_WAIT_ENABLED == 1
-  _can_wait(hcan);
+  _can_mgr_wait(hcan);
 #endif
   uint32_t mlb;
   can_mgr_hal_code = HAL_CAN_AddTxMessage(hcan, &header, msg->data, &mlb);

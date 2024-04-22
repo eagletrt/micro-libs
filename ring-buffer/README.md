@@ -66,6 +66,9 @@ void cs_exit(void) {
 > The example above works by disabling **ALL** the interrupts and by recovering
 > the previous state afterwards, this should be used carefully
 
+The `RingBufferReturnCode` enum is return by most of the functions of this library
+and **should always be checked** before attempting other operations with the data structure.
+
 ## Examples
 
 Here is a complete example of a circular buffer of integers:
@@ -94,13 +97,14 @@ int main(void) {
     // Push items in the buffer
     for (int i = 0; i < 5; ++i) {
         int num = rand() % 100 + 1;
-        ring_buffer_push_back(&int_buf, &num);
+        if (ring_buffer_push_back(&int_buf, &num) != RING_BUFFER_OK)
+            printf("[ERROR]: Cant push element inside the buffer\n");
     }
 
     // Get items and info about the buffer
     printf("Buffer size: %lu\n", ring_buffer_size(&int_buf));
     int val = 0;
-    if (ring_buffer_front(&int_buf, &val))
+    if (ring_buffer_front(&int_buf, &val) == RING_BUFFER_OK)
         printf("Front element: %d\n", val);
     int * p_val = ring_buffer_peek_back(&int_buf);
     if (p_val != NULL)
@@ -109,10 +113,14 @@ int main(void) {
     // Remove items from the buffer
     printf("Values: ");
     while(!ring_buffer_is_empty(&int_buf)) {
-        if (ring_buffer_pop_back(&int_buf, &val))
+        if (ring_buffer_pop_back(&int_buf, &val) == RING_BUFFER_OK)
             printf("%d ", val);
     }
     printf("\n");
+
+    // Clear the buffer
+    if (ring_buffer_clear(&int_buf) != RING_BUFFER_OK)
+        printf("[ERROR]: Cant clear buffer\n");
 
     return 0;
 }

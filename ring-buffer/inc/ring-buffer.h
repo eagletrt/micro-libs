@@ -47,9 +47,12 @@ struct { \
  * @brief Ring buffer handler structure initialization
  * @attention The TYPE and CAPACITY parameters must be the same as the ones
  * used in the structure declaration above
+ *
  * @details As an example you can declare and initialize a new ring buffer structure
  * that contains 10 integers as follows:
  *      RingBuffer(int, 10) buf = ring_buffer_new(int, 10);
+ *
+ * @details If the ring_buffer_init function is used this macro is not needed
  *
  * @param TYPE The data type of the items
  * @param CAPACITY The maximum number of elements of the buffer
@@ -81,17 +84,32 @@ typedef struct {
     void * data;
 } RingBufferInterface;
 
+/**
+ * @brief Enum with all the possible return codes for the ring buffer functions
+ */
+typedef enum {
+    RING_BUFFER_OK,
+    RING_BUFFER_NULL_POINTER,
+    RING_BUFFER_EMPTY,
+    RING_BUFFER_FULL
+} RingBufferReturnCode;
+
 
 /**
  * @brief Initialize the buffer
  * @attention The type and capacity parameters must be the same as the ones
  * used in the structure declaration above
  *
+ * @details If the ring_buffer_new macro is used this function is not needed
+ *
  * @param buffer The buffer hanler structure
  * @param type The type of the items
  * @param capacity The maximum number of elements of the buffer
  * @param cs_enter A pointer to a function that should manage a critical section (can be NULL)
  * @param cs_exit A pointer to a function that should exit a critical section (can be NULL)
+ * @return RingBufferReturnCode
+ *     - RING_BUFFER_NULL if the buffer handler is NULL
+ *     - RING_BUFFER_OK otherwise
  */
 #define ring_buffer_init(buffer, type, capacity, cs_enter, cs_exit) _ring_buffer_init((RingBufferInterface *)(buffer), sizeof(type), capacity, cs_enter, cs_exit)
 
@@ -124,7 +142,10 @@ typedef struct {
  *
  * @param buffer The buffer handler structure
  * @param item A pointer to the item to insert
- * @return bool True if the item is inserted correctly, false otherwise
+ * @return RingBufferReturnCode
+ *     - RING_BUFFER_NULL if the buffer handler or the item are NULL
+ *     - RING_BUFFER_FULL if the buffer is full
+ *     - RING_BUFFER_OK otherwise
  */
 #define ring_buffer_push_front(buffer, item) _ring_buffer_push_front((RingBufferInterface *)(buffer), (void *)(item))
 
@@ -133,7 +154,10 @@ typedef struct {
  *
  * @param buffer The buffer handler structure
  * @param item A pointer to the item to insert
- * @return bool True if the item is inserted correctly, false otherwise
+ * @return RingBufferReturnCode
+ *     - RING_BUFFER_NULL if the buffer handler or the item are NULL
+ *     - RING_BUFFER_FULL if the buffer is full
+ *     - RING_BUFFER_OK otherwise
  */
 #define ring_buffer_push_back(buffer, item) _ring_buffer_push_back((RingBufferInterface *)(buffer), (void *)(item))
 
@@ -143,7 +167,10 @@ typedef struct {
  *
  * @param buffer The buffer handler structure
  * @param out A pointer to a variable where the removed item is copied into
- * @return bool True if the item is removed correctly, false otherwise
+ * @return RingBufferReturnCode
+ *     - RING_BUFFER_NULL if the buffer handler is NULL
+ *     - RING_BUFFER_EMPTY if the buffer is empty
+ *     - RING_BUFFER_OK otherwise
  */
 #define ring_buffer_pop_front(buffer, out) _ring_buffer_pop_front((RingBufferInterface *)(buffer), (void *)(out))
 
@@ -153,7 +180,10 @@ typedef struct {
  *
  * @param buffer The buffer handler structure
  * @param out A pointer to a variable where the removed item is copied into
- * @return bool True if the item is removed correctly, false otherwise
+ * @return RingBufferReturnCode
+ *     - RING_BUFFER_NULL if the buffer handler is NULL
+ *     - RING_BUFFER_EMPTY if the buffer is empty
+ *     - RING_BUFFER_OK otherwise
  */
 #define ring_buffer_pop_back(buffer, out) _ring_buffer_pop_back((RingBufferInterface *)(buffer), (void *)(out))
 
@@ -162,7 +192,10 @@ typedef struct {
  *
  * @param buffer The buffer handler structure
  * @param out A pointer to a variable where the item is copied into
- * @return bool True if the item is copied correctly, false otherwise
+ * @return RingBufferReturnCode
+ *     - RING_BUFFER_NULL if the buffer handler or out are NULL
+ *     - RING_BUFFER_EMPTY if the buffer is empty
+ *     - RING_BUFFER_OK otherwise
  */
 #define ring_buffer_front(buffer, out) _ring_buffer_front((RingBufferInterface *)(buffer), (void *)(out))
 
@@ -171,7 +204,10 @@ typedef struct {
  *
  * @param buffer The buffer handler structure
  * @param out A pointer to a variable where the item is copied into
- * @return bool True if the item is copied correctly, false otherwise
+ * @return RingBufferReturnCode
+ *     - RING_BUFFER_NULL if the buffer handler or out are NULL
+ *     - RING_BUFFER_EMPTY if the buffer is empty
+ *     - RING_BUFFER_OK otherwise
  */
 #define ring_buffer_back(buffer, out) _ring_buffer_back((RingBufferInterface *)(buffer), (void *)(out))
 
@@ -200,6 +236,9 @@ typedef struct {
  * @details The actual data is not erased, only the size is modified
  *
  * @param buffer The buffer handler structure
+ * @return RingBufferReturnCode
+ *     - RING_BUFFER_NULL if the buffer handler is NULL
+ *     - RING_BUFFER_OK otherwise
  */
 #define ring_buffer_clear(buffer) _ring_buffer_clear((RingBufferInterface *)(buffer))
 
@@ -208,7 +247,7 @@ typedef struct {
 /*         USE THE MACRO INSTEAD          */
 /******************************************/
 
-void _ring_buffer_init(
+RingBufferReturnCode _ring_buffer_init(
     RingBufferInterface * buffer,
     size_t data_size,
     size_t capacity,
@@ -218,15 +257,15 @@ void _ring_buffer_init(
 bool _ring_buffer_is_empty(RingBufferInterface * buffer);
 bool _ring_buffer_is_full(RingBufferInterface * buffer);
 size_t _ring_buffer_size(RingBufferInterface * buffer);
-bool _ring_buffer_push_front(RingBufferInterface * buffer, void * item);
-bool _ring_buffer_push_back(RingBufferInterface * buffer, void * item);
-bool _ring_buffer_pop_front(RingBufferInterface * buffer, void * out);
-bool _ring_buffer_pop_back(RingBufferInterface * buffer, void * out);
-bool _ring_buffer_front(RingBufferInterface * buffer, void * out);
-bool _ring_buffer_back(RingBufferInterface * buffer, void * out);
+RingBufferReturnCode _ring_buffer_push_front(RingBufferInterface * buffer, void * item);
+RingBufferReturnCode _ring_buffer_push_back(RingBufferInterface * buffer, void * item);
+RingBufferReturnCode _ring_buffer_pop_front(RingBufferInterface * buffer, void * out);
+RingBufferReturnCode _ring_buffer_pop_back(RingBufferInterface * buffer, void * out);
+RingBufferReturnCode _ring_buffer_front(RingBufferInterface * buffer, void * out);
+RingBufferReturnCode _ring_buffer_back(RingBufferInterface * buffer, void * out);
 void * _ring_buffer_peek_front(RingBufferInterface * buffer);
 void * _ring_buffer_peek_back(RingBufferInterface * buffer);
-void _ring_buffer_clear(RingBufferInterface * buffer);
+RingBufferReturnCode _ring_buffer_clear(RingBufferInterface * buffer);
 
 // Function that substitute cs_enter and cs_exit if they are NULL
 void _ring_buffer_cs_dummy(void);

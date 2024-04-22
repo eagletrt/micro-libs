@@ -11,6 +11,18 @@ The main operations of the ring buffer are:
 2. [Insertion](#insertion)
 3. [Removal](#removal)
 
+## Return code
+
+Most of the functions returns a code that describes if the operation was executed
+succesfully or, in case of failure, what was the general cause of it.
+
+The possible returns code are:
+
+- `RING_BUFFER_OK`: if the operation ended as expected
+- `RING_BUFFER_NULL_POINTER`: if one or more NULL pointers are passed as parameters
+- `RING_BUFFER_EMPTY`: if an operation tries to get or remove an element when the buffer is empty
+- `RING_BUFFER_FULL`: if an operation tries to add an element when the buffer is full
+
 ## Access
 
 There are two possible ways to access the data inside the buffer:
