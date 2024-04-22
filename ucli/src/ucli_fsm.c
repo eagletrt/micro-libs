@@ -19,9 +19,7 @@ Functions and types have been generated with prefix "ucli_"
 #include "ucli.h"
 #include "ring-buffer.h"
 
-RingBuffer(uint8_t, INPUT_BUFFER_LEN) input_buffer; //use only the ring buffer
-ucli_command_buffer_t command_buffer;
-
+RingBuffer(uint8_t, UCLI_BUFFER_LEN) buffer;
 /*** USER CODE END GLOBALS ***/
 
 
@@ -85,8 +83,7 @@ ucli_state_t ucli_do_init(ucli_state_data_t *data) {
   
   /*** USER CODE BEGIN DO_INIT ***/
 
-    ring_buffer_init(&input_buffer, uint8_t, INPUT_BUFFER_LEN, NULL, NULL);
-    ucli_command_buffer_init(&command_buffer);
+    ring_buffer_init(&buffer, char, UCLI_BUFFER_LEN, NULL, NULL);
 
   /*** USER CODE END DO_INIT ***/
   
@@ -110,26 +107,31 @@ ucli_state_t ucli_do_idle(ucli_state_data_t *data) {
   /*** USER CODE BEGIN DO_IDLE ***/
   
     if (ucli_is_event_triggered()) {
-        uint8_t rx_byte = ucli_fired_event->byte;
-        ring_buffer_push_back(&input_buffer, &rx_byte);
+        char c = ucli_fired_event->character;
 
-        if (ucli_is_valid_char(rx_byte))
-        {
-            if (!ucli_command_buffer_is_full(&command_buffer))
+        if (_ucli_get_echo_setting_status()) {
+            _ucli_send_message(&c); // size error because is not null terminated
+        }
+
+        if (_ucli_is_printable_char(c)) {
+            if (ring_buffer_push_back(&buffer, &c) != RING_BUFFER_OK)
             {
-                ucli_command_buffer_push(&command_buffer, rx_byte);
-            } else {
-                ucli_send_error(ucli_error_full_buffer);
+                _ucli_send_message(_ucli_get_error_message(UCLI_ERROR_FULL_BUFFER));
                 next_state = UCLI_STATE_DROP;
             }
-            
-        } else if (ucli_is_valid_special_char(rx_byte)){
-            switch (rx_byte) {
-                case SPECIAL_CHAR_BACKSPACE:
-                    ucli_command_buffer_pop(&command_buffer);
-                    ucli_send_backspace();
+        } else if (_ucli_is_control_char(c)) {
+            switch (c) {
+                case CONTROL_CHAR_BACKSPACE:
+                    if (ring_buffer_pop_back(&buffer, NULL) != RING_BUFFER_EMPTY) {
+                        if (_ucli_get_echo_setting_status()) {
+                            _ucli_send_message(" \b");
+                        } else {
+                            _ucli_send_message("\b \b");
+                        }
+                    }
+                    
                     break;
-                case SPECIAL_CHAR_LINE_FEED:
+                case CONTROL_CHAR_LINE_FEED:
                     next_state = UCLI_STATE_PARSE;
                     break;
                 
@@ -166,25 +168,12 @@ ucli_state_t ucli_do_drop(ucli_state_data_t *data) {
   
   /*** USER CODE BEGIN DO_DROP ***/
 
-    if (ucli_is_event_triggered()) {
-        uint8_t rx_byte = ucli_fired_event->byte;
-        ring_buffer_push_back(&input_buffer, &rx_byte);
-
-        if (ucli_is_valid_special_char(rx_byte))
-        {
-            switch (rx_byte) {
-                case SPECIAL_CHAR_LINE_FEED:
-                    next_state = UCLI_STATE_IDLE;
-                    break;
-                
-                default:
-                    next_state = UCLI_STATE_DROP;
-                    break;
-            }
-        }
+    if (ring_buffer_clear(&buffer) != RING_BUFFER_OK) {
+        // TO-DO: what to do if an error happen in this state? (stay in drop?)
+    } else {
+        next_state = UCLI_STATE_IDLE;
     }
     
-  
   /*** USER CODE END DO_DROP ***/
   
   switch (next_state) {
@@ -272,8 +261,6 @@ void ucli_init_to_idle(ucli_state_data_t *data) {
 void ucli_drop(ucli_state_data_t *data) {
   
   /*** USER CODE BEGIN DROP ***/
-  
-    ucli_command_buffer_clean(&command_buffer);
 
   /*** USER CODE END DROP ***/
 }
