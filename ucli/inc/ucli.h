@@ -10,55 +10,40 @@
 #define UCLI_H
 
 #include "ucli_fsm.h"
-#include <stdint.h>
-#include "main.h"
-
-// Features
-#define ENABLE_ECHO 1 // deve essere modificabile a runtime
 
 // Parameters
-#define SERIAL_TIMEOUT 100
-#define INPUT_BUFFER_LEN 10
-#define OUTPUT_BUFFER_LEN 10
-#define COMMAND_BUFFER_LEN 10
+#define UCLI_BUFFER_LEN 10
 
-// use char insted of numbers
-
-// control characters
+// Control characters
 typedef enum {
-    SPECIAL_CHAR_NULL = 0,
-    SPECIAL_CHAR_CTRL_C = 3,
-    SPECIAL_CHAR_BACKSPACE = 8,
-    SPECIAL_CHAR_LINE_FEED = 10,
-    SPECIAL_CHAR_CARRIAGE_RETURN = 13,
-    SPECIAL_CHAR_N = 5
-} SPECIAL_CHAR;
+    CONTROL_CHAR_CTRL_C = 3, // Ctrl+C
+    CONTROL_CHAR_BACKSPACE = '\b',
+    CONTROL_CHAR_LINE_FEED = '\n',
+    CONTROL_CHAR_CARRIAGE_RETURN = '\r',
+} CONTROL_CHAR;
 
 typedef enum {
-    ucli_error_full_buffer,
-} ucli_error_t;
-
-//errors define or stringe costanti con i puntatori. oppure array usando l'enum come indice
+    UCLI_ERROR_FULL_BUFFER,
+    UCLI_ERROR_N,
+} UCLI_ERRORS;
 
 typedef struct {
-    uint8_t data[COMMAND_BUFFER_LEN];
-    int8_t head;
-} ucli_command_buffer_t;
+    void (*send)(char* message, size_t size);
+    bool echo;
+} ucli_handler_t;
 
-void ucli_init(UART_HandleTypeDef* huart);
-void ucli_routine(uint8_t byte);
-bool ucli_is_valid_char(uint8_t byte);
-bool ucli_is_valid_special_char(uint8_t byte);
-void ucli_send_backspace(void);
-void ucli_send_echo(uint8_t byte);
-void ucli_send_message(uint8_t* message, uint8_t message_size);
-void ucli_send_error(ucli_error_t error);
+// === Public functions ===
 
-void ucli_command_buffer_init(ucli_command_buffer_t* command_buffer);
-bool ucli_command_buffer_is_empty(ucli_command_buffer_t* command_buffer);
-bool ucli_command_buffer_is_full(ucli_command_buffer_t* command_buffer);
-bool ucli_command_buffer_push(ucli_command_buffer_t* command_buffer, uint8_t new_char);
-uint8_t ucli_command_buffer_pop(ucli_command_buffer_t* command_buffer);
-void ucli_command_buffer_clean(ucli_command_buffer_t* command_buffer);
+void ucli_init(ucli_handler_t ucli_handler);
+void ucli_routine(void);
+void ucli_receive_data(char c);
+
+// === Private functions ===
+
+bool _ucli_is_printable_char(char c);
+bool _ucli_is_control_char(char c);
+void _ucli_send_message(char* message);
+char* _ucli_get_error_message(UCLI_ERRORS error);
+bool _ucli_get_echo_setting_status(void);
 
 #endif  // UCLI_H

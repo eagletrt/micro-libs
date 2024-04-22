@@ -19,7 +19,6 @@ Functions and types have been generated with prefix "ucli_"
 #include <stdbool.h>
 
 /*** USER CODE BEGIN GLOBALS ***/
-#include <stdint.h>
 /*** USER CODE END GLOBALS ***/
 
 // State data object
@@ -34,7 +33,7 @@ typedef void ucli_state_data_t;
 typedef struct {
   
   /*** USER CODE BEGIN EVENT_DATA ***/
-  uint8_t byte;
+  char character;
   /*** USER CODE END EVENT_DATA ***/
 
 } ucli_event_data_t;
