@@ -19,7 +19,7 @@ Functions and types have been generated with prefix "ucli_"
 #include "ucli.h"
 #include "ring-buffer.h"
 
-RingBuffer(uint8_t, INPUT_BUFFER_LEN) input_buffer;
+RingBuffer(uint8_t, INPUT_BUFFER_LEN) input_buffer; //use only the ring buffer
 ucli_command_buffer_t command_buffer;
 
 /*** USER CODE END GLOBALS ***/
@@ -110,26 +110,21 @@ ucli_state_t ucli_do_idle(ucli_state_data_t *data) {
   /*** USER CODE BEGIN DO_IDLE ***/
   
     if (ucli_is_event_triggered()) {
-        uint8_t new_byte = ucli_fired_event->byte;
-        ring_buffer_push_back(&input_buffer, &new_byte);
+        uint8_t rx_byte = ucli_fired_event->byte;
+        ring_buffer_push_back(&input_buffer, &rx_byte);
 
-        #if ENABLE_ECHO
-            ucli_send_echo(new_byte);   
-        #endif
-
-        if (ucli_is_valid_char(new_byte))
+        if (ucli_is_valid_char(rx_byte))
         {
             if (!ucli_command_buffer_is_full(&command_buffer))
             {
-                uint8_t new_char;
-                ring_buffer_pop_back(&input_buffer, &new_char);
-                ucli_command_buffer_push(&command_buffer, new_char); // the result is ignored
+                ucli_command_buffer_push(&command_buffer, rx_byte);
             } else {
+                ucli_send_error(ucli_error_full_buffer);
                 next_state = UCLI_STATE_DROP;
             }
             
-        } else if (ucli_is_valid_special_char(new_byte)){ //probably error here
-            switch (new_byte) {
+        } else if (ucli_is_valid_special_char(rx_byte)){
+            switch (rx_byte) {
                 case SPECIAL_CHAR_BACKSPACE:
                     ucli_command_buffer_pop(&command_buffer);
                     ucli_send_backspace();
@@ -172,12 +167,12 @@ ucli_state_t ucli_do_drop(ucli_state_data_t *data) {
   /*** USER CODE BEGIN DO_DROP ***/
 
     if (ucli_is_event_triggered()) {
-        uint8_t new_byte = ucli_fired_event->byte;
-        ring_buffer_push_back(&input_buffer, &new_byte);
+        uint8_t rx_byte = ucli_fired_event->byte;
+        ring_buffer_push_back(&input_buffer, &rx_byte);
 
-        if (ucli_is_valid_special_char(new_byte))
+        if (ucli_is_valid_special_char(rx_byte))
         {
-            switch (new_byte) {
+            switch (rx_byte) {
                 case SPECIAL_CHAR_LINE_FEED:
                     next_state = UCLI_STATE_IDLE;
                     break;
