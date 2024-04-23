@@ -52,6 +52,7 @@ struct { \
  * @brief Min heap structure initialization
  * @attention The TYPE and CAPACITY variables must be the same as the ones
  * in the structure declaration above
+ *
  * @details As an example you can declare and initialize a new heap structure
  * that can contain 10 integers as follows:
  *      int8_t min_heap_compare(int a, int b) {
@@ -59,6 +60,8 @@ struct { \
  *          return a == b ? 0 : 1;
  *      }
  *      MinHeap(int, 10) heap = min_heap_new(int, 10, min_heap_compare);
+ *
+ * @details If the min_heap_init function is used this macro is not needed
  *
  * @param TYPE The data type
  * @param CAPACITY The maximum number of elements of the heap
@@ -85,15 +88,31 @@ typedef struct {
     void * data;
 } MinHeapInterface;
 
+/**
+ * @brief Enum with all the possible return codes for the min heap functions
+ */
+typedef enum {
+    MIN_HEAP_OK,
+    MIN_HEAP_NULL_POINTER,
+    MIN_HEAP_EMPTY,
+    MIN_HEAP_FULL,
+    MIN_HEAP_OUT_OF_BOUNDS
+} MinHeapReturnCode;
+
 typedef long ssize_t;
 
 /**
  * @brief Initialize the minimum heap structure
  *
+ * @details If the min_heap_new macro is used this function is not needed
+ *
  * @param heap The min heap structur handler
  * @param type The type of the items
  * @param capacity The maximum number of the items in the heap
  * @param cmp_callback A pointer to a function that should compare two items of the heap
+ * @return MinHeapReturnCode
+ *     - MIN_HEAP_NULL_POINTER if the heap handler or the callback are NULL
+ *     - MIN_HEAP_OK otherwise
  */
 #define min_heap_init(heap, type, capacity, cmp_callback) \
     _min_heap_init( \
@@ -136,7 +155,10 @@ typedef long ssize_t;
  * 
  * @param heap The heap handler structure
  * @param out The address of the variable where the copy is stored
- * @return true If the item was copied correctly, false otherwise
+ * @return MinHeapReturnCode
+ *     - MIN_HEAP_NULL_POINTER if the heap handler or out are NULL
+ *     - MIN_HEAP_EMPTY if the heap is empty
+ *     - MIN_HEAP_OK otherwise
  */
 #define min_heap_top(heap, out) _min_heap_top((MinHeapInterface *)(heap), (void *)(out))
 
@@ -155,6 +177,9 @@ typedef long ssize_t;
  * @brief Clear the heap removing all elements
  *
  * @param heap The heap handler structure
+ * @return MinHeapReturnCode
+ *     - MIN_HEAP_NULL_POINTER if the heap handler is NULL
+ *     - MIN_HEAP_OK otherwise
  */
 #define min_heap_clear(heap) _min_heap_clear((MinHeapInterface *)(heap))
 
@@ -163,7 +188,10 @@ typedef long ssize_t;
  *
  * @param heap The heap handler structure
  * @param item The item to insert
- * @return bool True if the item is inserted correctly, false otherwise
+ * @return MinHeapReturnCode
+ *     - MIN_HEAP_NULL_POINTER if the heap handler, the compare callback or the item are NULL
+ *     - MIN_HEAP_FULL if the heap is full
+ *     - MIN_HEAP_OK otherwise
  */
 #define min_heap_insert(heap, item) _min_heap_insert((MinHeapInterface *)(heap), (void *)(item))
 
@@ -175,7 +203,11 @@ typedef long ssize_t;
  * @param heap The heap handler structure
  * @param index The index of the item to remove from the heap
  * @param out The removed item (has to be an address)
- * @return bool True if the item is removed correctly, false otherwise
+ * @return MinHeapReturnCode
+ *     - MIN_HEAP_NULL_POINTER if the heap handler or the compare callback are NULL
+ *     - MIN_HEAP_EMPTY if the heap is empty
+ *     - MIN_HEAP_OUT_OF_BOUNDS if the index is greater than the size of the heap
+ *     - MIN_HEAP_OK otherwise
  */
 #define min_heap_remove(heap, index, out) _min_heap_remove((MinHeapInterface *)(heap), index, (void *)(out))
 
@@ -195,7 +227,7 @@ typedef long ssize_t;
 /*         USE THE MACRO INSTEAD          */
 /******************************************/
 
-void _min_heap_init(
+MinHeapReturnCode _min_heap_init(
     MinHeapInterface * heap,
     size_t data_size,
     size_t capacity,
@@ -204,11 +236,11 @@ void _min_heap_init(
 size_t _min_heap_size(MinHeapInterface * heap);
 bool _min_heap_is_empty(MinHeapInterface * heap);
 bool _min_heap_is_full(MinHeapInterface * heap);
-bool _min_heap_top(MinHeapInterface * heap, void * out);
+MinHeapReturnCode _min_heap_top(MinHeapInterface * heap, void * out);
 void * _min_heap_peek(MinHeapInterface * heap);
-void _min_heap_clear(MinHeapInterface * heap);
-bool _min_heap_insert(MinHeapInterface * heap, void * item);
-bool _min_heap_remove(MinHeapInterface * heap, size_t index, void * out);
+MinHeapReturnCode _min_heap_clear(MinHeapInterface * heap);
+MinHeapReturnCode _min_heap_insert(MinHeapInterface * heap, void * item);
+MinHeapReturnCode _min_heap_remove(MinHeapInterface * heap, size_t index, void * out);
 ssize_t _min_heap_find(MinHeapInterface * heap, void * item);
 
 #endif  // MIN_HEAP_H

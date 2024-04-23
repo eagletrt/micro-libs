@@ -442,10 +442,13 @@ size_t ltc6811_rdcfg_encode_broadcast(
  * @attention The 'out' array should be as large as the total number of LTC6811
  * in the chain
  *
+ * @details The return value can be compared with the LTC6811_DATA_BUFFER_SIZE macro
+ * to check if all bytes where decoded correctly
+ *
  * @param chain The LTC6811 broadcast handler
  * @param data The array of bytes to decode
  * @param out The array where the configuration data is stored
- * @return size_t The number of decoded bytes
+ * @return size_t The number of decoded bytes (PEC included)
  */
 size_t ltc6811_rdcfg_decode_broadcast(
     Ltc6811Chain * chain,
@@ -474,10 +477,13 @@ size_t ltc6811_rdcv_encode_broadcast(
  * @attention The 'out' array should be large enough to store 'LTC6811_REG_CELL_COUNT'
  * voltages for each LTC6811 in the chain
  *
+ * @details The return value can be compared with the LTC6811_DATA_BUFFER_SIZE macro
+ * to check if all bytes where decoded correctly
+ *
  * @param chain The LTC6811 broadcast handler
  * @param data The array of bytes to decode
  * @param out The array where the cell voltages are stored
- * @return size_t The number of decoded bytes
+ * @return size_t The number of decoded bytes (PEC included)
  */
 size_t ltc6811_rdcv_decode_broadcast(
     Ltc6811Chain * chain,
@@ -506,10 +512,13 @@ size_t ltc6811_rdaux_encode_broadcast(
  * @attention The 'out' array should be large enough to store 'LTC6811_REG_AUX_COUNT'
  * voltages for each LTC6811 in the chain
  *
+ * @details The return value can be compared with the LTC6811_DATA_BUFFER_SIZE macro
+ * to check if all bytes where decoded correctly
+ *
  * @param chain The LTC6811 broadcast handler
  * @param data The array of bytes to decode
  * @param out The array where the auxiliary voltages are stored
- * @return size_t The number of decoded bytes
+ * @return size_t The number of decoded bytes (PEC included)
  */
 size_t ltc6811_rdaux_decode_broadcast(
     Ltc6811Chain * chain,
@@ -538,11 +547,14 @@ size_t ltc6811_rdstat_encode_broadcast(
  * @attention The 'out' array should be as large as the total number of LTC6811
  * in the chain
  *
+ * @details The return value can be compared with the LTC6811_DATA_BUFFER_SIZE macro
+ * to check if all bytes where decoded correctly
+ *
  * @param chain The LTC6811 broadcast handler
  * @param reg The register where the data comes from
  * @param data The array of bytes to decode
  * @param out The array where the status data is stored
- * @return size_t The number of decoded bytes
+ * @return size_t The number of decoded bytes (PEC included)
  */
 size_t ltc6811_rdstat_decode_broadcast(
     Ltc6811Chain * chain,
@@ -588,10 +600,13 @@ size_t ltc6811_rdsctrl_encode_broadcast(
  * @attention The 'out' array should be large enough to store 'LTC6811_SCTL_COUNT'
  * values for each LTC6811 in the chain
  *
+ * @details The return value can be compared with the LTC6811_DATA_BUFFER_SIZE macro
+ * to check if all bytes where decoded correctly
+ *
  * @param chain The LTC6811 broadcast handler
  * @param data The array of bytes to decode
  * @param out The array where the S pin control data is stored
- * @return size_t The number of decoded bytes
+ * @return size_t The number of decoded bytes (PEC included)
  */
 size_t ltc6811_rdsctrl_decode_broadcast(
     Ltc6811Chain * chain,
@@ -636,10 +651,13 @@ size_t ltc6811_rdpwm_encode_broadcast(
  * @attention The 'out' array should be large enough to store 'LTC6811_SCTL_COUNT'
  * values for each LTC6811 in the chain
  *
+ * @details The return value can be compared with the LTC6811_DATA_BUFFER_SIZE macro
+ * to check if all bytes where decoded correctly
+ *
  * @param chain The LTC6811 broadcast handler
  * @param data The array of bytes to decode
  * @param out The array where the S pin control data is stored
- * @return size_t The number of decoded bytes
+ * @return size_t The number of decoded bytes (PEC included)
  */
 size_t ltc6811_rdsctrl_decode_broadcast(
     Ltc6811Chain * chain,
@@ -694,10 +712,13 @@ size_t ltc6811_rdpwm_encode_broadcast(
  * @attention The 'out' array should be large enough to store 'LTC6811_PWM_COUNT'
  * values for each LTC6811 in the chain
  *
+ * @details The return value can be compared with the LTC6811_DATA_BUFFER_SIZE macro
+ * to check if all bytes where decoded correctly
+ *
  * @param chain The LTC6811 broadcast handler
  * @param data The array of bytes to decode
  * @param out The array where the pwm data is stored
- * @return size_t The number of decoded bytes
+ * @return size_t The number of decoded bytes (PEC included)
  */
 size_t ltc6811_rdpwm_decode_broadcast(
     Ltc6811Chain * chain,
@@ -1040,10 +1061,13 @@ size_t ltc6811_rdcomm_encode_broadcast(
  * @attention The 'out' array should be as large as the total number of LTC6811
  * in the chain
  *
+ * @details The return value can be compared with the LTC6811_DATA_BUFFER_SIZE macro
+ * to check if all bytes where decoded correctly
+ *
  * @param chain The LTC6811 broadcast handler
  * @param data The array of bytes to decode
  * @param out The array where the communication data is stored
- * @return size_t The number of decoded bytes
+ * @return size_t The number of decoded bytes (PEC included)
  */
 size_t ltc6811_rdcomm_decode_broadcast(
     Ltc6811Chain * chain,

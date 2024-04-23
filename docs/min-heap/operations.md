@@ -9,6 +9,19 @@ The main operations of the min heap are:
 3. [Removal](#removal)
 4. [Search](#search)
 
+## Return codes
+
+Most of the functions returns a code that describes if the operation was executed
+succesfully or, in case of failure, what was the general cause of it.
+
+The possible returns code are:
+
+- `MIN_HEAP_OK`: if the operation ended as expected
+- `MIN_HEAP_NULL_POINTER`: if one or more NULL pointers are passed as parameters
+- `MIN_HEAP_EMPTY`: if an operation tries to get or remove an element when the buffer is empty
+- `MIN_HEAP_FULL`: if an operation tries to add an element when the buffer is full
+- `MIN_HEAP_OUT_OF_BOUNDS`: if a given index is greater or equal than the current size of the heap
+
 ## Access
 
 Only the top element can be accessed with a time complexity of O(1).

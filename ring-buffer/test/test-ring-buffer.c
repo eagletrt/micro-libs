@@ -27,6 +27,14 @@ void tearDown(void) {
     ring_buffer_clear(&point_buf);
 }
 
+void check_ring_buffer_init_with_null(void) {
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_NULL_POINTER, ring_buffer_init(NULL, float, 3, NULL, NULL));
+}
+void check_ring_buffer_init_return_value(void) {
+    RingBuffer(float, 3) buf;
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_OK, ring_buffer_init(&buf, float, 3, NULL, NULL));
+}
+
 void check_ring_buffer_empty_with_null(void) {
     TEST_ASSERT_TRUE(ring_buffer_is_empty(NULL));
 }
@@ -60,24 +68,24 @@ void check_ring_buffer_size(void) {
 
 void check_ring_buffer_push_front_with_null_handler(void) {
     Point p = { .x = 69.69f, .y = 2.7f };
-    TEST_ASSERT_FALSE(ring_buffer_push_front(NULL, &p));
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_NULL_POINTER, ring_buffer_push_front(NULL, &p));
 }
 void check_ring_buffer_push_front_with_null_item(void) {
-    TEST_ASSERT_FALSE(ring_buffer_push_front(&point_buf, NULL));
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_NULL_POINTER, ring_buffer_push_front(&point_buf, NULL));
 }
 void check_ring_buffer_push_front_when_full(void) {
     Point p = { .x = 69.69f, .y = 2.7f };
     point_buf.size = point_buf.capacity;
-    TEST_ASSERT_FALSE(ring_buffer_push_front(&point_buf, &p));
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_FULL, ring_buffer_push_front(&point_buf, &p));
 }
 void check_ring_buffer_push_front_with_wrap_return_value(void) {
     Point p = { .x = 69.69f, .y = 2.7f };
-    TEST_ASSERT_TRUE(ring_buffer_push_front(&point_buf, &p));
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_OK, ring_buffer_push_front(&point_buf, &p));
 }
 void check_ring_buffer_push_front_without_wrap_return_value(void) {
     Point p = { .x = 69.69f, .y = 2.7f };
     point_buf.start = 2;
-    TEST_ASSERT_TRUE(ring_buffer_push_front(&point_buf, &p));
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_OK, ring_buffer_push_front(&point_buf, &p));
 }
 void check_ring_buffer_push_front_with_wrap_index(void) {
     Point p = { .x = 69.69f, .y = 2.7f };
@@ -120,25 +128,25 @@ void check_ring_buffer_push_front_without_wrap_data(void) {
 
 void check_ring_buffer_push_back_with_null_handler(void) {
     Point p = { .x = 69.69f, .y = 2.7f };
-    TEST_ASSERT_FALSE(ring_buffer_push_back(NULL, &p));
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_NULL_POINTER, ring_buffer_push_back(NULL, &p));
 }
 void check_ring_buffer_push_back_with_null_item(void) {
-    TEST_ASSERT_FALSE(ring_buffer_push_back(&point_buf, NULL));
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_NULL_POINTER, ring_buffer_push_back(&point_buf, NULL));
 }
 void check_ring_buffer_push_back_when_full(void) {
     Point p = { .x = 69.69f, .y = 2.7f };
     point_buf.size = point_buf.capacity;
-    TEST_ASSERT_FALSE(ring_buffer_push_back(&point_buf, &p));
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_FULL, ring_buffer_push_back(&point_buf, &p));
 }
 void check_ring_buffer_push_back_with_wrap_return_value(void) {
     Point p = { .x = 69.69f, .y = 2.7f };
     point_buf.start = point_buf.capacity - 1;
     point_buf.size = 1;
-    TEST_ASSERT_TRUE(ring_buffer_push_back(&point_buf, &p));
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_OK, ring_buffer_push_back(&point_buf, &p));
 }
 void check_ring_buffer_push_back_without_wrap_return_value(void) {
     Point p = { .x = 69.69f, .y = 2.7f };
-    TEST_ASSERT_TRUE(ring_buffer_push_back(&point_buf, &p));
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_OK, ring_buffer_push_back(&point_buf, &p));
 }
 void check_ring_buffer_push_back_with_wrap_size(void) {
     Point p = { .x = 69.69f, .y = 2.7f };
@@ -169,16 +177,16 @@ void check_ring_buffer_push_back_without_wrap_data(void) {
 
 void check_ring_buffer_pop_front_with_null_handler(void) {
     Point p = { 0 };
-    TEST_ASSERT_FALSE(ring_buffer_pop_front(NULL, &p));
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_NULL_POINTER, ring_buffer_pop_front(NULL, &p));
 }
 void check_ring_buffer_pop_front_with_null_item(void) {
     point_buf.size = 1;
-    TEST_ASSERT_TRUE(ring_buffer_pop_front(&point_buf, NULL));
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_OK, ring_buffer_pop_front(&point_buf, NULL));
 }
 void check_ring_buffer_pop_front_when_empty(void) {
     Point p = { 0 };
     point_buf.size = 0;
-    TEST_ASSERT_FALSE(ring_buffer_pop_front(&point_buf, &p));
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_EMPTY, ring_buffer_pop_front(&point_buf, &p));
 }
 void check_ring_buffer_pop_front_with_wrap_return_value(void) {
     Point dot = { .x = 69.69f, .y = 2.7f };
@@ -187,7 +195,7 @@ void check_ring_buffer_pop_front_with_wrap_return_value(void) {
     point_buf.data[point_buf.start] = dot;
 
     Point p = { 0 };
-    TEST_ASSERT_TRUE(ring_buffer_pop_front(&point_buf, &p));
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_OK, ring_buffer_pop_front(&point_buf, &p));
 }
 void check_ring_buffer_pop_front_without_wrap_return_value(void) {
     Point dot = { .x = 69.69f, .y = 2.7f };
@@ -196,7 +204,7 @@ void check_ring_buffer_pop_front_without_wrap_return_value(void) {
     point_buf.data[point_buf.start] = dot;
 
     Point p = { 0 };
-    TEST_ASSERT_TRUE(ring_buffer_pop_front(&point_buf, &p));
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_OK, ring_buffer_pop_front(&point_buf, &p));
 }
 void check_ring_buffer_pop_front_with_wrap_index(void) {
     Point dot = { .x = 69.69f, .y = 2.7f };
@@ -263,16 +271,16 @@ void check_ring_buffer_pop_front_without_wrap_data(void) {
 
 void check_ring_buffer_pop_back_with_null_handler(void) {
     Point p = { 0 };
-    TEST_ASSERT_FALSE(ring_buffer_pop_back(NULL, &p));
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_NULL_POINTER, ring_buffer_pop_back(NULL, &p));
 }
 void check_ring_buffer_pop_back_with_null_item(void) {
     point_buf.size = 1;
-    TEST_ASSERT_TRUE(ring_buffer_pop_back(&point_buf, NULL));
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_OK, ring_buffer_pop_back(&point_buf, NULL));
 }
 void check_ring_buffer_pop_back_when_empty(void) {
     Point p = { 0 };
     point_buf.size = 0;
-    TEST_ASSERT_FALSE(ring_buffer_pop_back(&point_buf, &p));
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_EMPTY, ring_buffer_pop_back(&point_buf, &p));
 }
 void check_ring_buffer_pop_back_with_wrap_return_value(void) {
     Point dot = { .x = 69.69f, .y = 2.7f };
@@ -281,7 +289,7 @@ void check_ring_buffer_pop_back_with_wrap_return_value(void) {
     point_buf.data[0] = dot;
 
     Point p = { 0 };
-    TEST_ASSERT_TRUE(ring_buffer_pop_back(&point_buf, &p));
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_OK, ring_buffer_pop_back(&point_buf, &p));
 }
 void check_ring_buffer_pop_back_without_wrap_return_value(void) {
     Point dot = { .x = 69.69f, .y = 2.7f };
@@ -290,7 +298,7 @@ void check_ring_buffer_pop_back_without_wrap_return_value(void) {
     point_buf.data[point_buf.start] = dot;
 
     Point p = { 0 };
-    TEST_ASSERT_TRUE(ring_buffer_pop_back(&point_buf, &p));
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_OK, ring_buffer_pop_back(&point_buf, &p));
 }
 void check_ring_buffer_pop_back_with_wrap_size(void) {
     Point dot = { .x = 69.69f, .y = 2.7f };
@@ -337,15 +345,15 @@ void check_ring_buffer_pop_back_without_wrap_data(void) {
 
 void check_ring_buffer_front_with_null_handler(void) {
     Point p = { 0 };
-    TEST_ASSERT_FALSE(ring_buffer_front(NULL, &p));
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_NULL_POINTER, ring_buffer_front(NULL, &p));
 }
 void check_ring_buffer_front_with_null_item(void) {
-    TEST_ASSERT_FALSE(ring_buffer_front(&point_buf, NULL));
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_NULL_POINTER, ring_buffer_front(&point_buf, NULL));
 }
 void check_ring_buffer_front_when_empty(void) {
     Point p = { 0 };
     point_buf.size = 0;
-    TEST_ASSERT_FALSE(ring_buffer_front(&point_buf, &p));
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_EMPTY, ring_buffer_front(&point_buf, &p));
 }
 void check_ring_buffer_front_when_not_empty_return_value(void) {
     Point dot = { .x = 69.69f, .y = 2.7f };
@@ -353,7 +361,7 @@ void check_ring_buffer_front_when_not_empty_return_value(void) {
     point_buf.data[0] = dot;
 
     Point p = { 0 };
-    TEST_ASSERT_TRUE(ring_buffer_front(&point_buf, &p));
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_OK, ring_buffer_front(&point_buf, &p));
 }
 void check_ring_buffer_front_when_not_empty_data(void) {
     Point dot = { .x = 69.69f, .y = 2.7f };
@@ -368,15 +376,15 @@ void check_ring_buffer_front_when_not_empty_data(void) {
 
 void check_ring_buffer_back_with_null_handler(void) {
     Point p = { 0 };
-    TEST_ASSERT_FALSE(ring_buffer_back(NULL, &p));
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_NULL_POINTER, ring_buffer_back(NULL, &p));
 }
 void check_ring_buffer_back_with_null_item(void) {
-    TEST_ASSERT_FALSE(ring_buffer_back(&point_buf, NULL));
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_NULL_POINTER, ring_buffer_back(&point_buf, NULL));
 }
 void check_ring_buffer_back_when_empty(void) {
     Point p = { 0 };
     point_buf.size = 0;
-    TEST_ASSERT_FALSE(ring_buffer_back(&point_buf, &p));
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_EMPTY, ring_buffer_back(&point_buf, &p));
 }
 void check_ring_buffer_back_when_not_empty_return_value(void) {
     Point dot = { .x = 69.69f, .y = 2.7f };
@@ -384,7 +392,7 @@ void check_ring_buffer_back_when_not_empty_return_value(void) {
     point_buf.data[0] = dot;
 
     Point p = { 0 };
-    TEST_ASSERT_TRUE(ring_buffer_back(&point_buf, &p));
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_OK, ring_buffer_back(&point_buf, &p));
 }
 void check_ring_buffer_back_when_not_empty_data(void) {
     Point dot = { .x = 69.69f, .y = 2.7f };
@@ -431,28 +439,58 @@ void check_ring_buffer_peek_back_when_not_empty(void) {
     TEST_ASSERT_EQUAL_MEMORY(&dot, p, sizeof(Point));
 }
 
-void check_ring_buffer_clear_with_null(void) {
+void check_ring_buffer_clear_with_null_return_value(void) {
+    const size_t start = 3;
+    const size_t size = 4;
+    int_buf.start = start;
+    int_buf.size = size;
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_NULL_POINTER, ring_buffer_clear(NULL));
+}
+void check_ring_buffer_clear_with_null_start(void) {
     const size_t start = 3;
     const size_t size = 4;
     int_buf.start = start;
     int_buf.size = size;
     ring_buffer_clear(NULL);
     TEST_ASSERT_EQUAL_size_t(start, int_buf.start);
+}
+void check_ring_buffer_clear_with_null_size(void) {
+    const size_t start = 3;
+    const size_t size = 4;
+    int_buf.start = start;
+    int_buf.size = size;
+    ring_buffer_clear(NULL);
     TEST_ASSERT_EQUAL_size_t(size, int_buf.size);
 }
-void check_ring_buffer_clear(void) {
+void check_ring_buffer_clear_return_value(void) {
+    const size_t start = 3;
+    const size_t size = 4;
+    int_buf.start = start;
+    int_buf.size = size;
+    TEST_ASSERT_EQUAL_INT(RING_BUFFER_OK, ring_buffer_clear(&int_buf));
+}
+void check_ring_buffer_clear_start(void) {
     const size_t start = 3;
     const size_t size = 4;
     int_buf.start = start;
     int_buf.size = size;
     ring_buffer_clear(&int_buf);
     TEST_ASSERT_EQUAL_size_t(0U, int_buf.start);
+}
+void check_ring_buffer_clear_size(void) {
+    const size_t start = 3;
+    const size_t size = 4;
+    int_buf.start = start;
+    int_buf.size = size;
+    ring_buffer_clear(&int_buf);
     TEST_ASSERT_EQUAL_size_t(0U, int_buf.size);
 }
 
-
 int main() {
     UNITY_BEGIN();
+
+    RUN_TEST(check_ring_buffer_init_with_null);
+    RUN_TEST(check_ring_buffer_init_return_value);
 
     RUN_TEST(check_ring_buffer_empty_with_null);
     RUN_TEST(check_ring_buffer_empty_when_empty);
@@ -529,8 +567,12 @@ int main() {
     RUN_TEST(check_ring_buffer_peek_back_when_empty);
     RUN_TEST(check_ring_buffer_peek_back_when_not_empty);
 
-    RUN_TEST(check_ring_buffer_clear_with_null);
-    RUN_TEST(check_ring_buffer_clear);
+    RUN_TEST(check_ring_buffer_clear_with_null_return_value);
+    RUN_TEST(check_ring_buffer_clear_with_null_start);
+    RUN_TEST(check_ring_buffer_clear_with_null_size);
+    RUN_TEST(check_ring_buffer_clear_return_value);
+    RUN_TEST(check_ring_buffer_clear_start);
+    RUN_TEST(check_ring_buffer_clear_size);
 
     UNITY_END();
 }

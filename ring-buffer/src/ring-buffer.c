@@ -13,7 +13,7 @@
 
 void _ring_buffer_cs_dummy(void) { }
 
-void _ring_buffer_init(
+RingBufferReturnCode _ring_buffer_init(
     RingBufferInterface * buffer,
     size_t data_size,
     size_t capacity,
@@ -21,7 +21,7 @@ void _ring_buffer_init(
     void (* cs_exit)(void))
 {
     if (buffer == NULL)
-        return;
+        return RING_BUFFER_NULL_POINTER;
     buffer->start = 0;
     buffer->size = 0;
     buffer->data_size = data_size;
@@ -29,6 +29,7 @@ void _ring_buffer_init(
     buffer->cs_enter = cs_enter != NULL ? cs_enter : _ring_buffer_cs_dummy;
     buffer->cs_exit = cs_exit != NULL ? cs_exit : _ring_buffer_cs_dummy;
     memset(&buffer->data, 0, capacity);
+    return RING_BUFFER_OK;
 }
 
 bool _ring_buffer_is_empty(RingBufferInterface * buffer) {
@@ -49,15 +50,15 @@ size_t _ring_buffer_size(RingBufferInterface * buffer) {
     return buffer->size;
 }
 
-bool _ring_buffer_push_front(RingBufferInterface * buffer, void * item) {
+RingBufferReturnCode _ring_buffer_push_front(RingBufferInterface * buffer, void * item) {
     if (buffer == NULL || item == NULL)
-        return false;
+        return RING_BUFFER_NULL_POINTER;
 
     buffer->cs_enter();
 
     if (buffer->size >= buffer->capacity) {
         buffer->cs_exit();
-        return false;
+        return RING_BUFFER_FULL;
     }
     
     // Calculate index of the item in the buffer
@@ -66,24 +67,24 @@ bool _ring_buffer_push_front(RingBufferInterface * buffer, void * item) {
     --buffer->start;
     ++buffer->size;
 
-    // Push item in the heap 
+    // Push item in the buffer 
     const size_t data_size = buffer->data_size;
     uint8_t * base = (uint8_t *)&buffer->data;
     memcpy(base + buffer->start * data_size, item, data_size);
 
     buffer->cs_exit();
-    return true;
+    return RING_BUFFER_OK;
 }
 
-bool _ring_buffer_push_back(RingBufferInterface * buffer, void * item) {
+RingBufferReturnCode _ring_buffer_push_back(RingBufferInterface * buffer, void * item) {
     if (buffer == NULL || item == NULL)
-        return false;
+        return RING_BUFFER_NULL_POINTER;
 
     buffer->cs_enter();
 
     if (buffer->size >= buffer->capacity) {
         buffer->cs_exit();
-        return false;
+        return RING_BUFFER_FULL;
     }
 
     // Calculate index of the item in the buffer
@@ -91,28 +92,28 @@ bool _ring_buffer_push_back(RingBufferInterface * buffer, void * item) {
     if (cur >= buffer->capacity)
         cur -= buffer->capacity;
 
-    // Push item in the heap
+    // Push item in the buffer
     const size_t data_size = buffer->data_size;
     uint8_t * base = (uint8_t *)&buffer->data;
     memcpy(base + cur * data_size, item, data_size);
     ++buffer->size;
 
     buffer->cs_exit();
-    return true;
+    return RING_BUFFER_OK;
 }
 
-bool _ring_buffer_pop_front(RingBufferInterface * buffer, void * out) {
+RingBufferReturnCode _ring_buffer_pop_front(RingBufferInterface * buffer, void * out) {
     if (buffer == NULL)
-        return false;
+        return RING_BUFFER_NULL_POINTER;
 
     buffer->cs_enter();
 
     if (buffer->size == 0) {
         buffer->cs_exit();
-        return false;
+        return RING_BUFFER_EMPTY;
     }
 
-    // Pop the item from the heap 
+    // Pop the item from the buffer 
     if (out != NULL) {
         const size_t data_size = buffer->data_size;
         uint8_t * base = (uint8_t *)&buffer->data;
@@ -126,21 +127,21 @@ bool _ring_buffer_pop_front(RingBufferInterface * buffer, void * out) {
     --buffer->size;
     
     buffer->cs_exit();
-    return true;
+    return RING_BUFFER_OK;
 }
 
-bool _ring_buffer_pop_back(RingBufferInterface * buffer, void * out) {
+RingBufferReturnCode _ring_buffer_pop_back(RingBufferInterface * buffer, void * out) {
     if (buffer == NULL)
-        return false;
+        return RING_BUFFER_NULL_POINTER;
 
     buffer->cs_enter();
 
     if (buffer->size == 0) {
         buffer->cs_exit();
-        return false;
+        return RING_BUFFER_EMPTY;
     }
 
-    // Pop the item from the heap 
+    // Pop the item from the buffer 
     if (out != NULL) {
         size_t cur = buffer->start + buffer->size - 1;
         if (cur >= buffer->capacity)
@@ -152,19 +153,19 @@ bool _ring_buffer_pop_back(RingBufferInterface * buffer, void * out) {
     --buffer->size;
     
     buffer->cs_exit();
-    return true;
+    return RING_BUFFER_OK;
 
 }
 
-bool _ring_buffer_front(RingBufferInterface * buffer, void * out) {
+RingBufferReturnCode _ring_buffer_front(RingBufferInterface * buffer, void * out) {
     if (buffer == NULL || out == NULL)
-        return false;
+        return RING_BUFFER_NULL_POINTER;
 
     buffer->cs_enter();
 
     if (buffer->size == 0) {
         buffer->cs_exit();
-        return false;
+        return RING_BUFFER_EMPTY;
     }
 
     // Copy data
@@ -173,18 +174,18 @@ bool _ring_buffer_front(RingBufferInterface * buffer, void * out) {
     memcpy(out, base + buffer->start * data_size, data_size);
     
     buffer->cs_exit();
-    return true;
+    return RING_BUFFER_OK;
 }
 
-bool _ring_buffer_back(RingBufferInterface * buffer, void * out) {
+RingBufferReturnCode _ring_buffer_back(RingBufferInterface * buffer, void * out) {
     if (buffer == NULL || out == NULL)
-        return false;
+        return RING_BUFFER_NULL_POINTER;
 
     buffer->cs_enter();
 
     if (buffer->size == 0) {
         buffer->cs_exit();
-        return false;
+        return RING_BUFFER_EMPTY;
     }
 
     // Copy data
@@ -196,7 +197,7 @@ bool _ring_buffer_back(RingBufferInterface * buffer, void * out) {
     memcpy(out, base + cur * data_size, data_size);
     
     buffer->cs_exit();
-    return true;
+    return RING_BUFFER_OK;
 }
 
 void * _ring_buffer_peek_front(RingBufferInterface * buffer) {
@@ -236,12 +237,13 @@ void * _ring_buffer_peek_back(RingBufferInterface * buffer) {
     return back;
 }
 
-void _ring_buffer_clear(RingBufferInterface * buffer) {
+RingBufferReturnCode _ring_buffer_clear(RingBufferInterface * buffer) {
     if (buffer == NULL)
-        return;
+        return RING_BUFFER_NULL_POINTER;
     buffer->cs_enter();
     buffer->start = 0;
     buffer->size = 0;
     buffer->cs_exit();
+    return RING_BUFFER_OK;
 }
 
