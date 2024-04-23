@@ -18,6 +18,7 @@ Functions and types have been generated with prefix "ucli_"
 /*** USER CODE BEGIN GLOBALS ***/
 #include "ucli.h"
 #include "ring-buffer.h"
+#include <string.h>
 
 RingBuffer(uint8_t, UCLI_BUFFER_LEN) buffer;
 /*** USER CODE END GLOBALS ***/
@@ -82,6 +83,15 @@ ucli_state_t ucli_do_init(ucli_state_data_t *data) {
   
   
   /*** USER CODE BEGIN DO_INIT ***/
+    char* welcome_message = 
+"\
+\n\r\
+==================================\n\r\
+microCLI # the new generation CLI!\n\r\
+==================================\n\r\
+\n\
+";
+    _ucli_send_message(welcome_message, strlen(welcome_message));
 
     ring_buffer_init(&buffer, char, UCLI_BUFFER_LEN, NULL, NULL);
 
@@ -110,13 +120,13 @@ ucli_state_t ucli_do_idle(ucli_state_data_t *data) {
         char c = ucli_fired_event->character;
 
         if (_ucli_get_echo_setting_status()) {
-            _ucli_send_message(&c); // size error because is not null terminated
+            _ucli_send_message(&c, 1); // size error because is not null terminated
         }
 
         if (_ucli_is_printable_char(c)) {
             if (ring_buffer_push_back(&buffer, &c) != RING_BUFFER_OK)
             {
-                _ucli_send_message(_ucli_get_error_message(UCLI_ERROR_FULL_BUFFER));
+                _ucli_send_error_message(UCLI_ERROR_FULL_BUFFER);
                 next_state = UCLI_STATE_DROP;
             }
         } else if (_ucli_is_control_char(c)) {
@@ -124,9 +134,7 @@ ucli_state_t ucli_do_idle(ucli_state_data_t *data) {
                 case CONTROL_CHAR_BACKSPACE:
                     if (ring_buffer_pop_back(&buffer, NULL) != RING_BUFFER_EMPTY) {
                         if (_ucli_get_echo_setting_status()) {
-                            _ucli_send_message(" \b");
-                        } else {
-                            _ucli_send_message("\b \b");
+                            _ucli_send_message(" \b", 2);
                         }
                     }
                     

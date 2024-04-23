@@ -12,24 +12,22 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdio.h>
 
 // === Private Defines ===
+#define MAX_ERROR_MESSAGE_PREFIX_LEN 15
 #define MAX_ERROR_MESSAGE_LEN 20
-#define VALID_CHAR_START ' '
-#define VALID_CHAR_END '~'
 
 // === Global variables ===
 ucli_state_t ucli_state;
 ucli_handler_t handler;
-char error_messages[UCLI_ERROR_N][MAX_ERROR_MESSAGE_LEN] = {
+char ucli_error_messages[UCLI_ERROR_N][MAX_ERROR_MESSAGE_LEN] = {
     "Buffer is full"
 };
 
 // === Public functions ===
 
 void ucli_init(ucli_handler_t ucli_handler) {
-    //send welcome message
-
     handler = ucli_handler;
     ucli_state = UCLI_STATE_INIT;
 }
@@ -48,20 +46,24 @@ void ucli_receive_data(char c) {
 
 // === Private functions ===
 
-void _ucli_send_message(char* message) {
-    uint8_t size = strlen(message);
+void _ucli_send_message(char* message, size_t size) {
     handler.send(message, size);
 }
 
-char* _ucli_get_error_message(UCLI_ERRORS error) {
-    // add prefix
-    // get message
-    // return
-    return error_messages[error];
+void _ucli_send_error_message(UCLI_ERRORS error) {
+    char* prefix = "[UCLI_ERROR]";
+    char* error_message = ucli_error_messages[error];
+    size_t size = MAX_ERROR_MESSAGE_PREFIX_LEN + MAX_ERROR_MESSAGE_LEN + 1;
+    char message[size];
+
+    snprintf(message, size, "\n\r%s: %s\n\r", prefix, error_message);
+    size = strlen(message);
+
+    _ucli_send_message(message, size);
 }
 
 bool _ucli_is_printable_char(char c) {
-    if (c >= VALID_CHAR_START && c <= VALID_CHAR_END) {
+    if (c >= ' ' && c <= '~') {
         return true;
     } else {
         return false;
