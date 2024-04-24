@@ -15,7 +15,6 @@
 #include <stdio.h>
 
 // === Private Defines ===
-#define MAX_ERROR_MESSAGE_PREFIX_LEN 15
 #define MAX_ERROR_MESSAGE_LEN 20
 
 // === Global variables ===
@@ -53,11 +52,10 @@ void _ucli_send_message(char* message, size_t size) {
 void _ucli_send_error_message(UCLI_ERRORS error) {
     char* prefix = "[UCLI_ERROR]";
     char* error_message = ucli_error_messages[error];
-    size_t size = MAX_ERROR_MESSAGE_PREFIX_LEN + MAX_ERROR_MESSAGE_LEN + 1;
-    char message[size];
-
-    snprintf(message, size, "\n\r%s: %s\n\r", prefix, error_message);
-    size = strlen(message);
+    const char fmt[] = "\n\r%s: %s\n\r";
+    int size = snprintf(NULL, 0, fmt, prefix, error_message);
+    char message[size + 1]; // +1 for terminating null byte
+    snprintf(message, sizeof message, fmt, prefix, error_message);
 
     _ucli_send_message(message, size);
 }
@@ -87,4 +85,12 @@ bool _ucli_is_control_char(char c) {
 
 bool _ucli_get_echo_setting_status(void) {
     return handler.echo;
+}
+
+void _ucli_cs_enter(void) {
+    handler.cs_enter();
+}
+
+void _ucli_cs_exit(void) {
+    handler.cs_exit();
 }

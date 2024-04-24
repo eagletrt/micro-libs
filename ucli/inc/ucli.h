@@ -28,7 +28,9 @@ typedef enum {
 } UCLI_ERRORS;
 
 typedef struct {
-    void (*send)(char* message, size_t size);
+    void (* send)(char* message, size_t size);
+    void (* cs_enter)(void);
+    void (* cs_exit)(void);
     bool echo;
 } ucli_handler_t;
 
@@ -46,5 +48,7 @@ void _ucli_send_message(char* message, size_t size);
 char* _ucli_get_error_message(UCLI_ERRORS error);
 void _ucli_send_error_message(UCLI_ERRORS error);
 bool _ucli_get_echo_setting_status(void);
+void _ucli_cs_enter(void);
+void _ucli_cs_exit(void);
 
 #endif  // UCLI_H

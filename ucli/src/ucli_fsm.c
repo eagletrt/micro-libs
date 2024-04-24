@@ -93,7 +93,7 @@ microCLI # the new generation CLI!\n\r\
 ";
     _ucli_send_message(welcome_message, strlen(welcome_message));
 
-    ring_buffer_init(&buffer, char, UCLI_BUFFER_LEN, NULL, NULL);
+    ring_buffer_init(&buffer, char, UCLI_BUFFER_LEN, _ucli_cs_enter, _ucli_cs_exit);
 
   /*** USER CODE END DO_INIT ***/
   
@@ -120,7 +120,7 @@ ucli_state_t ucli_do_idle(ucli_state_data_t *data) {
         char c = ucli_fired_event->character;
 
         if (_ucli_get_echo_setting_status()) {
-            _ucli_send_message(&c, 1); // size error because is not null terminated
+            _ucli_send_message(&c, 1);
         }
 
         if (_ucli_is_printable_char(c)) {
