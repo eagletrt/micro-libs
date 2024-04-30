@@ -20,7 +20,7 @@ Functions and types have been generated with prefix "ucli_"
 #include "ring-buffer.h"
 #include <string.h>
 
-RingBuffer(uint8_t, UCLI_BUFFER_LEN) buffer;
+RingBuffer(char, UCLI_BUFFER_LEN) buffer;
 /*** USER CODE END GLOBALS ***/
 
 
@@ -85,11 +85,11 @@ ucli_state_t ucli_do_init(ucli_state_data_t *data) {
   /*** USER CODE BEGIN DO_INIT ***/
     char* welcome_message = 
 "\
-\n\r\
-==================================\n\r\
-microCLI # the new generation CLI!\n\r\
-==================================\n\r\
-\n\
+\r\n\
+==================================\r\n\
+microCLI # the new generation CLI!\r\n\
+==================================\r\n\
+\r\n\
 ";
     _ucli_send_message(welcome_message, strlen(welcome_message));
 
@@ -137,17 +137,19 @@ ucli_state_t ucli_do_idle(ucli_state_data_t *data) {
                             _ucli_send_message(" \b", 2);
                         }
                     }
-                    
                     break;
                 case CONTROL_CHAR_LINE_FEED:
+                case CONTROL_CHAR_CARRIAGE_RETURN:
                     next_state = UCLI_STATE_PARSE;
                     break;
                 
                 default:
+                    _ucli_send_error_message(UCLI_ERROR_UNKNOWN_CHAR);
                     next_state = UCLI_STATE_DROP;
                     break;
                 }
         } else {
+            _ucli_send_error_message(UCLI_ERROR_UNKNOWN_CHAR);
             next_state = UCLI_STATE_DROP;
         }
     }
@@ -178,6 +180,7 @@ ucli_state_t ucli_do_drop(ucli_state_data_t *data) {
 
     if (ring_buffer_clear(&buffer) != RING_BUFFER_OK) {
         // TO-DO: what to do if an error happen in this state? (stay in drop?)
+        _ucli_send_error_message(UCLI_ERROR_UNKNOWN);
     } else {
         next_state = UCLI_STATE_IDLE;
     }

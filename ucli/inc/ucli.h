@@ -12,7 +12,7 @@
 #include "ucli_fsm.h"
 
 // Parameters
-#define UCLI_BUFFER_LEN 10
+#define UCLI_BUFFER_LEN 3
 
 // Control characters
 typedef enum {
@@ -24,6 +24,8 @@ typedef enum {
 
 typedef enum {
     UCLI_ERROR_FULL_BUFFER,
+    UCLI_ERROR_UNKNOWN_CHAR,
+    UCLI_ERROR_UNKNOWN,
     UCLI_ERROR_N,
 } UCLI_ERRORS;
 

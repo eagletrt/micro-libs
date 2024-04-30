@@ -21,7 +21,9 @@
 ucli_state_t ucli_state;
 ucli_handler_t handler;
 char ucli_error_messages[UCLI_ERROR_N][MAX_ERROR_MESSAGE_LEN] = {
-    "Buffer is full"
+    "Buffer is full",
+    "Unknown char",
+    "Unknown error",
 };
 
 // === Public functions ===
@@ -52,7 +54,7 @@ void _ucli_send_message(char* message, size_t size) {
 void _ucli_send_error_message(UCLI_ERRORS error) {
     char* prefix = "[UCLI_ERROR]";
     char* error_message = ucli_error_messages[error];
-    const char fmt[] = "\n\r%s: %s\n\r";
+    const char fmt[] = "\r\n%s: %s\r\n";
     int size = snprintf(NULL, 0, fmt, prefix, error_message);
     char message[size + 1]; // +1 for terminating null byte
     snprintf(message, sizeof message, fmt, prefix, error_message);
