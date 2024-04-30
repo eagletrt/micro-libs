@@ -19,6 +19,7 @@
 
 // === Global variables ===
 ucli_state_t ucli_state;
+ucli_event_data_t event;
 ucli_handler_t handler;
 char ucli_error_messages[UCLI_ERROR_N][MAX_ERROR_MESSAGE_LEN] = {
     "Buffer is full",
@@ -38,9 +39,7 @@ void ucli_routine(void) {
 }
 
 void ucli_receive_data(char c) {
-    ucli_event_data_t event = { 
-        .character = c
-    };
+    event.character = c;
 
     ucli_event_trigger(&event);
 }

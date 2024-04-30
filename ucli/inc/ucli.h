@@ -12,7 +12,7 @@
 #include "ucli_fsm.h"
 
 // Parameters
-#define UCLI_BUFFER_LEN 3
+#define UCLI_BUFFER_LEN 10
 
 // Control characters
 typedef enum {
