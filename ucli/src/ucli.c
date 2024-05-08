@@ -62,11 +62,7 @@ void _ucli_send_error_message(UCLI_ERRORS error) {
 }
 
 bool _ucli_is_printable_char(char c) {
-    if (c >= ' ' && c <= '~') {
-        return true;
-    } else {
-        return false;
-    }
+    return c >= ' ' && c <= '~';
 }
 
 bool _ucli_is_control_char(char c) {

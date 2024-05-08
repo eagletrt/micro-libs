@@ -13,7 +13,7 @@ The finite state machine has:
 Functions and types have been generated with prefix "ucli_"
 ******************************************************************************/
 
-#include "ucli_fsm.h"
+#include "ucli-fsm.h"
 
 /*** USER CODE BEGIN GLOBALS ***/
 #include "ucli.h"
@@ -207,6 +207,13 @@ ucli_state_t ucli_do_parse(ucli_state_data_t *data) {
   
   
   /*** USER CODE BEGIN DO_PARSE ***/
+
+  uint8_t byte;
+  RingBufferReturnCode status = ring_buffer_pop_front(&buffer, &byte);
+  if (status == RING_BUFFER_EMPTY)
+      next_state = UCLI_STATE_EXEC;
+  else if (status == RING_BUFFER_OK)
+      ucli_parser_routine(byte);
   
   /*** USER CODE END DO_PARSE ***/
   

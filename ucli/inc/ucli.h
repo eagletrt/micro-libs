@@ -9,7 +9,7 @@
 #ifndef UCLI_H
 #define UCLI_H
 
-#include "ucli_fsm.h"
+#include "ucli-fsm.h"
 
 // Parameters
 #define UCLI_BUFFER_LEN 10
