@@ -27,7 +27,7 @@ parsed_command_t parsed_command;
 
 // GLOBALS
 // State human-readable names
-const char* ucli_state_names[] = {"init", "idle", "drop", "parse", "run"};
+const char* ucli_state_names[] = {"init", "idle", "drop", "parse", "exec"};
 
 // List of state functions
 state_func_t* const ucli_state_table[UCLI_NUM_STATES] = {
@@ -35,19 +35,19 @@ state_func_t* const ucli_state_table[UCLI_NUM_STATES] = {
     ucli_do_idle,  // in state idle
     ucli_do_drop,  // in state drop
     ucli_do_parse, // in state parse
-    ucli_do_run,   // in state run
+    ucli_do_exec,  // in state run
 };
 
 // Table of transition functions
 transition_func_t* const
     ucli_transition_table[UCLI_NUM_STATES][UCLI_NUM_STATES] = {
         /* states:     init                , idle                , drop , parse
-           , run                 */
+           , exec                 */
         /* init    */ {NULL, ucli_init_to_idle, NULL, NULL, NULL},
         /* idle    */ {NULL, NULL, ucli_drop, ucli_parse, NULL},
         /* drop    */ {NULL, ucli_drop_to_idle, NULL, NULL, NULL},
-        /* parse   */ {NULL, ucli_parse_to_idle, NULL, NULL, ucli_run},
-        /* run    */ {NULL, ucli_run_to_idle, NULL, NULL, NULL},
+        /* parse   */ {NULL, ucli_parse_to_idle, NULL, NULL, ucli_exec},
+        /* exec    */ {NULL, ucli_exec_to_idle, NULL, NULL, NULL},
 };
 
 // Triggered event
@@ -76,7 +76,7 @@ inline void ucli_event_trigger(ucli_event_data_t* event) {
  * |_|  \__,_|_| |_|\___|\__|_|\___/|_| |_|___/
  */
 
-// Function to be run in state init
+// Function to be executed in state init
 // valid return states: UCLI_STATE_IDLE
 ucli_state_t ucli_do_init(ucli_state_data_t* data) {
     ucli_state_t next_state = UCLI_STATE_IDLE;
@@ -106,7 +106,7 @@ microCLI # the new generation CLI!\r\n\
     return next_state;
 }
 
-// Function to be run in state idle
+// Function to be executed in state idle
 // valid return states: UCLI_NO_CHANGE, UCLI_STATE_IDLE, UCLI_STATE_DROP,
 // UCLI_STATE_PARSE
 ucli_state_t ucli_do_idle(ucli_state_data_t* data) {
@@ -166,7 +166,7 @@ ucli_state_t ucli_do_idle(ucli_state_data_t* data) {
     return next_state;
 }
 
-// Function to be run in state drop
+// Function to be executed in state drop
 // valid return states: UCLI_NO_CHANGE, UCLI_STATE_IDLE, UCLI_STATE_DROP
 ucli_state_t ucli_do_drop(ucli_state_data_t* data) {
     ucli_state_t next_state = UCLI_NO_CHANGE;
@@ -194,8 +194,8 @@ ucli_state_t ucli_do_drop(ucli_state_data_t* data) {
     return next_state;
 }
 
-// Function to be run in state parse
-// valid return states: UCLI_STATE_IDLE, UCLI_STATE_RUN
+// Function to be executed in state parse
+// valid return states: UCLI_STATE_IDLE, UCLI_STATE_EXEC
 ucli_state_t ucli_do_parse(ucli_state_data_t* data) {
     ucli_state_t next_state = UCLI_STATE_IDLE;
 
@@ -211,13 +211,13 @@ ucli_state_t ucli_do_parse(ucli_state_data_t* data) {
 
     ucli_parser_parse(tmp_buffer, &parsed_command);
 
-    next_state = UCLI_STATE_RUN;
+    next_state = UCLI_STATE_EXEC;
 
     /*** USER CODE END DO_PARSE ***/
 
     switch (next_state) {
     case UCLI_STATE_IDLE:
-    case UCLI_STATE_RUN:
+    case UCLI_STATE_EXEC:
         break;
     default:
         next_state = UCLI_NO_CHANGE;
@@ -226,9 +226,9 @@ ucli_state_t ucli_do_parse(ucli_state_data_t* data) {
     return next_state;
 }
 
-// Function to be run in state run
-// valid return states: UCLI_NO_CHANGE, UCLI_STATE_IDLE, UCLI_STATE_RUN
-ucli_state_t ucli_do_run(ucli_state_data_t* data) {
+// Function to be executed in state exec
+// valid return states: UCLI_NO_CHANGE, UCLI_STATE_IDLE, UCLI_STATE_EXEC
+ucli_state_t ucli_do_exec(ucli_state_data_t* data) {
     ucli_state_t next_state = UCLI_NO_CHANGE;
 
     /*** USER CODE BEGIN DO_RUN ***/
@@ -245,7 +245,7 @@ ucli_state_t ucli_do_run(ucli_state_data_t* data) {
     switch (next_state) {
     case UCLI_NO_CHANGE:
     case UCLI_STATE_IDLE:
-    case UCLI_STATE_RUN:
+    case UCLI_STATE_EXEC:
         break;
     default:
         next_state = UCLI_NO_CHANGE;
@@ -313,8 +313,8 @@ void ucli_parse_to_idle(ucli_state_data_t* data) {
 }
 
 // This function is called in 1 transition:
-// 1. from parse to run
-void ucli_run(ucli_state_data_t* data) {
+// 1. from parse to exec
+void ucli_exec(ucli_state_data_t* data) {
 
     /*** USER CODE BEGIN RUN ***/
 
@@ -322,8 +322,8 @@ void ucli_run(ucli_state_data_t* data) {
 }
 
 // This function is called in 1 transition:
-// 1. from run to idle
-void ucli_run_to_idle(ucli_state_data_t* data) {
+// 1. from exec to idle
+void ucli_exec_to_idle(ucli_state_data_t* data) {
 
     /*** USER CODE BEGIN RUN_TO_IDLE ***/
 
