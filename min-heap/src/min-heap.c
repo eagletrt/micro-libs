@@ -178,7 +178,7 @@ MinHeapReturnCode _min_heap_remove(MinHeapInterface * heap, size_t index, void *
     return MIN_HEAP_OK;
 }
 
-ssize_t _min_heap_find(MinHeapInterface * heap, void * item) {
+signed_size_t _min_heap_find(MinHeapInterface * heap, void * item) {
     if (heap == NULL || item == NULL || heap->compare == NULL || heap->size == 0)
         return -1;
 
