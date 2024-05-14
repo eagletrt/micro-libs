@@ -46,7 +46,7 @@ typedef enum {
   UCLI_STATE_IDLE,  
   UCLI_STATE_DROP,  
   UCLI_STATE_PARSE,  
-  UCLI_STATE_EXEC,  
+  UCLI_STATE_RUN,  
   UCLI_NUM_STATES,
   UCLI_NO_CHANGE
 } ucli_state_t;
@@ -77,12 +77,12 @@ ucli_state_t ucli_do_idle(ucli_state_data_t *data);
 ucli_state_t ucli_do_drop(ucli_state_data_t *data);
 
 // Function to be executed in state parse
-// valid return states: UCLI_STATE_IDLE, UCLI_STATE_EXEC
+// valid return states: UCLI_STATE_IDLE, UCLI_STATE_RUN
 ucli_state_t ucli_do_parse(ucli_state_data_t *data);
 
-// Function to be executed in state exec
-// valid return states: UCLI_NO_CHANGE, UCLI_STATE_IDLE, UCLI_STATE_EXEC
-ucli_state_t ucli_do_exec(ucli_state_data_t *data);
+// Function to be executed in state run
+// valid return states: UCLI_NO_CHANGE, UCLI_STATE_IDLE, UCLI_STATE_RUN
+ucli_state_t ucli_do_run(ucli_state_data_t *data);
 
 
 // List of state functions
@@ -95,8 +95,8 @@ void ucli_drop(ucli_state_data_t *data);
 void ucli_parse(ucli_state_data_t *data);
 void ucli_drop_to_idle(ucli_state_data_t *data);
 void ucli_parse_to_idle(ucli_state_data_t *data);
-void ucli_execute(ucli_state_data_t *data);
-void ucli_execute_to_idle(ucli_state_data_t *data);
+void ucli_run(ucli_state_data_t *data);
+void ucli_run_to_idle(ucli_state_data_t *data);
 
 // Table of transition functions
 extern transition_func_t *const ucli_transition_table[UCLI_NUM_STATES][UCLI_NUM_STATES];

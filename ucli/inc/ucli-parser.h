@@ -9,18 +9,17 @@
 #ifndef UCLI_PARSER_H
 #define UCLI_PARSER_H
 
-#include <stdint.h>
+// === Private Includes ===
 
 #include "ucli.h"
 
-#define UCLI_PARSER_MAX_TOKEN_SIZE (10U)
-#define UCLI_PARSER_MAX_TOKEN_COUNT ((UCLI_BUFFER_LEN + 1U) / 2U)
+#define TOKEN_N ((UCLI_BUFFER_LEN + 1) / 2)
 
-/**
- * @brief Run the parser
- *
- * @param byte The input byte
- */
-void ucli_parser_routine(uint8_t byte);
+typedef struct {
+    char command[10];
+    char args[10][10]
+} parsed_command_t;
 
-#endif  // UCLI_PARSER_H
+void ucli_parser_parse(char* string, parsed_command_t* cmd);
+
+#endif // UCLI_PARSER_H

@@ -16,75 +16,73 @@ Functions and types have been generated with prefix "ucli_"
 #include "ucli-fsm.h"
 
 /*** USER CODE BEGIN GLOBALS ***/
-#include "ucli.h"
 #include "ring-buffer.h"
+#include "ucli-parser.h"
+#include "ucli-private.h"
 #include <string.h>
 
 RingBuffer(char, UCLI_BUFFER_LEN) buffer;
+parsed_command_t parsed_command;
 /*** USER CODE END GLOBALS ***/
-
 
 // GLOBALS
 // State human-readable names
-const char *ucli_state_names[] = {"init", "idle", "drop", "parse", "exec"};
+const char* ucli_state_names[] = {"init", "idle", "drop", "parse", "run"};
 
 // List of state functions
-state_func_t *const ucli_state_table[UCLI_NUM_STATES] = {
-  ucli_do_init,  // in state init
-  ucli_do_idle,  // in state idle
-  ucli_do_drop,  // in state drop
-  ucli_do_parse, // in state parse
-  ucli_do_exec,  // in state exec
+state_func_t* const ucli_state_table[UCLI_NUM_STATES] = {
+    ucli_do_init,  // in state init
+    ucli_do_idle,  // in state idle
+    ucli_do_drop,  // in state drop
+    ucli_do_parse, // in state parse
+    ucli_do_run,   // in state run
 };
 
 // Table of transition functions
-transition_func_t *const ucli_transition_table[UCLI_NUM_STATES][UCLI_NUM_STATES] = {
-  /* states:     init                , idle                , drop                , parse               , exec                 */
-  /* init    */ {NULL                , ucli_init_to_idle   , NULL                , NULL                , NULL                }, 
-  /* idle    */ {NULL                , NULL                , ucli_drop           , ucli_parse          , NULL                }, 
-  /* drop    */ {NULL                , ucli_drop_to_idle   , NULL                , NULL                , NULL                }, 
-  /* parse   */ {NULL                , ucli_parse_to_idle  , NULL                , NULL                , ucli_execute        }, 
-  /* exec    */ {NULL                , ucli_execute_to_idle, NULL                , NULL                , NULL                }, 
+transition_func_t* const
+    ucli_transition_table[UCLI_NUM_STATES][UCLI_NUM_STATES] = {
+        /* states:     init                , idle                , drop , parse
+           , run                 */
+        /* init    */ {NULL, ucli_init_to_idle, NULL, NULL, NULL},
+        /* idle    */ {NULL, NULL, ucli_drop, ucli_parse, NULL},
+        /* drop    */ {NULL, ucli_drop_to_idle, NULL, NULL, NULL},
+        /* parse   */ {NULL, ucli_parse_to_idle, NULL, NULL, ucli_run},
+        /* run    */ {NULL, ucli_run_to_idle, NULL, NULL, NULL},
 };
 
 // Triggered event
-ucli_event_data_t * ucli_fired_event = NULL;
+ucli_event_data_t* ucli_fired_event = NULL;
 
 // Function to check if an event has fired
-inline bool ucli_is_event_triggered() {
-    return ucli_fired_event != NULL;
-}
+inline bool ucli_is_event_triggered() { return ucli_fired_event != NULL; }
 
 // Function to trigger an event
-inline void ucli_event_trigger(ucli_event_data_t *event) {
+inline void ucli_event_trigger(ucli_event_data_t* event) {
     if (ucli_fired_event != NULL)
         return;
     ucli_fired_event = event ? event : &(ucli_event_data_t){};
 }
 
-
-/*  ____  _        _       
- * / ___|| |_ __ _| |_ ___ 
+/*  ____  _        _
+ * / ___|| |_ __ _| |_ ___
  * \___ \| __/ _` | __/ _ \
  *  ___) | || (_| | ||  __/
  * |____/ \__\__,_|\__\___|
- *                         
- *   __                  _   _                 
- *  / _|_   _ _ __   ___| |_(_) ___  _ __  ___ 
+ *
+ *   __                  _   _
+ *  / _|_   _ _ __   ___| |_(_) ___  _ __  ___
  * | |_| | | | '_ \ / __| __| |/ _ \| '_ \/ __|
  * |  _| |_| | | | | (__| |_| | (_) | | | \__ \
  * |_|  \__,_|_| |_|\___|\__|_|\___/|_| |_|___/
- */                                             
+ */
 
-// Function to be executed in state init
+// Function to be run in state init
 // valid return states: UCLI_STATE_IDLE
-ucli_state_t ucli_do_init(ucli_state_data_t *data) {
-  ucli_state_t next_state = UCLI_STATE_IDLE;
-  
-  
-  /*** USER CODE BEGIN DO_INIT ***/
-    char* welcome_message = 
-"\
+ucli_state_t ucli_do_init(ucli_state_data_t* data) {
+    ucli_state_t next_state = UCLI_STATE_IDLE;
+
+    /*** USER CODE BEGIN DO_INIT ***/
+    char* welcome_message = "\
 \r\n\
 ==================================\r\n\
 microCLI # the new generation CLI!\r\n\
@@ -93,29 +91,29 @@ microCLI # the new generation CLI!\r\n\
 ";
     _ucli_send_message(welcome_message, strlen(welcome_message));
 
-    ring_buffer_init(&buffer, char, UCLI_BUFFER_LEN, _ucli_cs_enter, _ucli_cs_exit);
+    ring_buffer_init(&buffer, char, UCLI_BUFFER_LEN, _ucli_cs_enter,
+                     _ucli_cs_exit);
 
-  /*** USER CODE END DO_INIT ***/
-  
-  switch (next_state) {
+    /*** USER CODE END DO_INIT ***/
+
+    switch (next_state) {
     case UCLI_STATE_IDLE:
-      break;
+        break;
     default:
-      next_state = UCLI_NO_CHANGE;
-  }
-  
-  return next_state;
+        next_state = UCLI_NO_CHANGE;
+    }
+
+    return next_state;
 }
 
+// Function to be run in state idle
+// valid return states: UCLI_NO_CHANGE, UCLI_STATE_IDLE, UCLI_STATE_DROP,
+// UCLI_STATE_PARSE
+ucli_state_t ucli_do_idle(ucli_state_data_t* data) {
+    ucli_state_t next_state = UCLI_NO_CHANGE;
 
-// Function to be executed in state idle
-// valid return states: UCLI_NO_CHANGE, UCLI_STATE_IDLE, UCLI_STATE_DROP, UCLI_STATE_PARSE
-ucli_state_t ucli_do_idle(ucli_state_data_t *data) {
-  ucli_state_t next_state = UCLI_NO_CHANGE;
-  
-  
-  /*** USER CODE BEGIN DO_IDLE ***/
-  
+    /*** USER CODE BEGIN DO_IDLE ***/
+
     if (ucli_is_event_triggered()) {
         char c = ucli_fired_event->character;
 
@@ -124,59 +122,56 @@ ucli_state_t ucli_do_idle(ucli_state_data_t *data) {
         }
 
         if (_ucli_is_printable_char(c)) {
-            if (ring_buffer_push_back(&buffer, &c) != RING_BUFFER_OK)
-            {
+            if (ring_buffer_push_back(&buffer, &c) != RING_BUFFER_OK) {
                 _ucli_send_error_message(UCLI_ERROR_FULL_BUFFER);
                 next_state = UCLI_STATE_DROP;
             }
         } else if (_ucli_is_control_char(c)) {
             switch (c) {
-                case CONTROL_CHAR_BACKSPACE:
-                    if (ring_buffer_pop_back(&buffer, NULL) != RING_BUFFER_EMPTY) {
-                        if (_ucli_get_echo_setting_status()) {
-                            _ucli_send_message(" \b", 2);
-                        }
+            case CONTROL_CHAR_BACKSPACE:
+                if (ring_buffer_pop_back(&buffer, NULL) != RING_BUFFER_EMPTY) {
+                    if (_ucli_get_echo_setting_status()) {
+                        _ucli_send_message(" \b", 2);
                     }
-                    break;
-                case CONTROL_CHAR_LINE_FEED:
-                case CONTROL_CHAR_CARRIAGE_RETURN:
-                    next_state = UCLI_STATE_PARSE;
-                    break;
-                
-                default:
-                    _ucli_send_error_message(UCLI_ERROR_UNKNOWN_CHAR);
-                    next_state = UCLI_STATE_DROP;
-                    break;
                 }
+                break;
+            case CONTROL_CHAR_LINE_FEED:
+            case CONTROL_CHAR_CARRIAGE_RETURN:
+                next_state = UCLI_STATE_PARSE;
+                break;
+
+            default:
+                _ucli_send_error_message(UCLI_ERROR_UNKNOWN_CHAR);
+                next_state = UCLI_STATE_DROP;
+                break;
+            }
         } else {
             _ucli_send_error_message(UCLI_ERROR_UNKNOWN_CHAR);
             next_state = UCLI_STATE_DROP;
         }
     }
 
-  /*** USER CODE END DO_IDLE ***/
-  
-  switch (next_state) {
+    /*** USER CODE END DO_IDLE ***/
+
+    switch (next_state) {
     case UCLI_NO_CHANGE:
     case UCLI_STATE_IDLE:
     case UCLI_STATE_DROP:
     case UCLI_STATE_PARSE:
-      break;
+        break;
     default:
-      next_state = UCLI_NO_CHANGE;
-  }
-  
-  return next_state;
+        next_state = UCLI_NO_CHANGE;
+    }
+
+    return next_state;
 }
 
-
-// Function to be executed in state drop
+// Function to be run in state drop
 // valid return states: UCLI_NO_CHANGE, UCLI_STATE_IDLE, UCLI_STATE_DROP
-ucli_state_t ucli_do_drop(ucli_state_data_t *data) {
-  ucli_state_t next_state = UCLI_NO_CHANGE;
-  
-  
-  /*** USER CODE BEGIN DO_DROP ***/
+ucli_state_t ucli_do_drop(ucli_state_data_t* data) {
+    ucli_state_t next_state = UCLI_NO_CHANGE;
+
+    /*** USER CODE BEGIN DO_DROP ***/
 
     if (ring_buffer_clear(&buffer) != RING_BUFFER_OK) {
         // TO-DO: what to do if an error happen in this state? (stay in drop?)
@@ -184,186 +179,193 @@ ucli_state_t ucli_do_drop(ucli_state_data_t *data) {
     } else {
         next_state = UCLI_STATE_IDLE;
     }
-    
-  /*** USER CODE END DO_DROP ***/
-  
-  switch (next_state) {
+
+    /*** USER CODE END DO_DROP ***/
+
+    switch (next_state) {
     case UCLI_NO_CHANGE:
     case UCLI_STATE_IDLE:
     case UCLI_STATE_DROP:
-      break;
+        break;
     default:
-      next_state = UCLI_NO_CHANGE;
-  }
-  
-  return next_state;
+        next_state = UCLI_NO_CHANGE;
+    }
+
+    return next_state;
 }
 
+// Function to be run in state parse
+// valid return states: UCLI_STATE_IDLE, UCLI_STATE_RUN
+ucli_state_t ucli_do_parse(ucli_state_data_t* data) {
+    ucli_state_t next_state = UCLI_STATE_IDLE;
 
-// Function to be executed in state parse
-// valid return states: UCLI_STATE_IDLE, UCLI_STATE_EXEC
-ucli_state_t ucli_do_parse(ucli_state_data_t *data) {
-  ucli_state_t next_state = UCLI_STATE_IDLE;
-  
-  
-  /*** USER CODE BEGIN DO_PARSE ***/
+    /*** USER CODE BEGIN DO_PARSE ***/
 
-  uint8_t byte;
-  RingBufferReturnCode status = ring_buffer_pop_front(&buffer, &byte);
-  if (status == RING_BUFFER_EMPTY)
-      next_state = UCLI_STATE_EXEC;
-  else if (status == RING_BUFFER_OK)
-      ucli_parser_routine(byte);
-  
-  /*** USER CODE END DO_PARSE ***/
-  
-  switch (next_state) {
+    char tmp_buffer[UCLI_BUFFER_LEN];
+    char c;
+    uint8_t i = 0;
+    while (ring_buffer_pop_front(&buffer, &c) == RING_BUFFER_OK) {
+        tmp_buffer[i] = c;
+        i++;
+    }
+
+    ucli_parser_parse(tmp_buffer, &parsed_command);
+
+    next_state = UCLI_STATE_RUN;
+
+    /*** USER CODE END DO_PARSE ***/
+
+    switch (next_state) {
     case UCLI_STATE_IDLE:
-    case UCLI_STATE_EXEC:
-      break;
+    case UCLI_STATE_RUN:
+        break;
     default:
-      next_state = UCLI_NO_CHANGE;
-  }
-  
-  return next_state;
+        next_state = UCLI_NO_CHANGE;
+    }
+
+    return next_state;
 }
 
+// Function to be run in state run
+// valid return states: UCLI_NO_CHANGE, UCLI_STATE_IDLE, UCLI_STATE_RUN
+ucli_state_t ucli_do_run(ucli_state_data_t* data) {
+    ucli_state_t next_state = UCLI_NO_CHANGE;
 
-// Function to be executed in state exec
-// valid return states: UCLI_NO_CHANGE, UCLI_STATE_IDLE, UCLI_STATE_EXEC
-ucli_state_t ucli_do_exec(ucli_state_data_t *data) {
-  ucli_state_t next_state = UCLI_NO_CHANGE;
-  
-  
-  /*** USER CODE BEGIN DO_EXEC ***/
-  
-  /*** USER CODE END DO_EXEC ***/
-  
-  switch (next_state) {
+    /*** USER CODE BEGIN DO_RUN ***/
+
+    ucli_command_function_t run;
+    ucli_dictionary_get(&commands, parsed_command.command, run);
+
+    run(parsed_command.args);
+
+    next_state = UCLI_STATE_IDLE;
+
+    /*** USER CODE END DO_RUN ***/
+
+    switch (next_state) {
     case UCLI_NO_CHANGE:
     case UCLI_STATE_IDLE:
-    case UCLI_STATE_EXEC:
-      break;
+    case UCLI_STATE_RUN:
+        break;
     default:
-      next_state = UCLI_NO_CHANGE;
-  }
-  
-  return next_state;
+        next_state = UCLI_NO_CHANGE;
+    }
+
+    return next_state;
 }
 
-
-/*  _____                    _ _   _              
- * |_   _| __ __ _ _ __  ___(_) |_(_) ___  _ __   
+/*  _____                    _ _   _
+ * |_   _| __ __ _ _ __  ___(_) |_(_) ___  _ __
  *   | || '__/ _` | '_ \/ __| | __| |/ _ \| '_ \
- *   | || | | (_| | | | \__ \ | |_| | (_) | | | | 
- *   |_||_|  \__,_|_| |_|___/_|\__|_|\___/|_| |_| 
- *                                                
- *   __                  _   _                 
- *  / _|_   _ _ __   ___| |_(_) ___  _ __  ___ 
+ *   | || | | (_| | | | \__ \ | |_| | (_) | | | |
+ *   |_||_|  \__,_|_| |_|___/_|\__|_|\___/|_| |_|
+ *
+ *   __                  _   _
+ *  / _|_   _ _ __   ___| |_(_) ___  _ __  ___
  * | |_| | | | '_ \ / __| __| |/ _ \| '_ \/ __|
  * |  _| |_| | | | | (__| |_| | (_) | | | \__ \
  * |_|  \__,_|_| |_|\___|\__|_|\___/|_| |_|___/
- */    
-                                         
+ */
+
 // This function is called in 1 transition:
 // 1. from init to idle
-void ucli_init_to_idle(ucli_state_data_t *data) {
-  
-  /*** USER CODE BEGIN INIT_TO_IDLE ***/
-  
-  /*** USER CODE END INIT_TO_IDLE ***/
+void ucli_init_to_idle(ucli_state_data_t* data) {
+
+    /*** USER CODE BEGIN INIT_TO_IDLE ***/
+
+    /*** USER CODE END INIT_TO_IDLE ***/
 }
 
 // This function is called in 1 transition:
 // 1. from idle to drop
-void ucli_drop(ucli_state_data_t *data) {
-  
-  /*** USER CODE BEGIN DROP ***/
+void ucli_drop(ucli_state_data_t* data) {
 
-  /*** USER CODE END DROP ***/
+    /*** USER CODE BEGIN DROP ***/
+
+    /*** USER CODE END DROP ***/
 }
 
 // This function is called in 1 transition:
 // 1. from idle to parse
-void ucli_parse(ucli_state_data_t *data) {
-  
-  /*** USER CODE BEGIN PARSE ***/
-  
-  /*** USER CODE END PARSE ***/
+void ucli_parse(ucli_state_data_t* data) {
+
+    /*** USER CODE BEGIN PARSE ***/
+
+    /*** USER CODE END PARSE ***/
 }
 
 // This function is called in 1 transition:
 // 1. from drop to idle
-void ucli_drop_to_idle(ucli_state_data_t *data) {
-  
-  /*** USER CODE BEGIN DROP_TO_IDLE ***/
-  
-  /*** USER CODE END DROP_TO_IDLE ***/
+void ucli_drop_to_idle(ucli_state_data_t* data) {
+
+    /*** USER CODE BEGIN DROP_TO_IDLE ***/
+
+    /*** USER CODE END DROP_TO_IDLE ***/
 }
 
 // This function is called in 1 transition:
 // 1. from parse to idle
-void ucli_parse_to_idle(ucli_state_data_t *data) {
-  
-  /*** USER CODE BEGIN PARSE_TO_IDLE ***/
-  
-  /*** USER CODE END PARSE_TO_IDLE ***/
+void ucli_parse_to_idle(ucli_state_data_t* data) {
+
+    /*** USER CODE BEGIN PARSE_TO_IDLE ***/
+
+    /*** USER CODE END PARSE_TO_IDLE ***/
 }
 
 // This function is called in 1 transition:
-// 1. from parse to exec
-void ucli_execute(ucli_state_data_t *data) {
-  
-  /*** USER CODE BEGIN EXECUTE ***/
-  
-  /*** USER CODE END EXECUTE ***/
+// 1. from parse to run
+void ucli_run(ucli_state_data_t* data) {
+
+    /*** USER CODE BEGIN RUN ***/
+
+    /*** USER CODE END RUN ***/
 }
 
 // This function is called in 1 transition:
-// 1. from exec to idle
-void ucli_execute_to_idle(ucli_state_data_t *data) {
-  
-  /*** USER CODE BEGIN EXECUTE_TO_IDLE ***/
-  
-  /*** USER CODE END EXECUTE_TO_IDLE ***/
+// 1. from run to idle
+void ucli_run_to_idle(ucli_state_data_t* data) {
+
+    /*** USER CODE BEGIN RUN_TO_IDLE ***/
+
+    /*** USER CODE END RUN_TO_IDLE ***/
 }
 
-
-/*  ____  _        _        
- * / ___|| |_ __ _| |_ ___  
+/*  ____  _        _
+ * / ___|| |_ __ _| |_ ___
  * \___ \| __/ _` | __/ _ \
- *  ___) | || (_| | ||  __/ 
- * |____/ \__\__,_|\__\___| 
- *                          
- *                                              
- *  _ __ ___   __ _ _ __   __ _  __ _  ___ _ __ 
+ *  ___) | || (_| | ||  __/
+ * |____/ \__\__,_|\__\___|
+ *
+ *
+ *  _ __ ___   __ _ _ __   __ _  __ _  ___ _ __
  * | '_ ` _ \ / _` | '_ \ / _` |/ _` |/ _ \ '__|
- * | | | | | | (_| | | | | (_| | (_| |  __/ |   
- * |_| |_| |_|\__,_|_| |_|\__,_|\__, |\___|_|   
- *                              |___/           
+ * | | | | | | (_| | | | | (_| | (_| |  __/ |
+ * |_| |_| |_|\__,_|_| |_|\__,_|\__, |\___|_|
+ *                              |___/
  */
 
-ucli_state_t ucli_run_state(ucli_state_t cur_state, ucli_state_data_t *data) {
-  ucli_event_data_t *prev_ev = ucli_fired_event;
-  ucli_state_t new_state = ucli_state_table[cur_state](data);
-  // Reset event status
-  if (prev_ev != NULL)
-    ucli_fired_event = NULL;
-  if (new_state == UCLI_NO_CHANGE) new_state = cur_state;
-  transition_func_t *transition = ucli_transition_table[cur_state][new_state];
-  if (transition)
-    transition(data);
-  return new_state;
+ucli_state_t ucli_run_state(ucli_state_t cur_state, ucli_state_data_t* data) {
+    ucli_event_data_t* prev_ev = ucli_fired_event;
+    ucli_state_t new_state = ucli_state_table[cur_state](data);
+    // Reset event status
+    if (prev_ev != NULL)
+        ucli_fired_event = NULL;
+    if (new_state == UCLI_NO_CHANGE)
+        new_state = cur_state;
+    transition_func_t* transition = ucli_transition_table[cur_state][new_state];
+    if (transition)
+        transition(data);
+    return new_state;
 };
 
 #ifdef TEST_MAIN
 #include <unistd.h>
 int main() {
-  ucli_state_t cur_state = UCLI_STATE_INIT;
-  do {
-    cur_state = ucli_run_state(cur_state, NULL);
-    sleep(1);
-  } while (1);
-  return 0;
+    ucli_state_t cur_state = UCLI_STATE_INIT;
+    do {
+        cur_state = ucli_run_state(cur_state, NULL);
+        sleep(1);
+    } while (1);
+    return 0;
 }
 #endif

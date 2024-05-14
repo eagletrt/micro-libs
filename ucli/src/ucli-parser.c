@@ -8,24 +8,52 @@
 
 #include "ucli-parser.h"
 
-typedef enum {
-    TOKEN_TYPE_UNKOWN = -1,
-    TOKEN_TYPE_ID,
-    TOKEN_TYPE_VERSION,
-    TOKEN_TYPE_HELP,
-    TOKEN_TYPE_WATCH,
-    TOKEN_TYPE_COUNT
-} TokenType;
+// === Private Includes ===
+
+#include "ucli-private.h"
+#include <stdint.h>
+#include <string.h>
+
+typedef enum { TOKEN_COMMAND, TOKEN_ARGUMENT } token_type_t;
 
 typedef struct {
-    TokenType type;
-    size_t pos;
-    uint8_t data[UCLI_PARSER_MAX_TOKEN_SIZE];
-} Token;
+    token_type_t token_type;
+    char value[10];
+} token_t;
 
-static size_t token_index;
-static Token tokens[UCLI_PARSER_MAX_TOKEN_COUNT];
+void ucli_parser_lexer(char* string, token_t* tokens) {
+    char* delim = " ";
+    char* token;
 
-void ucli_parser_routine(uint8_t byte) {
+    uint8_t i = 0;
+    while (token = strtok(string, delim)) {
+        if (ucli_dictionary_contains_key(&commands, token) ==
+            UCLI_DICTIONARY_RETURN_CODE_OK) {
+            tokens[i].token_type = TOKEN_COMMAND;
+            strncpy(tokens[i].value, token, 10);
+        } else {
+            tokens[i].token_type = TOKEN_ARGUMENT;
+            strncpy(tokens[i].value, token, 10);
+        }
+        i++;
+    }
+}
 
+void ucli_parser_parse(char* string, parsed_command_t* cmd) {
+    token_t tokens[TOKEN_N];
+
+    ucli_parser_lexer(string, tokens);
+
+    if (tokens[0].token_type != TOKEN_COMMAND) {
+        // TO-DO: Error
+    }
+
+    strcpy(cmd->command, tokens[0].value);
+
+    for (size_t i = 1, j = 0; i < TOKEN_N; i++) {
+        if (tokens[i].token_type == TOKEN_ARGUMENT) {
+            strcpy(cmd->args[j], tokens[i].value);
+            j++;
+        }
+    }
 }
