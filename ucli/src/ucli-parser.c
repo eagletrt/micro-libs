@@ -43,7 +43,7 @@ void ucli_parser_lexer(char* string, token_t* tokens) {
     }
 }
 
-void ucli_parser_parse(char* string, parsed_command_t* cmd) {
+ucli_parser_return_code_t ucli_parser_parse(char* string, parsed_command_t* cmd) {
     token_t tokens[TOKEN_N];
     for (size_t i = 0; i < TOKEN_N; i++) {
         tokens[i].token_type = TOKEN_UNKNOWN;
@@ -53,7 +53,7 @@ void ucli_parser_parse(char* string, parsed_command_t* cmd) {
     ucli_parser_lexer(string, tokens);
 
     if (tokens[0].token_type != TOKEN_COMMAND) {
-        // TO-DO: Error
+        return UCLI_PARSER_RETURN_CODE_UNKNOWN_COMMAND;
     }
 
     strcpy(cmd->command, tokens[0].value);
@@ -66,4 +66,6 @@ void ucli_parser_parse(char* string, parsed_command_t* cmd) {
         }
     }
     cmd->argc = j;
+
+    return UCLI_PARSER_RETURN_CODE_OK;
 }

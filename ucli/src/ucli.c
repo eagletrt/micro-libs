@@ -30,6 +30,7 @@ ucli_dictionary_t commands;
 char ucli_error_messages[UCLI_ERROR_N][MAX_ERROR_MESSAGE_LEN] = {
     "Buffer is full",
     "Unknown char",
+    "Unknown command",
     "Unknown error",
 };
 

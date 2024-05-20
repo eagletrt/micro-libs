@@ -210,9 +210,12 @@ ucli_state_t ucli_do_parse(ucli_state_data_t* data) {
         i++;
     }
 
-    ucli_parser_parse(tmp_buffer, &parsed_command);
-
-    next_state = UCLI_STATE_EXEC;
+    if(ucli_parser_parse(tmp_buffer, &parsed_command) == UCLI_PARSER_RETURN_CODE_OK) {
+        next_state = UCLI_STATE_EXEC;
+    } else {
+        _ucli_send_error_message(UCLI_ERROR_UNKNOWN_COMMAND);
+        next_state = UCLI_STATE_IDLE;
+    }
 
     /*** USER CODE END DO_PARSE ***/
 
@@ -235,12 +238,8 @@ ucli_state_t ucli_do_exec(ucli_state_data_t* data) {
     /*** USER CODE BEGIN DO_RUN ***/
 
     ucli_command_function_t exec = NULL;
-    if (ucli_dictionary_get(&commands, parsed_command.command, &exec) ==
-        UCLI_DICTIONARY_RETURN_CODE_OK) {
-        exec(parsed_command.argc, parsed_command.args);
-    } else {
-        // TO-DO: error
-    }
+    ucli_dictionary_get(&commands, parsed_command.command, &exec);
+    exec(parsed_command.argc, parsed_command.args);
 
     next_state = UCLI_STATE_IDLE;
 
