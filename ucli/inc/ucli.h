@@ -18,6 +18,8 @@
 
 #define UCLI_BUFFER_LEN 10
 #define UCLI_COMMAND_N 10
+#define UCLI_ARGS_N_MAX 10
+#define UCLI_ARGS_LEN_MAX 10
 
 // === Public types ===
 typedef struct {
@@ -27,7 +29,7 @@ typedef struct {
     bool echo;
 } ucli_handler_t;
 
-typedef void (*ucli_command_function_t)(char** args);
+typedef void (*ucli_command_function_t)(int argc, char args[][10]);
 
 typedef struct {
     char* name;

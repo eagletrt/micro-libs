@@ -35,7 +35,7 @@ ucli_dictionary_add(ucli_dictionary_t* dict, char* key,
                     ucli_command_function_t function);
 ucli_dictionary_return_code_t
 ucli_dictionary_get(ucli_dictionary_t* dict, char* key,
-                    ucli_command_function_t function);
+                    ucli_command_function_t* function);
 ucli_dictionary_return_code_t
 ucli_dictionary_contains_key(ucli_dictionary_t* dict, char* key);
 

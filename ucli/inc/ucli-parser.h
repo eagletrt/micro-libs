@@ -16,8 +16,9 @@
 #define TOKEN_N ((UCLI_BUFFER_LEN + 1) / 2)
 
 typedef struct {
-    char command[10];
-    char args[10][10]
+    char command[UCLI_ARGS_N_MAX];
+    int argc;
+    char args[UCLI_ARGS_LEN_MAX][UCLI_ARGS_N_MAX];
 } parsed_command_t;
 
 void ucli_parser_parse(char* string, parsed_command_t* cmd);

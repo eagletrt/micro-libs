@@ -202,6 +202,7 @@ ucli_state_t ucli_do_parse(ucli_state_data_t* data) {
     /*** USER CODE BEGIN DO_PARSE ***/
 
     char tmp_buffer[UCLI_BUFFER_LEN];
+    memset(tmp_buffer, '\0', UCLI_BUFFER_LEN);
     char c;
     uint8_t i = 0;
     while (ring_buffer_pop_front(&buffer, &c) == RING_BUFFER_OK) {
@@ -233,10 +234,13 @@ ucli_state_t ucli_do_exec(ucli_state_data_t* data) {
 
     /*** USER CODE BEGIN DO_RUN ***/
 
-    ucli_command_function_t run;
-    ucli_dictionary_get(&commands, parsed_command.command, run);
-
-    run(parsed_command.args);
+    ucli_command_function_t exec = NULL;
+    if (ucli_dictionary_get(&commands, parsed_command.command, &exec) ==
+        UCLI_DICTIONARY_RETURN_CODE_OK) {
+        exec(parsed_command.argc, parsed_command.args);
+    } else {
+        // TO-DO: error
+    }
 
     next_state = UCLI_STATE_IDLE;
 

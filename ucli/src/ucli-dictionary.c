@@ -48,20 +48,12 @@ ucli_dictionary_add(ucli_dictionary_t* dict, char* key,
 
 ucli_dictionary_return_code_t
 ucli_dictionary_get(ucli_dictionary_t* dict, char* key,
-                    ucli_command_function_t function) {
+                    ucli_command_function_t* function) {
     uint8_t bucket = ucli_dictionary_get_bucket(key);
 
-    uint8_t i = 0;
-    if (dict->buckets[bucket][i + 1].function == NULL) {
-        function = dict->buckets[bucket][i].function;
-        return UCLI_DICTIONARY_RETURN_CODE_OK;
-    }
-
-    i = 1;
-    while (i < BUCKETS_SIZE - 1 &&
-           dict->buckets[bucket][i + 1].function != NULL) {
+    for (size_t i = 0; i < BUCKETS_SIZE; i++) {
         if (strcmp(dict->buckets[bucket][i].key, key) == 0) {
-            function = dict->buckets[bucket][i].function;
+            *function = dict->buckets[bucket][i].function;
             return UCLI_DICTIONARY_RETURN_CODE_OK;
         }
     }
@@ -73,14 +65,7 @@ ucli_dictionary_return_code_t
 ucli_dictionary_contains_key(ucli_dictionary_t* dict, char* key) {
     uint8_t bucket = ucli_dictionary_get_bucket(key);
 
-    uint8_t i = 0;
-    if (dict->buckets[bucket][i + 1].function == NULL) {
-        return UCLI_DICTIONARY_RETURN_CODE_OK;
-    }
-
-    i = 1;
-    while (i < BUCKETS_SIZE - 1 &&
-           dict->buckets[bucket][i + 1].function != NULL) {
+    for (size_t i = 0; i < BUCKETS_SIZE; i++) {
         if (strcmp(dict->buckets[bucket][i].key, key) == 0) {
             return UCLI_DICTIONARY_RETURN_CODE_OK;
         }
