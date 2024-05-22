@@ -614,57 +614,6 @@ size_t ltc6811_rdsctrl_decode_broadcast(
     uint8_t * out
 );
 /**
- * @brief Encode PWM data of the LTC's into a broadcast write command
- *
- * @attention The 'out' array should be large enough to contain all the encoded bytes
- * Use the LTC6811_WRITE_BUFFER_SIZE macro to get the right size for the buffer
- * @attention The 'data' array size have to be equal to the total number of
- * PWM values of all the LTC's in the chain (LTC6811_PWM_COUNT * chain.count)
- *
- * @param chain The LTC6811 broadcast handler
- * @param data The array of data to write
- * @param out The array where the encoded bytes are written
- * @return size_t The number of encoded bytes
- */
-size_t ltc6811_wrpwm_encode_broadcast(
-    Ltc6811Chain * chain,
-    uint8_t * data,
-    uint8_t * out
-);
-/**
- * @brief Encode the LTC broadcast pwm read command
- *
- * @attention The 'out' array should be large enough to contain all the encode bytes
- * Use the LTC6811_READ_BUFFER_SIZE macro to get the right size for the buffer
- *
- * @param chain The LTC6811 broadcast handler
- * @param out The array were the encoded bytes are written
- * @return size_t The number of encoded bytes
- */
-size_t ltc6811_rdpwm_encode_broadcast(
-    Ltc6811Chain * chain,
-    uint8_t * out
-);
-/**
- * @brief Decode the LTC broadcast S pin control data
- *
- * @attention The 'out' array should be large enough to store 'LTC6811_SCTL_COUNT'
- * values for each LTC6811 in the chain
- *
- * @details The return value can be compared with the LTC6811_DATA_BUFFER_SIZE macro
- * to check if all bytes where decoded correctly
- *
- * @param chain The LTC6811 broadcast handler
- * @param data The array of bytes to decode
- * @param out The array where the S pin control data is stored
- * @return size_t The number of decoded bytes (PEC included)
- */
-size_t ltc6811_rdsctrl_decode_broadcast(
-    Ltc6811Chain * chain,
-    uint8_t * data,
-    uint8_t * out
-);
-/**
  * @brief Encode the LTC broadcast start S pin control pulsing and poll status command
  *
  * @attention The 'out' array should be large enough to contain all the encoded bytes
@@ -693,9 +642,27 @@ size_t ltc6811_clrsctrl_encode_broadcast(
     uint8_t * out
 );
 /**
- * @brief Encode the LTC broadcast pwm read command
+ * @brief Encode PWM data of the LTC's into a broadcast write command
  *
  * @attention The 'out' array should be large enough to contain all the encoded bytes
+ * Use the LTC6811_WRITE_BUFFER_SIZE macro to get the right size for the buffer
+ * @attention The 'data' array size have to be equal to the total number of
+ * PWM values of all the LTC's in the chain (LTC6811_PWM_COUNT * chain.count)
+ *
+ * @param chain The LTC6811 broadcast handler
+ * @param data The array of data to write
+ * @param out The array where the encoded bytes are written
+ * @return size_t The number of encoded bytes
+ */
+size_t ltc6811_wrpwm_encode_broadcast(
+    Ltc6811Chain * chain,
+    uint8_t * data,
+    uint8_t * out
+);
+/**
+ * @brief Encode the LTC broadcast pwm read command
+ *
+ * @attention The 'out' array should be large enough to contain all the encode bytes
  * Use the LTC6811_READ_BUFFER_SIZE macro to get the right size for the buffer
  *
  * @param chain The LTC6811 broadcast handler
