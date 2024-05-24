@@ -17,7 +17,7 @@
 
 // === Parameters ===
 
-#define UCLI_BUFFER_LEN 10
+#define UCLI_BUFFER_LEN 20
 #define UCLI_COMMAND_N 10
 #define UCLI_ARGS_N_MAX 10
 #define UCLI_ARGS_LEN_MAX 10
