@@ -1,25 +1,18 @@
 /**
  * @file test-ucli.c
- * @brief 
  *
- * @date 04 Apr 2024
- * @author Name Surname [your@email.here]
+ * @date May 2024
+ * @author Enrico Dalla Croce (Kalsifer-742) [kalsifer742@gmail.com]
  */
 
+#include "ucli-dictionary.h"
 #include "unity.h"
-#include "ucli.h"
 
-void setUp(void) {
+void setUp(void) {}
 
-}
+void tearDown(void) {}
 
-void tearDown(void) {
-
-}
-
-void test_unity(void) {
-    TEST_ASSERT(1);
-}
+void test_unity(void) { TEST_ASSERT(1); }
 
 int main() {
     UNITY_BEGIN();
@@ -28,4 +21,3 @@ int main() {
 
     UNITY_END();
 }
-

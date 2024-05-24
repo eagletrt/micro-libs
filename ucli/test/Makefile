@@ -8,6 +8,8 @@ BUILD_DEPS_DIR=$(BUILD_DIR)/deps
 SRC_DIR=../src
 INC_DIR=../inc
 UNITY_DIR=../../Unity/src
+RING_BUFFER_SRC_DIR=../../ring-buffer/src
+RING_BUFFER_INC_DIR=../../ring-buffer/inc
 
 # Tools
 CC=$(shell command -v gcc || command -v clang || echo /bin/gcc)
@@ -15,13 +17,14 @@ SZ=$(shell command -v size)
 
 # Sources
 C_SOURCES=$(wildcard *.c)
-DEPS_SOURCES=$(wildcard $(SRC_DIR)/*.c $(UNITY_DIR)/unity.c)
+DEPS_SOURCES=$(wildcard $(SRC_DIR)/*.c $(UNITY_DIR)/unity.c $(RING_BUFFER_SRC_DIR)/*.c)
 SOURCES=$(C_SOURCES) $(DEPS_SOURCES)
 
 # Include directories
 C_INCLUDES= \
 $(UNITY_DIR) \
-$(INC_DIR)
+$(INC_DIR) \
+$(RING_BUFFER_INC_DIR) \
 
 # Executables
 TARGETS=$(addprefix $(BUILD_DIR)/, $(basename $(C_SOURCES)))
