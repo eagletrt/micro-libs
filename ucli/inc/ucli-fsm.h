@@ -15,7 +15,6 @@ Functions and types have been generated with prefix "ucli_"
 
 /**
  * @file ucli-fsm.h
- * @brief Command Line Interface for embedded systems
  *
  * @date May 2024
  * @author Enrico Dalla Croce (Kalsifer-742) [kalsifer742@gmail.com]
