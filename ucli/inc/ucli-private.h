@@ -1,5 +1,13 @@
-#ifndef UCLI_INTERNAL_H
-#define UCLI_INTERNAL_H
+/**
+ * @file ucli-private.h
+ * @brief Command Line Interface for embedded systems
+ *
+ * @date May 2024
+ * @author Enrico Dalla Croce (Kalsifer-742) [kalsifer742@gmail.com]
+ */
+
+#ifndef UCLI_PRIVATE_H
+#define UCLI_PRIVATE_H
 
 #include "ucli.h"
 
@@ -38,4 +46,4 @@ bool _ucli_get_echo_setting_status(void);
 void _ucli_cs_enter(void);
 void _ucli_cs_exit(void);
 
-#endif // UCLI_INTERNAL_H
+#endif // UCLI_PRIVATE_H

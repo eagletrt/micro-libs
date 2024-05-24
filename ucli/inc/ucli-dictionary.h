@@ -1,23 +1,34 @@
+/**
+ * @file ucli-dictionary.h
+ * @brief Command Line Interface for embedded systems
+ *
+ * @date May 2024
+ * @author Enrico Dalla Croce (Kalsifer-742) [kalsifer742@gmail.com]
+ */
+
 #ifndef UCLI_DICTIONARY_H
 #define UCLI_DICTIONARY_H
 
+// == Private Includes ==
+
 #include "ucli.h"
-#include <stdint.h>
 
 // === Parameters ===
 
 #define BUCKETS_N 10
 #define BUCKETS_SIZE 3
 
+// === Private Types ===
+
+typedef struct {
+    char key[UCLI_ARGS_LEN_MAX];
+    ucli_command_function_t function;
+} _ucli_dictionary_key_value_pair_t;
+
 // === Public Types ===
 
 typedef struct {
-    char* key;
-    ucli_command_function_t function;
-} ucli_dictionary_key_value_pair_t;
-
-typedef struct {
-    ucli_dictionary_key_value_pair_t buckets[BUCKETS_N][BUCKETS_SIZE];
+    _ucli_dictionary_key_value_pair_t buckets[BUCKETS_N][BUCKETS_SIZE];
 } ucli_dictionary_t;
 
 typedef enum {

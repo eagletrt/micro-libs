@@ -99,7 +99,7 @@ typedef enum {
     MIN_HEAP_OUT_OF_BOUNDS
 } MinHeapReturnCode;
 
-typedef long ssize_t;
+typedef long signed_size_t;
 
 /**
  * @brief Initialize the minimum heap structure
@@ -217,7 +217,7 @@ typedef long ssize_t;
  *
  * @param heap The heap handler structure
  * @param item The item to find
- * @return ssize_t The index in the heap of the item if found, -1 otherwise
+ * @return signed_size_t The index in the heap of the item if found, -1 otherwise
  */
 #define min_heap_find(heap, item) _min_heap_find((MinHeapInterface *)(heap), (void *)(item))
 
@@ -241,7 +241,7 @@ void * _min_heap_peek(MinHeapInterface * heap);
 MinHeapReturnCode _min_heap_clear(MinHeapInterface * heap);
 MinHeapReturnCode _min_heap_insert(MinHeapInterface * heap, void * item);
 MinHeapReturnCode _min_heap_remove(MinHeapInterface * heap, size_t index, void * out);
-ssize_t _min_heap_find(MinHeapInterface * heap, void * item);
+signed_size_t _min_heap_find(MinHeapInterface * heap, void * item);
 
 #endif  // MIN_HEAP_H
 

@@ -1,9 +1,9 @@
 /**
  * @file ucli-parser.h
- * @brief Parser for the micro CLI
+ * @brief Command Line Interface for embedded systems
  *
- * @date 08 May 2024
- * @author Antonio Gelain [antonio.gelain@studenti.unitn.it]
+ * @date May 2024
+ * @author Enrico Dalla Croce (Kalsifer-742) [kalsifer742@gmail.com]
  */
 
 #ifndef UCLI_PARSER_H
@@ -16,6 +16,8 @@
 // === Private Defines ===
 
 #define TOKEN_N ((UCLI_BUFFER_LEN + 1) / 2)
+
+// === Public Defines ===
 
 typedef enum {
     UCLI_PARSER_RETURN_CODE_OK,
@@ -30,6 +32,7 @@ typedef struct {
 
 // === Public Functions ===
 
-ucli_parser_return_code_t ucli_parser_parse(char* string, parsed_command_t* cmd);
+ucli_parser_return_code_t ucli_parser_parse(char* string,
+                                            parsed_command_t* cmd);
 
 #endif // UCLI_PARSER_H

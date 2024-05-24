@@ -1,38 +1,26 @@
 /**
  * @file ucli.c
- * @brief
+ * @brief Command Line Interface for embedded systems
  *
- * @date 04 Apr 2024
- * @author Name Surname [your@email.here]
+ * @date May 2024
+ * @author Enrico Dalla Croce (Kalsifer-742) [kalsifer742@gmail.com]
  */
 
 #include "ucli.h"
 
 // === Private Includes ===
+
 #include "ucli-fsm.h"
 #include "ucli-private.h"
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-
-// === Private Defines ===
-#define MAX_ERROR_MESSAGE_LEN 20
 
 // === Global variables ===
 ucli_state_t ucli_state;
 ucli_event_data_t event;
 ucli_handler_t handler;
 ucli_dictionary_t commands;
-// ucli_command_t ucli_commands[UCLI_COMMAND_N];
-// uint8_t command_n = 0;
-
-ucli_dictionary_t commands;
-
-char ucli_error_messages[UCLI_ERROR_N][MAX_ERROR_MESSAGE_LEN] = {
-    "Buffer is full",
-    "Unknown char",
-    "Unknown command",
-    "Unknown error",
-};
 
 // === Public functions ===
 
@@ -60,9 +48,32 @@ void _ucli_send_message(char* message, size_t size) {
     handler.send(message, size);
 }
 
+char* _ucli_get_error_message(UCLI_ERRORS error) {
+    static char* buffer_is_full_error_message = "Buffer is full";
+    static char* unknown_char_error_message = "Unknown char";
+    static char* unknown_command_error_message = "Unknown command";
+    static char* unknown_error_message = "Unknown error";
+
+    switch (error) {
+    case UCLI_ERROR_FULL_BUFFER:
+        return buffer_is_full_error_message;
+        break;
+    case UCLI_ERROR_UNKNOWN_CHAR:
+        return unknown_char_error_message;
+        break;
+    case UCLI_ERROR_UNKNOWN_COMMAND:
+        return unknown_command_error_message;
+        break;
+
+    default:
+        return unknown_error_message;
+        break;
+    }
+}
+
 void _ucli_send_error_message(UCLI_ERRORS error) {
     char* prefix = "[UCLI_ERROR]";
-    char* error_message = ucli_error_messages[error];
+    char* error_message = _ucli_get_error_message(error);
     const char fmt[] = "\r\n%s: %s\r\n";
     int size = snprintf(NULL, 0, fmt, prefix, error_message);
     char message[size + 1]; // +1 for terminating null byte
@@ -90,6 +101,16 @@ bool _ucli_is_control_char(char c) {
 
 bool _ucli_get_echo_setting_status(void) { return handler.echo; }
 
-void _ucli_cs_enter(void) { handler.cs_enter(); }
+void _ucli_cs_enter(void) {
+    if (handler.cs_enter == NULL) {
+        return;
+    }
+    handler.cs_enter();
+}
 
-void _ucli_cs_exit(void) { handler.cs_exit(); }
+void _ucli_cs_exit(void) {
+    if (handler.cs_exit == NULL) {
+        return;
+    }
+    handler.cs_exit();
+}

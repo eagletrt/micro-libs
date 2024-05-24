@@ -13,12 +13,26 @@ The finite state machine has:
 Functions and types have been generated with prefix "ucli_"
 ******************************************************************************/
 
+/**
+ * @file ucli-fsm.c
+ * @brief Command Line Interface for embedded systems
+ *
+ * @date May 2024
+ * @author Enrico Dalla Croce (Kalsifer-742) [kalsifer742@gmail.com]
+ */
+
 #include "ucli-fsm.h"
 
 /*** USER CODE BEGIN GLOBALS ***/
+
+// === Private Includes ===
+
 #include "ring-buffer.h"
 #include "ucli-parser.h"
 #include "ucli-private.h"
+#include "ucli.h"
+#include <stdbool.h>
+#include <stddef.h>
 #include <string.h>
 
 RingBuffer(char, UCLI_BUFFER_LEN) buffer;
@@ -122,14 +136,14 @@ ucli_state_t ucli_do_idle(ucli_state_data_t* data) {
         }
 
         if (_ucli_is_printable_char(c)) {
-            if (ring_buffer_push_back(&buffer, &c) != RING_BUFFER_OK) {
+            if (ring_buffer_push_back(&buffer, &c) == RING_BUFFER_FULL) {
                 _ucli_send_error_message(UCLI_ERROR_FULL_BUFFER);
                 next_state = UCLI_STATE_DROP;
             }
         } else if (_ucli_is_control_char(c)) {
             switch (c) {
             case CONTROL_CHAR_BACKSPACE:
-                if (ring_buffer_pop_back(&buffer, NULL) != RING_BUFFER_EMPTY) {
+                if (ring_buffer_pop_back(&buffer, NULL) == RING_BUFFER_OK) {
                     if (_ucli_get_echo_setting_status()) {
                         _ucli_send_message(" \b", 2);
                     }
@@ -203,14 +217,15 @@ ucli_state_t ucli_do_parse(ucli_state_data_t* data) {
 
     char tmp_buffer[UCLI_BUFFER_LEN];
     memset(tmp_buffer, '\0', UCLI_BUFFER_LEN);
-    char c;
+    char c = '\0';
     uint8_t i = 0;
     while (ring_buffer_pop_front(&buffer, &c) == RING_BUFFER_OK) {
         tmp_buffer[i] = c;
         i++;
     }
 
-    if(ucli_parser_parse(tmp_buffer, &parsed_command) == UCLI_PARSER_RETURN_CODE_OK) {
+    if (ucli_parser_parse(tmp_buffer, &parsed_command) ==
+        UCLI_PARSER_RETURN_CODE_OK) {
         next_state = UCLI_STATE_EXEC;
     } else {
         _ucli_send_error_message(UCLI_ERROR_UNKNOWN_COMMAND);

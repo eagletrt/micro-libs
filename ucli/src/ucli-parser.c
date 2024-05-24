@@ -1,9 +1,9 @@
 /**
  * @file ucli-parser.c
- * @brief Parser for the micro CLI
+ * @brief Command Line Interface for embedded systems
  *
- * @date 08 May 2024
- * @author Antonio Gelain [antonio.gelain@studenti.unitn.it]
+ * @date May 2024
+ * @author Enrico Dalla Croce (Kalsifer-742) [kalsifer742@gmail.com]
  */
 
 #include "ucli-parser.h"
@@ -14,12 +14,16 @@
 #include <stdint.h>
 #include <string.h>
 
+// === Private Types ===
+
 typedef enum { TOKEN_COMMAND, TOKEN_ARGUMENT, TOKEN_UNKNOWN } token_type_t;
 
 typedef struct {
     token_type_t token_type;
-    char value[10];
+    char value[UCLI_ARGS_LEN_MAX];
 } token_t;
+
+// === Public Functions ===
 
 void ucli_parser_lexer(char* string, token_t* tokens) {
     char* delim = " ";
@@ -32,10 +36,10 @@ void ucli_parser_lexer(char* string, token_t* tokens) {
         if (ucli_dictionary_contains_key(&commands, token) ==
             UCLI_DICTIONARY_RETURN_CODE_OK) {
             tokens[i].token_type = TOKEN_COMMAND;
-            strncpy(tokens[i].value, token, 10);
+            strncpy(tokens[i].value, token, UCLI_ARGS_LEN_MAX);
         } else {
             tokens[i].token_type = TOKEN_ARGUMENT;
-            strncpy(tokens[i].value, token, 10);
+            strncpy(tokens[i].value, token, UCLI_ARGS_LEN_MAX);
         }
 
         token = strtok(NULL, delim);
@@ -43,11 +47,12 @@ void ucli_parser_lexer(char* string, token_t* tokens) {
     }
 }
 
-ucli_parser_return_code_t ucli_parser_parse(char* string, parsed_command_t* cmd) {
+ucli_parser_return_code_t ucli_parser_parse(char* string,
+                                            parsed_command_t* cmd) {
     token_t tokens[TOKEN_N];
     for (size_t i = 0; i < TOKEN_N; i++) {
         tokens[i].token_type = TOKEN_UNKNOWN;
-        memset(tokens[i].value, '\0', 10);
+        memset(tokens[i].value, '\0', UCLI_ARGS_LEN_MAX);
     }
 
     ucli_parser_lexer(string, tokens);

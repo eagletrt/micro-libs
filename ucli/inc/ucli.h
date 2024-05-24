@@ -1,9 +1,10 @@
 /**
  * @file ucli.h
- * @brief
+ * @brief Command Line Interface for embedded systems
  *
- * @date 04 Apr 2024
- * @author Name Surname [your@email.here]
+ * @date May 2024
+ * @author Enrico Dalla Croce (Kalsifer-742) [kalsifer742@gmail.com]
+ * @author Antonio Gelain [antonio.gelain@studenti.unitn.it]
  */
 
 #ifndef UCLI_H
@@ -22,6 +23,7 @@
 #define UCLI_ARGS_LEN_MAX 10
 
 // === Public types ===
+
 typedef struct {
     void (*send)(char* message, size_t size);
     void (*cs_enter)(void);
@@ -32,7 +34,7 @@ typedef struct {
 typedef void (*ucli_command_function_t)(int argc, char args[][10]);
 
 typedef struct {
-    char* name;
+    char name[UCLI_ARGS_N_MAX];
     ucli_command_function_t function;
 } ucli_command_t;
 
