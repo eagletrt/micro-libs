@@ -18,28 +18,46 @@
 
 // === Global variables ===
 ucli_state_t ucli_state;
-ucli_event_data_t event;
 ucli_handler_t handler;
 ucli_dictionary_t commands;
 
 // === Public functions ===
 
-void ucli_init(ucli_handler_t ucli_handler) {
+ucli_return_codes_t ucli_init(ucli_handler_t ucli_handler) {
     handler = ucli_handler;
-    ucli_dictionary_init(&commands);
+    if (ucli_dictionary_init(&commands) != UCLI_DICTIONARY_RETURN_CODE_OK) {
+        return UCLI_RETURN_CODE_ERROR;
+    }
     ucli_state = UCLI_STATE_INIT;
+
+    return UCLI_RETURN_CODE_OK;
 }
 
-void ucli_routine(void) { ucli_state = ucli_run_state(ucli_state, NULL); }
-
-void ucli_receive_data(char c) {
-    event.character = c;
-
-    ucli_event_trigger(&event);
+ucli_return_codes_t ucli_routine(void) {
+    ucli_state = ucli_run_state(ucli_state, NULL);
+    // if (ucli_is_event_managed()) {
+    //     return UCLI_RETURN_CODE_OK;
+    // } else {
+    //     return UCLI_RETURN_CODE_BUSY;
+    // }
+    return UCLI_RETURN_CODE_OK;
 }
 
-void ucli_add_command(ucli_command_t command) {
-    ucli_dictionary_add(&commands, command.name, command.function);
+ucli_return_codes_t ucli_receive_data(char c) {
+    ucli_event_data_t event = {.data = c, .managed = false};
+
+    ucli_event_trigger(event);
+
+    return UCLI_RETURN_CODE_OK;
+}
+
+ucli_return_codes_t ucli_add_command(ucli_command_t command) {
+    if (ucli_dictionary_add(&commands, command.name, command.function) !=
+        UCLI_DICTIONARY_RETURN_CODE_OK) {
+        return UCLI_RETURN_CODE_MAX_COMMANDS_N_REACHED;
+    }
+
+    return UCLI_RETURN_CODE_OK;
 }
 
 // === Private functions ===

@@ -24,6 +24,13 @@
 
 // === Public types ===
 
+typedef enum {
+    UCLI_RETURN_CODE_OK,
+    UCLI_RETURN_CODE_BUSY,
+    UCLI_RETURN_CODE_MAX_COMMANDS_N_REACHED,
+    UCLI_RETURN_CODE_ERROR,
+} ucli_return_codes_t;
+
 typedef struct {
     void (*send)(char* message, size_t size);
     void (*cs_enter)(void);
@@ -40,9 +47,9 @@ typedef struct {
 
 // === Public functions ===
 
-void ucli_init(ucli_handler_t ucli_handler);
-void ucli_routine(void);
-void ucli_receive_data(char c);
-void ucli_add_command(ucli_command_t command);
+ucli_return_codes_t ucli_init(ucli_handler_t ucli_handler);
+ucli_return_codes_t ucli_routine(void);
+ucli_return_codes_t ucli_receive_data(char c);
+ucli_return_codes_t ucli_add_command(ucli_command_t command);
 
 #endif // UCLI_H

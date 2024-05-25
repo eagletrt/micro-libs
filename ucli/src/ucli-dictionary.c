@@ -67,13 +67,15 @@ uint8_t _ucli_dictionary_get_bucket(char* key) {
 
 // === Public Functions ===
 
-void ucli_dictionary_init(ucli_dictionary_t* dict) {
+ucli_dictionary_return_code_t ucli_dictionary_init(ucli_dictionary_t* dict) {
     for (size_t i = 0; i < BUCKETS_N; i++) {
         for (size_t j = 0; j < BUCKETS_SIZE; j++) {
             memset(dict->buckets[i][j].key, '\0', UCLI_ARGS_LEN_MAX);
             dict->buckets[i][j].function = NULL;
         }
     }
+
+    return UCLI_DICTIONARY_RETURN_CODE_OK;
 }
 
 ucli_dictionary_return_code_t

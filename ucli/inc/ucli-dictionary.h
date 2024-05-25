@@ -39,7 +39,7 @@ typedef enum {
 
 // === Public Functions ===
 
-void ucli_dictionary_init(ucli_dictionary_t* dict);
+ucli_dictionary_return_code_t ucli_dictionary_init(ucli_dictionary_t* dict);
 ucli_dictionary_return_code_t
 ucli_dictionary_add(ucli_dictionary_t* dict, char* key,
                     ucli_command_function_t function);
