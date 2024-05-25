@@ -64,17 +64,20 @@ transition_func_t* const
 };
 
 // Triggered event
-ucli_event_data_t* ucli_fired_event = NULL;
+ucli_event_data_t ucli_triggered_event = {.managed = true};
 
-// Function to check if an event has fired
-inline bool ucli_is_event_triggered() { return ucli_fired_event != NULL; }
+// Function to check if an event has been managed
+bool ucli_is_event_managed(void) { return ucli_triggered_event.managed; }
 
 // Function to trigger an event
-inline void ucli_event_trigger(ucli_event_data_t* event) {
-    if (ucli_fired_event != NULL)
+void ucli_event_trigger(ucli_event_data_t event) {
+    if (!ucli_triggered_event.managed) {
         return;
-    ucli_fired_event = event ? event : &(ucli_event_data_t){};
+    }
+    ucli_triggered_event = event;
 }
+
+inline void ucli_event_reset(void) { ucli_triggered_event.managed = true; }
 
 /*  ____  _        _
  * / ___|| |_ __ _| |_ ___
@@ -127,8 +130,9 @@ ucli_state_t ucli_do_idle(ucli_state_data_t* data) {
 
     /*** USER CODE BEGIN DO_IDLE ***/
 
-    if (ucli_is_event_triggered()) {
-        char c = ucli_fired_event->character;
+    if (!ucli_is_event_managed()) {
+        char c = ucli_triggered_event.data;
+        ucli_event_reset();
 
         if (_ucli_get_echo_setting_status()) {
             _ucli_send_message(&c, 1);
@@ -162,6 +166,8 @@ ucli_state_t ucli_do_idle(ucli_state_data_t* data) {
             _ucli_send_error_message(UCLI_ERROR_UNKNOWN_CHAR);
             next_state = UCLI_STATE_DROP;
         }
+
+        // HAL_UART_Receive_IT(&huart2, &serial_rx_buffer, 1);
     }
 
     /*** USER CODE END DO_IDLE ***/
@@ -362,18 +368,14 @@ void ucli_exec_to_idle(ucli_state_data_t* data) {
  */
 
 ucli_state_t ucli_run_state(ucli_state_t cur_state, ucli_state_data_t* data) {
-    ucli_event_data_t* prev_ev = ucli_fired_event;
     ucli_state_t new_state = ucli_state_table[cur_state](data);
-    // Reset event status
-    if (prev_ev != NULL)
-        ucli_fired_event = NULL;
     if (new_state == UCLI_NO_CHANGE)
         new_state = cur_state;
     transition_func_t* transition = ucli_transition_table[cur_state][new_state];
     if (transition)
         transition(data);
     return new_state;
-};
+}
 
 #ifdef TEST_MAIN
 #include <unistd.h>

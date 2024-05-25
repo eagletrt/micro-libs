@@ -42,7 +42,8 @@ typedef void ucli_state_data_t;
 typedef struct {
 
     /*** USER CODE BEGIN EVENT_DATA ***/
-    char character;
+    char data;
+    bool managed;
     /*** USER CODE END EVENT_DATA ***/
 
 } ucli_event_data_t;
@@ -68,8 +69,8 @@ typedef ucli_state_t state_func_t(ucli_state_data_t* data);
 typedef void transition_func_t(ucli_state_data_t* data);
 
 // Functions to check and trigger an event
-bool ucli_is_event_triggered();
-void ucli_event_trigger(ucli_event_data_t* event);
+bool ucli_is_event_managed(void);
+void ucli_event_trigger(ucli_event_data_t event);
 
 // State functions
 
