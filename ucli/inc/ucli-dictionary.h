@@ -14,8 +14,8 @@
 
 // === Parameters ===
 
-#define BUCKETS_N 10
-#define BUCKETS_SIZE 3
+#define BUCKETS_N 15
+#define BUCKETS_SIZE 5
 
 // === Private Types ===
 
