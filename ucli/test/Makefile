@@ -35,7 +35,7 @@ C_DEFINES= \
 UNITY_OUTPUT_COLOR=1
 
 
-CFLAGS=$(addprefix -I,$(C_INCLUDES)) $(OPT) -Wall $(addprefix -D,$(C_DEFINES))
+CFLAGS=$(addprefix -I,$(C_INCLUDES)) $(OPT) -Wall -std=c17 $(addprefix -D,$(C_DEFINES))
 
 # List of object files
 C_OBJECTS=$(addprefix $(BUILD_DIR)/, $(notdir $(C_SOURCES:.c=.o)))
