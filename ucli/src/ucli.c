@@ -65,6 +65,8 @@ void _ucli_send_message(char* message, size_t size) {
     handler.send(message, size);
 }
 
+void _ucli_send_prompt(void) { _ucli_send_message(UCLI_PROMPT, 2); }
+
 char* _ucli_get_error_message(UCLI_ERRORS error) {
     static char* buffer_is_full_error_message = "Buffer is full";
     static char* unknown_char_error_message = "Unknown char";

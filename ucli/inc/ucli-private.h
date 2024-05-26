@@ -39,6 +39,7 @@ extern ucli_dictionary_t commands;
 bool _ucli_is_printable_char(char c);
 bool _ucli_is_control_char(char c);
 void _ucli_send_message(char* message, size_t size);
+void _ucli_send_prompt(void);
 char* _ucli_get_error_message(UCLI_ERRORS error);
 void _ucli_send_error_message(UCLI_ERRORS error);
 bool _ucli_get_echo_setting_status(void);

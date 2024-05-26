@@ -21,6 +21,32 @@
 #define UCLI_COMMAND_N 10
 #define UCLI_ARGS_N_MAX 10
 #define UCLI_ARGS_LEN_MAX 10
+#define UCLI_PROMPT ("> ")
+
+// clang-format off
+//             ________    ____
+//      __  __/ ____/ /   /  _/
+//     / / / / /   / /    / /
+//    / /_/ / /___/ /____/ /
+//   / ____/\____/_____/___/
+//  / /
+// /_/
+
+#define WELCOME_MESSAGE     \
+"\
+\r\n\
+            ________    ____\r\n\
+     __  __/ ____/ /   /  _/\r\n\
+    / / / / /   / /    / /\r\n\
+   / /_/ / /___/ /____/ /\r\n\
+  / ____/\\____/_____/___/\r\n\
+ / /\r\n\
+/_/\r\n\
+\n\
+# The new generation CLI!\r\n\
+\n\
+"
+// clang-format on
 
 // === Public types ===
 

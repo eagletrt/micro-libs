@@ -100,11 +100,11 @@ extern state_func_t* const ucli_state_table[UCLI_NUM_STATES];
 
 // Transition functions
 void ucli_init_to_idle(ucli_state_data_t* data);
-void ucli_drop(ucli_state_data_t* data);
-void ucli_parse(ucli_state_data_t* data);
+void ucli_idle_to_drop(ucli_state_data_t* data);
+void ucli_idle_to_parse(ucli_state_data_t* data);
 void ucli_drop_to_idle(ucli_state_data_t* data);
 void ucli_parse_to_idle(ucli_state_data_t* data);
-void ucli_exec(ucli_state_data_t* data);
+void ucli_parse_to_exec(ucli_state_data_t* data);
 void ucli_exec_to_idle(ucli_state_data_t* data);
 
 // Table of transition functions

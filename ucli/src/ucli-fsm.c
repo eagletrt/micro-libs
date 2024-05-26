@@ -57,9 +57,10 @@ transition_func_t* const
         /* states:     init                , idle                , drop , parse
            , exec                 */
         /* init    */ {NULL, ucli_init_to_idle, NULL, NULL, NULL},
-        /* idle    */ {NULL, NULL, ucli_drop, ucli_parse, NULL},
+        /* idle    */ {NULL, NULL, ucli_idle_to_drop, ucli_idle_to_parse, NULL},
         /* drop    */ {NULL, ucli_drop_to_idle, NULL, NULL, NULL},
-        /* parse   */ {NULL, ucli_parse_to_idle, NULL, NULL, ucli_exec},
+        /* parse   */
+        {NULL, ucli_parse_to_idle, NULL, NULL, ucli_parse_to_exec},
         /* exec    */ {NULL, ucli_exec_to_idle, NULL, NULL, NULL},
 };
 
@@ -100,14 +101,7 @@ ucli_state_t ucli_do_init(ucli_state_data_t* data) {
     ucli_state_t next_state = UCLI_STATE_IDLE;
 
     /*** USER CODE BEGIN DO_INIT ***/
-    char* welcome_message = "\
-\r\n\
-==================================\r\n\
-microCLI # the new generation CLI!\r\n\
-==================================\r\n\
-\r\n\
-";
-    _ucli_send_message(welcome_message, strlen(welcome_message));
+    _ucli_send_message(WELCOME_MESSAGE, strlen(WELCOME_MESSAGE));
 
     ring_buffer_init(&buffer, char, UCLI_BUFFER_LEN, _ucli_cs_enter,
                      _ucli_cs_exit);
@@ -153,8 +147,10 @@ ucli_state_t ucli_do_idle(ucli_state_data_t* data) {
                     if (_ucli_get_echo_setting_status()) {
                         _ucli_send_message(" \b", 2);
                     }
-                    ucli_event_status_reset();
+                } else {
+                    _ucli_send_message(" ", 1);
                 }
+                ucli_event_status_reset();
                 break;
             case CONTROL_CHAR_LINE_FEED:
             case CONTROL_CHAR_CARRIAGE_RETURN:
@@ -301,13 +297,13 @@ ucli_state_t ucli_do_exec(ucli_state_data_t* data) {
 void ucli_init_to_idle(ucli_state_data_t* data) {
 
     /*** USER CODE BEGIN INIT_TO_IDLE ***/
-
+    _ucli_send_prompt();
     /*** USER CODE END INIT_TO_IDLE ***/
 }
 
 // This function is called in 1 transition:
 // 1. from idle to drop
-void ucli_drop(ucli_state_data_t* data) {
+void ucli_idle_to_drop(ucli_state_data_t* data) {
 
     /*** USER CODE BEGIN DROP ***/
 
@@ -316,7 +312,7 @@ void ucli_drop(ucli_state_data_t* data) {
 
 // This function is called in 1 transition:
 // 1. from idle to parse
-void ucli_parse(ucli_state_data_t* data) {
+void ucli_idle_to_parse(ucli_state_data_t* data) {
 
     /*** USER CODE BEGIN PARSE ***/
 
@@ -328,7 +324,7 @@ void ucli_parse(ucli_state_data_t* data) {
 void ucli_drop_to_idle(ucli_state_data_t* data) {
 
     /*** USER CODE BEGIN DROP_TO_IDLE ***/
-
+    _ucli_send_prompt();
     /*** USER CODE END DROP_TO_IDLE ***/
 }
 
@@ -337,13 +333,13 @@ void ucli_drop_to_idle(ucli_state_data_t* data) {
 void ucli_parse_to_idle(ucli_state_data_t* data) {
 
     /*** USER CODE BEGIN PARSE_TO_IDLE ***/
-
+    _ucli_send_prompt();
     /*** USER CODE END PARSE_TO_IDLE ***/
 }
 
 // This function is called in 1 transition:
 // 1. from parse to exec
-void ucli_exec(ucli_state_data_t* data) {
+void ucli_parse_to_exec(ucli_state_data_t* data) {
 
     /*** USER CODE BEGIN RUN ***/
 
@@ -355,7 +351,7 @@ void ucli_exec(ucli_state_data_t* data) {
 void ucli_exec_to_idle(ucli_state_data_t* data) {
 
     /*** USER CODE BEGIN RUN_TO_IDLE ***/
-
+    _ucli_send_prompt();
     /*** USER CODE END RUN_TO_IDLE ***/
 }
 
