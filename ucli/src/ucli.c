@@ -51,8 +51,12 @@ ucli_return_codes_t ucli_receive_data(char c) {
 }
 
 ucli_return_codes_t ucli_add_command(ucli_command_t command) {
-    if (ucli_dictionary_add(&commands, command.name, command.function) !=
-        UCLI_DICTIONARY_RETURN_CODE_OK) {
+    ucli_dictionary_return_code_t result =
+        ucli_dictionary_add(&commands, command.name, command.function);
+
+    if (result == UCLI_DICTIONARY_RETURN_CODE_FUN_PTR_IS_NULL) {
+        return UCLI_RETURN_CODE_FUN_PTR_IS_NULL;
+    } else if (result == UCLI_DICTIONARY_RETURN_CODE_FULL) {
         return UCLI_RETURN_CODE_MAX_COMMANDS_N_REACHED;
     }
 

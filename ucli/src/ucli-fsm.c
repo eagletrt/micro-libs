@@ -259,8 +259,13 @@ ucli_state_t ucli_do_exec(ucli_state_data_t* data) {
     /*** USER CODE BEGIN DO_RUN ***/
 
     ucli_command_function_t exec = NULL;
-    ucli_dictionary_get(&commands, parsed_command.command, &exec);
-    exec(parsed_command.argc, parsed_command.args);
+
+    if (ucli_dictionary_get(&commands, parsed_command.command, &exec) ==
+        UCLI_DICTIONARY_RETURN_CODE_OK) {
+        exec(parsed_command.argc, parsed_command.args);
+    } else {
+        _ucli_send_error_message(UCLI_ERROR_UNKNOWN);
+    }
 
     next_state = UCLI_STATE_IDLE;
     ucli_event_status_reset();

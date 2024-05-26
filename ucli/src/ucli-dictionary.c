@@ -101,10 +101,6 @@ ucli_dictionary_add(ucli_dictionary_t* dict, char* key,
 ucli_dictionary_return_code_t
 ucli_dictionary_get(ucli_dictionary_t* dict, char* key,
                     ucli_command_function_t* function) {
-    if (function == NULL) {
-        return UCLI_DICTIONARY_RETURN_CODE_FUN_PTR_IS_NULL;
-    }
-
     uint8_t bucket = _ucli_dictionary_get_bucket(key);
 
     for (size_t i = 0; i < BUCKETS_SIZE; i++) {

@@ -64,6 +64,9 @@ void test_dict_add(void) {
     ucli_dictionary_return_code_t result = UCLI_DICTIONARY_RETURN_CODE_ERROR;
     char* key = "echo";
 
+    result = ucli_dictionary_add(&dict, key, NULL);
+    TEST_ASSERT_EQUAL_INT(UCLI_DICTIONARY_RETURN_CODE_FUN_PTR_IS_NULL, result);
+
     result = ucli_dictionary_add(&dict, key, &echo);
     TEST_ASSERT_EQUAL_INT(UCLI_DICTIONARY_RETURN_CODE_OK, result);
 }
