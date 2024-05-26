@@ -101,7 +101,7 @@ cat > "$LIB_DIR/$LIB_NAME.mk" <<EOF
 ${MK_VAR_PREFIX}_DIR := \$(dir \$(abspath \$(lastword \$(MAKEFILE_LIST))))
 
 ###############################################################################
-### SOURCES    								                                ###
+### SOURCES                                                                 ###
 ###############################################################################
 
 # List of all the library sources
