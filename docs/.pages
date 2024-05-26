@@ -8,3 +8,4 @@ nav:
     - min-heap
     - ring-buffer
 
+    - ucli

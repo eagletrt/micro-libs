@@ -1,0 +1,22 @@
+digraph "ucli" {
+    init
+    idle
+    drop
+    parse
+    exec
+
+    init -> idle [label="init_to_idle"]
+
+    idle -> idle
+    idle -> drop [label="drop"]
+    idle -> parse [label="parse"]
+
+    drop -> drop
+    drop -> idle [label="drop_to_idle"]
+
+    parse -> idle [label="parse_to_idle"]
+    parse -> exec [label="execute"]
+
+    exec -> exec
+    exec -> idle [label="execute_to_idle"]
+}

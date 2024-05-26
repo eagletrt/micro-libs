@@ -153,7 +153,7 @@ typedef enum {
  * @brief Insert an element af the end of the buffer
  *
  * @param buffer The buffer handler structure
- * @param item A pointer to the item to insert
+ * @param item A pointer to the item to insertdum
  * @return RingBufferReturnCode
  *     - RING_BUFFER_NULL if the buffer handler or the item are NULL
  *     - RING_BUFFER_FULL if the buffer is full
