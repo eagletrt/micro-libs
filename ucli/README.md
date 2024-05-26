@@ -60,6 +60,8 @@ void cs_exit(void) {
 
 // Hardware dependent functions for sending and receiving data trough serial
 
+void serial_rx(void) { HAL_UART_Receive_IT(&huart2, &serial_rx_buffer, 1); }
+
 #define SERIAL_TIMEOUT 100
 void serial_tx(char* message, size_t size) {
     while (!(huart2.gState == HAL_UART_STATE_READY))
@@ -94,6 +96,7 @@ void print(int argc, char args[][10]) {
 
 int main(void) {
     ucli_handler_t ucli_handler = {
+        .enable_receive = &serial_rx,
         .send = &serial_tx,
         .cs_enter = &cs_enter,
         .cs_exit = &cs_exit,
@@ -109,12 +112,10 @@ int main(void) {
         return 1;
     }
 
-    HAL_UART_Receive_IT(&huart2, &serial_rx_buffer, 1);
+    serial_rx();
 
     while (1) {
-        if (ucli_routine() == UCLI_RETURN_CODE_OK) {
-            HAL_UART_Receive_IT(&huart2, &serial_rx_buffer, 1);
-        }
+        ucli_routine();
     }
 }
 ```
