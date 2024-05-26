@@ -36,6 +36,7 @@ ucli_return_codes_t ucli_init(ucli_handler_t ucli_handler) {
 ucli_return_codes_t ucli_routine(void) {
     ucli_state = ucli_run_state(ucli_state, NULL);
     if (ucli_is_event_managed()) {
+        handler.enable_receive();
         return UCLI_RETURN_CODE_OK;
     } else {
         return UCLI_RETURN_CODE_BUSY;

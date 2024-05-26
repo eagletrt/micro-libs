@@ -59,6 +59,7 @@ typedef enum {
 } ucli_return_codes_t;
 
 typedef struct {
+    void (*enable_receive)(void);
     void (*send)(char* message, size_t size);
     void (*cs_enter)(void); // Can be left NULL
     void (*cs_exit)(void);  // Can be left NULL
