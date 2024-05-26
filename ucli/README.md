@@ -25,7 +25,7 @@ Coded by
 > #define BUCKETS_SIZE 5
 > ```
 >
-> I tested this parameters and they are a good default up to `30` commands.
+> I tested this parameters and they are a good default up to `30+` commands.
 
 > [!IMPORTANT]
 > If you find a bug please open an issue and assign it to me.

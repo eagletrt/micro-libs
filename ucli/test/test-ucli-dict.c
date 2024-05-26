@@ -40,6 +40,8 @@ void test_buckets_size(void) {
     for (size_t i = 0; i < BUCKETS_N; i++) {
         TEST_ASSERT_LESS_OR_EQUAL_INT32(BUCKETS_SIZE, buckets[i]);
     }
+
+#undef COMMANDS_N
 }
 
 void test_dict_init(void) {
@@ -53,18 +55,23 @@ void test_dict_init(void) {
             TEST_ASSERT_EQUAL_PTR(NULL, dict.buckets[i][j].function);
         }
     }
+
+#undef BUCKETS_N
+#undef BUCKETS_SIZE
 }
 
-void test_dict_edit(void) {
-    char* key = "echo";
+void test_dict_add(void) {
     ucli_dictionary_return_code_t result = UCLI_DICTIONARY_RETURN_CODE_ERROR;
-    ucli_command_function_t function = NULL;
-
-    result = ucli_dictionary_get(&dict, key, NULL);
-    TEST_ASSERT_EQUAL_INT(UCLI_DICTIONARY_RETURN_CODE_NOT_FOUND, result);
+    char* key = "echo";
 
     result = ucli_dictionary_add(&dict, key, &echo);
     TEST_ASSERT_EQUAL_INT(UCLI_DICTIONARY_RETURN_CODE_OK, result);
+}
+
+void test_dict_get(void) {
+    ucli_dictionary_return_code_t result = UCLI_DICTIONARY_RETURN_CODE_ERROR;
+    char* key = "echo";
+    ucli_command_function_t function = NULL;
 
     result = ucli_dictionary_get(&dict, key, &function);
     TEST_ASSERT_EQUAL_INT(UCLI_DICTIONARY_RETURN_CODE_OK, result);
@@ -73,12 +80,55 @@ void test_dict_edit(void) {
 }
 
 void test_dict_contains(void) {
-    char* key = "echo";
     ucli_dictionary_return_code_t result = UCLI_DICTIONARY_RETURN_CODE_ERROR;
+    char* key = "echo";
 
     result = ucli_dictionary_contains_key(&dict, key);
 
     TEST_ASSERT_EQUAL_INT(UCLI_DICTIONARY_RETURN_CODE_OK, result);
+}
+
+void chmod(int argc, char args[][10]) {}
+void ifconfig(int argc, char args[][10]) {}
+void cat(int argc, char args[][10]) {}
+void test_dict_probing(void) {
+#define COMMANDS_N 3
+#define COLLISION_BUCKET 12
+
+    ucli_dictionary_return_code_t result = UCLI_DICTIONARY_RETURN_CODE_ERROR;
+
+    ucli_command_t commands[COMMANDS_N] = {
+        {.name = "chmod", .function = &chmod},
+        {.name = "ifconfig", .function = &ifconfig},
+        {.name = "cat", .function = &cat}};
+
+    for (size_t i = 0; i < COMMANDS_N; i++) {
+        result =
+            ucli_dictionary_add(&dict, commands[i].name, commands[i].function);
+        TEST_ASSERT_EQUAL_INT(UCLI_DICTIONARY_RETURN_CODE_OK, result);
+    }
+
+    for (size_t i = 0; i < COMMANDS_N; i++) {
+        TEST_ASSERT_EQUAL_CHAR_ARRAY(commands[i].name,
+                                     dict.buckets[COLLISION_BUCKET][i].key, 10);
+        TEST_ASSERT_EQUAL_PTR(commands[i].function,
+                              dict.buckets[COLLISION_BUCKET][i].function);
+    }
+
+    for (size_t i = 0; i < COMMANDS_N; i++) {
+        result = ucli_dictionary_contains_key(&dict, commands[i].name);
+        TEST_ASSERT_EQUAL_INT(UCLI_DICTIONARY_RETURN_CODE_OK, result);
+    }
+
+    for (size_t i = 0; i < COMMANDS_N; i++) {
+        ucli_command_function_t function = NULL;
+        result = ucli_dictionary_get(&dict, commands[i].name, &function);
+        TEST_ASSERT_EQUAL_INT(UCLI_DICTIONARY_RETURN_CODE_OK, result);
+        TEST_ASSERT_EQUAL_PTR(commands[i].function, function);
+    }
+
+#undef COMMANDS_N
+#undef COLLISION_BUCKET
 }
 
 int main() {
@@ -90,9 +140,13 @@ int main() {
 
     RUN_TEST(test_dict_init);
 
-    RUN_TEST(test_dict_edit);
+    RUN_TEST(test_dict_add);
+
+    RUN_TEST(test_dict_get);
 
     RUN_TEST(test_dict_contains);
+
+    RUN_TEST(test_dict_probing);
 
     UNITY_END();
 }
