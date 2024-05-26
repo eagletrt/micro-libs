@@ -77,7 +77,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart) {
 // Example of a CLI command
 
 void print(int argc, char args[][10]) {
-    if (argc > 1) {
+    if (argc == 0 || argc > 1) {
         char* error_message = "\r\nprint expects 1 argument\r\n";
         serial_tx(error_message, strlen(error_message));
     } else {
