@@ -77,7 +77,9 @@ void ucli_event_trigger(ucli_event_data_t event) {
     ucli_triggered_event = event;
 }
 
-inline void ucli_event_reset(void) { ucli_triggered_event.managed = true; }
+inline void ucli_event_status_reset(void) {
+    ucli_triggered_event.managed = true;
+}
 
 /*  ____  _        _
  * / ___|| |_ __ _| |_ ___
@@ -132,7 +134,6 @@ ucli_state_t ucli_do_idle(ucli_state_data_t* data) {
 
     if (!ucli_is_event_managed()) {
         char c = ucli_triggered_event.data;
-        ucli_event_reset();
 
         if (_ucli_get_echo_setting_status()) {
             _ucli_send_message(&c, 1);
@@ -142,6 +143,8 @@ ucli_state_t ucli_do_idle(ucli_state_data_t* data) {
             if (ring_buffer_push_back(&buffer, &c) == RING_BUFFER_FULL) {
                 _ucli_send_error_message(UCLI_ERROR_FULL_BUFFER);
                 next_state = UCLI_STATE_DROP;
+            } else {
+                ucli_event_status_reset();
             }
         } else if (_ucli_is_control_char(c)) {
             switch (c) {
@@ -150,6 +153,7 @@ ucli_state_t ucli_do_idle(ucli_state_data_t* data) {
                     if (_ucli_get_echo_setting_status()) {
                         _ucli_send_message(" \b", 2);
                     }
+                    ucli_event_status_reset();
                 }
                 break;
             case CONTROL_CHAR_LINE_FEED:
@@ -166,8 +170,6 @@ ucli_state_t ucli_do_idle(ucli_state_data_t* data) {
             _ucli_send_error_message(UCLI_ERROR_UNKNOWN_CHAR);
             next_state = UCLI_STATE_DROP;
         }
-
-        // HAL_UART_Receive_IT(&huart2, &serial_rx_buffer, 1);
     }
 
     /*** USER CODE END DO_IDLE ***/
@@ -198,6 +200,8 @@ ucli_state_t ucli_do_drop(ucli_state_data_t* data) {
     } else {
         next_state = UCLI_STATE_IDLE;
     }
+
+    ucli_event_status_reset();
 
     /*** USER CODE END DO_DROP ***/
 
@@ -235,6 +239,7 @@ ucli_state_t ucli_do_parse(ucli_state_data_t* data) {
     } else {
         _ucli_send_error_message(UCLI_ERROR_UNKNOWN_COMMAND);
         next_state = UCLI_STATE_IDLE;
+        ucli_event_status_reset();
     }
 
     /*** USER CODE END DO_PARSE ***/
@@ -262,6 +267,7 @@ ucli_state_t ucli_do_exec(ucli_state_data_t* data) {
     exec(parsed_command.argc, parsed_command.args);
 
     next_state = UCLI_STATE_IDLE;
+    ucli_event_status_reset();
 
     /*** USER CODE END DO_RUN ***/
 

@@ -33,8 +33,8 @@ typedef enum {
 
 typedef struct {
     void (*send)(char* message, size_t size);
-    void (*cs_enter)(void);
-    void (*cs_exit)(void);
+    void (*cs_enter)(void); // Can be left NULL
+    void (*cs_exit)(void);  // Can be left NULL
     bool echo;
 } ucli_handler_t;
 
