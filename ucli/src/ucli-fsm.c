@@ -154,7 +154,13 @@ ucli_state_t ucli_do_idle(ucli_state_data_t* data) {
                 break;
             case CONTROL_CHAR_LINE_FEED:
             case CONTROL_CHAR_CARRIAGE_RETURN:
-                next_state = UCLI_STATE_PARSE;
+                if (!ring_buffer_is_empty(&buffer)) {
+                    next_state = UCLI_STATE_PARSE;
+                } else {
+                    _ucli_send_message("\n", 1);
+                    _ucli_send_prompt();
+                    ucli_event_status_reset();
+                }
                 break;
 
             default:
