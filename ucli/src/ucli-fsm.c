@@ -78,7 +78,8 @@ void ucli_event_trigger(ucli_event_data_t event) {
     ucli_triggered_event = event;
 }
 
-inline void ucli_event_status_reset(void) {
+void ucli_event_status_reset(void) {
+    _ucli_enable_receive();
     ucli_triggered_event.managed = true;
 }
 

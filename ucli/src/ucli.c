@@ -36,7 +36,6 @@ ucli_return_codes_t ucli_init(ucli_handler_t ucli_handler) {
 ucli_return_codes_t ucli_routine(void) {
     ucli_state = ucli_run_state(ucli_state, NULL);
     if (ucli_is_event_managed()) {
-        handler.enable_receive();
         return UCLI_RETURN_CODE_OK;
     } else {
         return UCLI_RETURN_CODE_BUSY;
@@ -65,6 +64,10 @@ ucli_return_codes_t ucli_add_command(ucli_command_t command) {
 }
 
 // === Private functions ===
+
+void _ucli_enable_receive(void) {
+    handler.enable_receive();
+}
 
 void _ucli_send_message(char* message, size_t size) {
     handler.send(message, size);
