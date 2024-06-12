@@ -13,6 +13,7 @@ void pid_init(PidController_t *pid_controller,
     pid_controller->ki = ki;
     pid_controller->kd = kd;
     pid_controller->integrator = 0.0;
+    pid_controller->prev_errors = prev_errors;
     pid_controller->n_prev_errors = n_prev_errors;
     pid_controller->prev_error_index = pid_controller->n_prev_errors - 1;
     for (int i = 0; i < pid_controller->n_prev_errors; ++i) {
