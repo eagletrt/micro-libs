@@ -1,7 +1,6 @@
 #ifndef _PID_H_
 #define _PID_H_
 
-#include <stdbool.h>
 #include <stdint.h>
 
 // #define PID_ERRORS_VECTOR
@@ -25,7 +24,7 @@ typedef struct pidController_t{
 } PidController_t;
 
 #ifdef PID_ERRORS_VECTOR
-void pid_init(PidController_t pid_controller,
+void pid_init(PidController_t *pid_controller,
               float kp,
               float ki,
               float kd,
@@ -34,7 +33,7 @@ void pid_init(PidController_t pid_controller,
               float *prev_errors,
               uint8_t n_prev_errors);
 #else
-void pid_init(PidController_t pid_controller,
+void pid_init(PidController_t *pid_controller,
               float kp,
               float ki,
               float kd,
@@ -42,8 +41,8 @@ void pid_init(PidController_t pid_controller,
               float anti_windUp);
 #endif
 
-void pid_update(PidController_t pid_controller, float status);
-float pid_compute(PidController_t pid_controller);
-void pid_reset(PidController_t pid_controller);
+void pid_update(PidController_t *pid_controller, float status);
+float pid_compute(PidController_t *pid_controller);
+void pid_reset(PidController_t *pid_controller);
 
 #endif
