@@ -58,5 +58,5 @@ build/
 # Miscellaneous
 .clang-format
 .vscode/
-.SD_Store
+.DS_Store
 compile_commands.json
