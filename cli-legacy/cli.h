@@ -10,7 +10,7 @@
 
 #ifndef CLI_H
 #define CLI_H
-#include "../llist/llist.h"
+#include "../llist-legacy/llist.h"
 #include "main.h"
 
 #include <inttypes.h>
