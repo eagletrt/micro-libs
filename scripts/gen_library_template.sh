@@ -114,7 +114,7 @@ ${MK_VAR_PREFIX}_C_SOURCES?=\$(shell find \$(${MK_VAR_PREFIX}_DIR)src -name "*.c
 # List of all the library include directories
 ${MK_VAR_PREFIX}_C_INCLUDE_DIRS?=\$(shell find \$(${MK_VAR_PREFIX}_DIR)inc -type d)
 # List of all the library include directories with the -I prefix
-${MK_VAR_PREFIX}_C_INCLUDE_DIRS_PREFIX?=\$(addprefix -I, \$(${MK_VAR_PREFIX}_C_INCLUDES))
+${MK_VAR_PREFIX}_C_INCLUDE_DIRS_PREFIX?=\$(addprefix -I, \$(${MK_VAR_PREFIX}_C_INCLUDE_DIRS))
 
 EOF
 

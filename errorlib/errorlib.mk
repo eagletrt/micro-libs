@@ -30,5 +30,5 @@ ERRORLIB_C_SOURCES?=$(shell find $(ERRORLIB_DIR)src -name "*.c")
 # List of all the library include directories
 ERRORLIB_C_INCLUDE_DIRS?=$(shell find $(ERRORLIB_DIR)inc -type d)
 # List of all the library include directories with the -I prefix
-ERRORLIB_C_INCLUDE_DIRS_PREFIX?=$(addprefix -I, $(ERRORLIB_C_INCLUDES))
+ERRORLIB_C_INCLUDE_DIRS_PREFIX?=$(addprefix -I, $(ERRORLIB_C_INCLUDE_DIRS))
 
