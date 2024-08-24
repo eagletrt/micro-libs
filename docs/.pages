@@ -9,3 +9,4 @@ nav:
     - ring-buffer
 
     - ucli
+    - errorlib
