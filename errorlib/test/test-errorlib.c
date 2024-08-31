@@ -227,6 +227,32 @@ void test_errorlib_error_get_status_when_negative(void) {
     TEST_ASSERT_EQUAL_INT(ERRORLIB_STATUS_EXPIRED, status);
 }
 
+void test_errorlib_get_expired_info_group(void) {
+    const errorlib_error_group_t group = ERROR_GROUP_FIRST;
+    const errorlib_error_instance_t inst = 0U;
+    for (size_t i = 0U; i < thresholds[group]; ++i)
+        errorlib_error_set(
+            &herr,
+            group,
+            inst
+        );
+    ErrorInfo info = errorlib_get_expired_info(&herr);
+    TEST_ASSERT_EQUAL_size_t(group, info.group);
+}
+
+void test_errorlib_get_expired_info_instance(void) {
+    const errorlib_error_group_t group = ERROR_GROUP_FIRST;
+    const errorlib_error_instance_t inst = 0U;
+    for (size_t i = 0U; i < thresholds[group]; ++i)
+        errorlib_error_set(
+            &herr,
+            group,
+            inst
+        );
+    ErrorInfo info = errorlib_get_expired_info(&herr);
+    TEST_ASSERT_EQUAL_size_t(inst, info.instance);
+}
+
 int main() {
     UNITY_BEGIN();
 
@@ -251,6 +277,9 @@ int main() {
     RUN_TEST(test_errorlib_error_get_status_when_positive_and_less_than_threshold);
     RUN_TEST(test_errorlib_error_get_status_when_positive_and_greater_than_threshold);
     RUN_TEST(test_errorlib_error_get_status_when_negative);
+
+    RUN_TEST(test_errorlib_get_expired_info_group);
+    RUN_TEST(test_errorlib_get_expired_info_instance);
 
     UNITY_END();
 }

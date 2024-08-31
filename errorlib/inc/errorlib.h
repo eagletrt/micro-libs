@@ -38,11 +38,23 @@ typedef enum {
 } ErrorLibStatus;
 
 /**
+ * @brief Information about a single error
+ *
+ * @param group The error group
+ * @param group The error instance number
+ */
+typedef struct {
+    errorlib_error_group_t group;
+    errorlib_error_instance_t instance;
+} ErrorInfo;
+
+/**
  * @brief Handler structure for the errors
  *
  * @param groups The total number of groups
  * @param instances The total number of instances
  * @param expired The number of expired errors
+ * @param expired_error Info about the first expired error
  * @param errors A pointer to an array of array of error instances
  * @param instances_count An array containing the total number of instances of each group
  * @param thresholds An array where containing the number that has to be reached to treat an error as expired, for each group
@@ -52,6 +64,7 @@ typedef struct {
     size_t instances;
 
     size_t expired;
+    ErrorInfo expired_error;
 
     int32_t ** errors;
     const size_t * instances_count;
@@ -142,6 +155,15 @@ ErrorLibStatus errorlib_error_get_status(
     errorlib_error_group_t group,
     errorlib_error_instance_t instance
 );
+
+/**
+ * @brief Get info about the first expired error
+ *
+ * @param handler A pointer to the error handler structure
+ *
+ * @return ErrorInfo The error info
+ */
+ErrorInfo errorlib_get_expired_info(ErrorLibHandler * handler);
 
 #endif  // ERRORLIB_H
 

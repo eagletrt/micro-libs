@@ -45,9 +45,13 @@ ErrorLibReturnCode errorlib_error_set(
     if (instance >= instances[group])
         return ERRORLIB_INVALID_INSTANCE;
     // Check if the error is expired
-    if (++handler->errors[group][instance] >= handler->thresholds[group]) {
+    if (++handler->errors[group][instance] >= (int32_t)handler->thresholds[group]) {
         ++handler->expired;
         handler->errors[group][instance] = -1;
+
+        // Update the expired error info
+        handler->expired_error.group = group;
+        handler->expired_error.instance = instance;
     }
     return ERRORLIB_OK;
 }
@@ -91,7 +95,13 @@ ErrorLibStatus errorlib_error_get_status(
     int32_t cnt = handler->errors[group][instance];
     if (cnt == 0)
         return ERRORLIB_STATUS_UNSET;
-    if (cnt < 0 || cnt >= handler->thresholds[group])
+    if (cnt < 0 || cnt >= (int32_t)handler->thresholds[group])
         return ERRORLIB_STATUS_EXPIRED;
     return ERRORLIB_STATUS_RUNNING;
+}
+
+ErrorInfo errorlib_get_expired_info(ErrorLibHandler * handler) {
+    if (handler == NULL)
+        return (ErrorInfo){ 0U };
+    return handler->expired_error;
 }
