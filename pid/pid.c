@@ -1,4 +1,5 @@
 #include "pid.h"
+#include <math.h>
 
 #ifdef PID_ERRORS_VECTOR
 void pid_init(PidController_t *pid_controller,
@@ -48,10 +49,17 @@ void pid_update(PidController_t *pid_controller, float status) {
     pid_controller->prev_error_index = (pid_controller->prev_error_index + 1) % pid_controller->n_prev_errors;
     pid_controller->prev_errors[pid_controller->prev_error_index] = pid_controller->error;
     #else
-    pid_controller->prev_error = pid_controller->prev_error;
+    pid_controller->prev_error = pid_controller->error;
     #endif
     pid_controller->error = pid_controller->set_point - status;
     pid_controller->integrator += pid_controller->error * pid_controller->sample_time;
+    if (fabs(pid_controller->ki) > 0.0001) {
+        if (pid_controller->integrator*pid_controller->ki > pid_controller->anti_windUp) {
+            pid_controller->integrator = pid_controller->anti_windUp/pid_controller->ki;
+        } else if (pid_controller->integrator*pid_controller->ki < -pid_controller->anti_windUp) {
+            pid_controller->integrator = -pid_controller->anti_windUp/pid_controller->ki;
+        }
+    }
 }
 
 float pid_compute(PidController_t *pid_controller) {
@@ -62,11 +70,7 @@ float pid_compute(PidController_t *pid_controller) {
     float derivative = (pid_controller->error - pid_controller->prev_error) / pid_controller->sample_time;
     #endif
     float integral = pid_controller->ki * pid_controller->integrator;
-    if (integral > pid_controller->anti_windUp) {
-        integral = pid_controller->anti_windUp;
-    } else if (integral < -pid_controller->anti_windUp) {
-        integral = -pid_controller->anti_windUp;
-    }
+
     float value = pid_controller->kp * pid_controller->error + integral + pid_controller->kd * derivative;
     return value;
 }
